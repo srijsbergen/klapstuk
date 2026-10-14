@@ -161,7 +161,7 @@ window.KlapP2P = (() => {
     return new Promise((resolve, reject) => {
       const peer = isHost ? new window.Peer(hostId, PEER_OPTS) : new window.Peer(PEER_OPTS);
       const peers = new Map(), conns = new Map(), listeners = new Set(), connListeners = new Set();
-      let myId = null, myPres = {}, frozen = null, sendTimer = null, settled = false, closed = false;
+      let myId = null, myPres = {}, frozen = null, sendTimer = null, selfTimer = null, settled = false, closed = false;
 
       const snapshot = () => frozen || (frozen = Object.freeze([...peers.entries()].map(([id, v]) => Object.freeze({
         peer: id, by: null, isMe: id === myId, sameTab: id === myId, kind: 'viewer', guest: false, presence: v.presence, updatedAt: v.updatedAt,
@@ -207,7 +207,9 @@ window.KlapP2P = (() => {
           if (closed) return Promise.reject(fail('invalid_argument', 'kamer gesloten'));
           const next = Object.assign({}, myPres);
           for (const k in patch) { if (patch[k] === null) delete next[k]; else next[k] = patch[k]; }
-          myPres = next; if (myId) setPresence(myId, myPres);
+          myPres = next;
+          if (myId) { peers.set(myId, { presence: Object.freeze(myPres), updatedAt: Date.now() }); frozen = null;
+            if (!selfTimer) selfTimer = setTimeout(() => { selfTimer = null; if (!closed) notify([], [], [myId]); }, 0); }
           if (!sendTimer) sendTimer = setTimeout(flush, 33);
           return Promise.resolve();
         },
@@ -2730,11 +2732,13 @@ function netPeers(ch) {
   if (NET.role === 'host') {
     for (const p of ch.joined) if (!NET.ord.includes(p.peer)) NET.ord.push(p.peer);
     for (const p of ch.left) { NET.ord = NET.ord.filter(x => x !== p.peer); netDropPlayer(p.peer); }
-    if (ch.joined.length || ch.left.length || ch.updated.length) { if (!G.net) hostLobbyPresence(); renderLobby(); }
+    const others = ch.updated.filter(p => !p.sameTab);
+    if (ch.joined.length || ch.left.length) { if (!G.net) hostLobbyPresence(); }
+    if (ch.joined.length || ch.left.length || others.length) renderLobby();
   } else if (NET.role === 'guest') {
     const h = ch.peers.find(p => !p.sameTab && p.presence && p.presence.role === 'host');
     if (h) { NET.joinedOk = true; NET.misses = 0; guestFromHost(h.presence); }
-    if (ch.joined.length || ch.left.length || (h && ch.updated.includes(h) && !G.netClient) || ch.updated.length) renderLobby();
+    if (ch.joined.length || ch.left.length || ch.updated.some(p => !p.sameTab)) renderLobby();
   }
 }
 async function netHost() {
