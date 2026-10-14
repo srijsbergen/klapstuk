@@ -2,7 +2,7 @@
 
 Een platformvechter voor 2 tot 4 spelers in de browser: acht vechters, zeven podia, items en CPU-tegenstanders. Speel lokaal op één toetsenbord of gamepad, of online met vrienden.
 
-De hele site is één bestand: `index.html`. Er is geen bouwstap en geen eigen server nodig.
+De hele site is één bestand: `index.html`. Lettertypen en de WebRTC-bibliotheek zitten erin; de pagina laadt niets van andere websites. Er is geen bouwstap en geen eigen server nodig.
 
 ## Online zetten
 
@@ -39,13 +39,38 @@ Er spelen maximaal 4 mensen. Wie later komt, kijkt mee. Niemand heeft een accoun
 
 ## Hoe de verbinding werkt
 
-- De browsers verbinden rechtstreeks met elkaar via **WebRTC**, met de bibliotheek [PeerJS](https://peerjs.com) 1.5.4 (geladen van unpkg.com).
+- De browsers verbinden rechtstreeks met elkaar via **WebRTC**, met de bibliotheek [PeerJS](https://peerjs.com) 1.5.4 (MIT-licentie, ingebouwd in `index.html`).
 - Om elkaar te vinden gebruiken ze de **gratis openbare signaleringsserver van PeerJS** (`0.peerjs.com`). Daarna loopt het spelverkeer direct tussen de spelers.
 - De **host** draait het echte spel en stuurt ongeveer 30 keer per seconde de stand naar de gasten. Gasten sturen alleen hun knoppen. Houd als host het tabblad op de voorgrond: browsers vertragen tabbladen op de achtergrond.
 - Voor het vinden van een route door routers gebruikt het spel de STUN-servers van Google en Cloudflare.
+- Is er een **TURN-server** ingesteld (zie hieronder), dan stuurt die het verkeer door als een directe verbinding niet lukt.
+
+## TURN-server instellen
+
+Sommige bedrijfs-, school- of mobiele netwerken blokkeren directe WebRTC-verbindingen. Een TURN-server lost dat op door het verkeer door te sturen. De vroegere gratis publieke TURN-servers bestaan niet meer: die van PeerJS (`eu-0`/`us-0.turn.peerjs.com`) hebben geen DNS-record meer, en Open Relay (`openrelay.metered.ca`) is uitgezet. Een TURN-server vraagt dus een eigen (gratis) account.
+
+De instellingen staan bovenaan het script `window.KlapP2P` in `index.html`. Zoek naar `TURN-instellingen` en vul **één** van de twee in.
+
+**Optie 1: Metered (gratis basisabonnement)**
+1. Maak een account op https://www.metered.ca/stun-turn en maak een app aan, bijvoorbeeld `klapstuk`.
+2. Maak onder *TURN Server → Credentials* een API-sleutel aan.
+3. Vul het adres in dat Metered geeft:
+   ```js
+   const TURN_CREDENTIALS_URL = 'https://klapstuk.metered.live/api/v1/turn/credentials?apiKey=JOUW_SLEUTEL';
+   ```
+
+**Optie 2: vaste gegevens** (Metered, ExpressTURN, je eigen coturn-server, …)
+```js
+const TURN_SERVERS = [{
+  urls: ['turn:HOST:80', 'turn:HOST:443?transport=tcp', 'turns:HOST:443?transport=tcp'],
+  username: 'NAAM',
+  credential: 'WACHTWOORD',
+}];
+```
+
+Let op: deze gegevens staan leesbaar in een openbare pagina. Iedereen die de bron bekijkt, kan je TURN-tegoed gebruiken. Zet bij je TURN-aanbieder daarom een limiet op het verbruik, en waar dat kan een beperking tot je eigen domein.
 
 ## Bekende beperkingen
 
-- **Strenge netwerken.** Sommige bedrijfs-, school- of mobiele netwerken blokkeren directe WebRTC-verbindingen. Daarvoor is een TURN-server nodig die het verkeer doorstuurt; die zit er nu niet in. Wil je er een toevoegen (bijvoorbeeld via Metered of Cloudflare Calls), zet hem dan bij `iceServers` in `PEER_OPTS`, bovenaan het script `window.KlapP2P` in `index.html`.
-- **Gratis signaleringsserver.** De openbare PeerJS-server heeft geen garantie op beschikbaarheid. Ligt hij plat, dan kun je wel lokaal spelen maar geen nieuwe online spellen starten. Je kunt een eigen [PeerServer](https://github.com/peers/peerjs-server) draaien en `host`/`port` toevoegen aan `PEER_OPTS`.
+- **Gratis signaleringsserver.** De openbare PeerJS-server heeft geen garantie op beschikbaarheid. Ligt hij plat, dan kun je wel lokaal spelen maar geen nieuwe online spellen starten. Je kunt een eigen [PeerServer](https://github.com/peers/peerjs-server) draaien en `host`, `port` en `path` toevoegen aan `PEER_OPTS` in het script `window.KlapP2P`.
 - **Vertraging.** Gasten zien het spel een paar frames later dan de host, en hun invoer reist eerst naar de host. Bij veel afstand of een trage verbinding voelt een gast dat.
