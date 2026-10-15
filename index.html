@@ -358,6 +358,7 @@ window.KlapP2P = (() => {
         <ul class="tips">
           <li><b>Omhoog + speciaal</b> is je herstelsprong: daarna kun je niets tot je landt of de rand pakt.</li>
           <li><b>Korte sprong</b>: tik springen kort aan, of druk springen en aanval (vrijwel) tegelijk, voor een lage sprong met meteen een luchtaanval. Houd springen vast voor een volle sprong. Land je tijdens of vlak na een luchtaanval, dan sta je bijna meteen weer klaar voor de volgende aanval.</li>
+          <li><b>Luchtaanval omlaag of omhoog</b>: omlaag + aanval geeft een dair zonder dat je snel gaat vallen, en omhoog + aanval een uair zonder je tweede sprong te verbruiken. Tik omlaag nog eens om toch snel te vallen.</li>
           <li><b>Items</b>: pak op met aanval of grijpen, gooi met grijpen (omlaag legt neer). Knuppel: aanval slaat, smash is een homerun. Straalpistool: aanval schiet, 10 schoten. Bananenschil: wie erover loopt, valt. Ster: even onkwetsbaar. Veer: twee extra sprongen. Kist: sla open voor items.</li>
           <li><b>Grijpen</b> (of schild + aanval) pakt een tegenstander op de grond vast, ook door een schild heen. Druk of houd daarna een richting om te gooien; aanval of grijpen slaat. Rennend grijpen reikt verder. Rammel op knoppen om los te komen.</li>
           <li><b>Schild + richting</b> rolt weg, <b>schild + omlaag</b> ontwijkt op de plek, <b>schild in de lucht</b> is een luchtontwijking.</li>
@@ -1749,6 +1750,10 @@ class Fighter {
   aerial() {
     const C = this.ctrl, M = this.M; let ix = this.ix, iy = this.iy;
     if (C.cp) { ix = C.cp.x; iy = C.cp.y; }
+    // without a c-stick the direction of a dair or uair also fastfalls or double jumps; undo that when the aerial follows right away
+    if (!C.cp && iy > 0) { if (this.fastfall && G.frame - (this.ffT ?? -99) <= 5) { this.fastfall = false; this.vy = Math.min(this.vy, this.ffVy); } this.ffBlock = G.frame + 3; }
+    if (!C.cp && iy < 0 && this.djTap && G.frame - this.djTap.t <= 4) { const d = this.djTap; this.jumps++; this.vx = d.vx; this.vy = d.vy; this.fastfall = d.ff; this.djT = 0; }
+    this.djTap = null;
     if (iy < 0) return this.startMove(M.uair);
     if (iy > 0) return this.startMove(M.dair);
     if (ix) return this.startMove(ix === this.facing ? M.fair : M.bair);
@@ -1770,6 +1775,7 @@ class Fighter {
   chargeMult() { const m = this.move; return m && m.charge ? 1 + (m.chargeBoost || 0.4) * this.charge / m.chargeMax : 1; }
   doMove() {
     const m = this.move, C = this.ctrl;
+    if (m === this.M.nair && this.mt <= 2 && !this.grounded && !C.cp && ((C.h.d && C.age.d <= 1) || (C.h.u && C.age.u <= 1) || (C.h.l && C.age.l <= 1) || (C.h.r && C.age.r <= 1))) return this.aerial();
     if (this.sjWin > 0) { this.sjWin--; if (this.grounded && this.mt < m.start && this.bf.jmp > 0 && C.h.jmp) { this.cons('jmp'); this.bf.atk = 7; this.jsTap = false; this.sjWin = 0; return this.setState('jumpsquat'); } }
     if (m.charge && this.mt === m.chargeAt && this.charge < m.chargeMax && (m.chargeKey === 'spc' ? C.h.spc : C.h.atk)) {
       this.charge++; if (this.grounded) this.fric(); else this.drift(0.5); return;
@@ -1780,7 +1786,7 @@ class Fighter {
     if (this.state !== 'attack' || this.move !== m) return;
     if (this.grounded) { if (!m.keepVel) this.fric(); else if (m.slide) this.vx *= m.slide; }
     else if (!m.noDrift) this.drift(m.drift ?? 1);
-    if (m.aerial && C.h.d && C.age.d <= 1 && this.vy > 0) this.fastfall = true;
+    if (m.aerial && C.h.d && C.age.d <= 1 && this.vy > 0 && G.frame > (this.ffBlock || 0)) this.fastfall = true;
     if (m.jab && this.mt > m.start + m.active && this.bf.atk > 0) { this.cons('atk'); this.jabN++; return this.startMove(this.jabN >= 2 ? this.M.jab3 : this.M.jab); }
     if (this.mt >= m.dur) this.endMove();
   }
@@ -1815,13 +1821,13 @@ class Fighter {
     if (this.bf.atk > 0 || C.cp) { this.cons('atk'); return this.aerial(); }
     if (this.cons('spc')) return this.special();
     if (this.bf.jmp > 0 && this.jumps > 0) {
-      this.cons('jmp'); this.jumps--; this.hop = null;
+      this.cons('jmp'); this.djTap = C.tapJ ? { t: G.frame, vx: this.vx, vy: this.vy, ff: this.fastfall } : null; this.jumps--; this.hop = null;
       const decay = this.key === 'pip' || this.key === 'poef' ? 1 - 0.07 * (this.c.airJumps - 1 - this.jumps) : 1;
       this.vy = -this.c.djump * decay; this.vx = this.ix * this.c.air * 0.9; this.fastfall = false; this.tumbleAnim = false; this.djT = 14;
       SFX.jump(); addP({ type: 'ring', x: this.x, y: this.y, life: 12, max: 12, size: 14, color: '#ffffff' }); return;
     }
     if (this.bf.shd > 0 && !this.airdodged) { this.cons('shd'); return this.airdodge(); }
-    if (C.h.d && C.age.d <= 1 && this.vy > -1) this.fastfall = true;
+    if (C.h.d && C.age.d <= 1 && this.vy > -1 && !this.fastfall) { this.fastfall = true; this.ffT = G.frame; this.ffVy = this.vy; }
   }
   airdodge() {
     this.airdodged = true; this.setState('airdodge'); this.fastfall = false; this.tumbleAnim = false;
