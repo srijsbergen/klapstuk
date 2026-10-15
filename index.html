@@ -82,6 +82,10 @@ details.help summary{cursor:pointer;font-weight:700}
 table{border-collapse:collapse;font-size:13.5px;min-width:520px;width:100%}
 th,td{text-align:left;padding:6px 10px 6px 0;border-bottom:1px solid var(--line);vertical-align:top}
 th{color:var(--mute);font-weight:600}
+.kb{font:inherit;font-size:12px;min-width:2.6em;background:var(--panel-2);color:var(--fg);border:1px solid var(--line);border-bottom-width:3px;border-radius:6px;padding:1px 6px;margin:1px;cursor:pointer}
+.kb.empty{opacity:.45}
+.kb.wait{outline:2px solid #ffc933;outline-offset:1px}
+.kbnote{color:var(--mute);font-size:13px;margin:8px 0}
 kbd{font-family:var(--ui);background:var(--panel-2);border:1px solid var(--line);border-bottom-width:3px;border-radius:6px;padding:0 6px;font-size:12px;white-space:nowrap}
 .tips{margin:10px 0 0;padding-left:18px;color:var(--mute);font-size:13.5px;line-height:1.55;max-width:75ch}
 .tips b{color:var(--fg)}
@@ -326,6 +330,7 @@ window.KlapP2P = (() => {
             <div class="opt"><span>Geluid</span><button class="tog" id="snd" aria-pressed="true">Aan</button></div>
           </div>
           <button class="go" id="go">Vechten!</button>
+          <button class="btn" id="train">Training: bokszak</button>
           <button class="btn" id="online">Online spelen</button>
           <p class="msg" id="msg" role="status"></p>
         </section>
@@ -333,21 +338,9 @@ window.KlapP2P = (() => {
 
       <details class="help" id="help">
         <summary>Besturing en technieken</summary>
-        <div class="tbl">
-          <table>
-            <thead><tr><th></th><th>Toetsenbord 1</th><th>Toetsenbord 2</th><th>Gamepad</th></tr></thead>
-            <tbody>
-              <tr><th>Bewegen</th><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></td><td>Pijltjestoetsen</td><td>Linkerstick / D-pad</td></tr>
-              <tr><th>Springen (2× in de lucht)</th><td><kbd>W</kbd> of <kbd>Spatie</kbd></td><td><kbd>↑</kbd> of <kbd>Num 0</kbd></td><td><kbd>X</kbd> / <kbd>Y</kbd> of stick omhoog</td></tr>
-              <tr><th>Aanval</th><td><kbd>J</kbd> of <kbd>C</kbd></td><td><kbd>Num 1</kbd> of <kbd>,</kbd></td><td><kbd>A</kbd></td></tr>
-              <tr><th>Speciaal</th><td><kbd>K</kbd> of <kbd>V</kbd></td><td><kbd>Num 2</kbd> of <kbd>.</kbd></td><td><kbd>B</kbd></td></tr>
-              <tr><th>Schild / ontwijken</th><td><kbd>L</kbd> of <kbd>B</kbd></td><td><kbd>Num 3</kbd> of <kbd>/</kbd></td><td><kbd>LB</kbd> <kbd>LT</kbd> <kbd>RT</kbd></td></tr>
-              <tr><th>Grijpen</th><td><kbd>I</kbd> of <kbd>X</kbd></td><td><kbd>Num 4</kbd> of <kbd>M</kbd></td><td><kbd>RB</kbd></td></tr>
-              <tr><th>Smash-aanval</th><td colspan="2">Richting tikken en tegelijk aanval; aanval vasthouden laadt op</td><td>Rechterstick</td></tr>
-              <tr><th>Pauze</th><td><kbd>Esc</kbd> of <kbd>P</kbd></td><td><kbd>Esc</kbd></td><td><kbd>Start</kbd></td></tr>
-            </tbody>
-          </table>
-        </div>
+        <div class="tbl"><table id="ctlTable"></table></div>
+        <p class="kbnote" id="kbNote" role="status">Klik op een toets om hem te wijzigen. Backspace wist, Esc annuleert.</p>
+        <button class="btn small" id="kbReset">Standaardtoetsen herstellen</button>
         <ul class="tips">
           <li><b>Omhoog + speciaal</b> is je herstelsprong: daarna kun je niets tot je landt of de rand pakt.</li>
           <li><b>Items</b>: pak op met aanval of grijpen, gooi met grijpen (omlaag legt neer). Knuppel: aanval slaat, smash is een homerun. Straalpistool: aanval schiet, 10 schoten. Bananenschil: wie erover loopt, valt. Ster: even onkwetsbaar. Veer: twee extra sprongen. Kist: sla open voor items.</li>
@@ -355,7 +348,7 @@ window.KlapP2P = (() => {
           <li><b>Schild + richting</b> rolt weg, <b>schild + omlaag</b> ontwijkt op de plek, <b>schild in de lucht</b> is een luchtontwijking.</li>
           <li>Druk <b>schild vlak voor je neerkomt</b> na een klap om op te vangen (tech). Omlaag op een platform laat je erdoor vallen.</li>
           <li><b>Gevorderd.</b> <b>L-cancel</b>: druk schild vlak voor je landt met een luchtaanval, en je landingsvertraging halveert. <b>Wavedash</b>: spring en ontwijk meteen schuin omlaag, dan glijd je over de grond (ook om van een rand af te glijden). <b>Perfect afweren</b>: zet je schild vlak voordat een aanval raakt: geen schildschade, de aanvaller staat even stil en projectielen kaatsen terug. <b>Smash-DI</b>: tik een richting terwijl je na een klap stilstaat om een stukje te verschuiven, handig om uit meervoudige aanvallen te ontsnappen. <b>Sweetspots</b>: het verste puntje van een aanval raakt harder; bij Sabel en Lonk is de zwaardpunt extra sterk en de rest van het zwaard iets zwakker. <b>Herhaling</b>: dezelfde aanval steeds weer gebruiken doet minder schade.</li>
-          <li>Twee spelers op één toetsenbord: speler 1 gebruikt <kbd>W A S D</kbd> + <kbd>X C V B</kbd>, speler 2 de pijltjes + <kbd>M , . /</kbd>.</li>
+          <li>Twee spelers op één toetsenbord: geef Toetsenbord 1 en Toetsenbord 2 hierboven toetsen die niet botsen. Gamepads en het aanraakscherm zijn niet aan te passen.</li>
         </ul>
       </details>
     </div>
@@ -365,6 +358,7 @@ window.KlapP2P = (() => {
     <div class="card">
       <h2 id="pauseTitle">Pauze</h2>
       <div class="btns"><button class="btn main" id="resume">Doorgaan</button><button class="btn" id="quit">Naar menu</button></div>
+      <div class="btns" id="trBtns" hidden><button class="btn" id="trReset">Bokszak terugzetten</button><button class="btn" id="trBoxes">Raakvlakken tonen</button></div>
     </div>
   </div>
 
@@ -511,6 +505,54 @@ const KEYMAPS = {
   kb2: { l: ['ArrowLeft'], r: ['ArrowRight'], u: ['ArrowUp'], d: ['ArrowDown'], atk: ['Numpad1', 'Comma'], spc: ['Numpad2', 'Period'], shd: ['Numpad3', 'Slash'], jmp: ['Numpad0', 'ShiftRight'], grb: ['Numpad4', 'KeyM'] },
 };
 const GAMEKEYS = new Set(Object.values(KEYMAPS).flatMap(m => Object.values(m).flat()));
+const DEFAULT_KEYMAPS = JSON.parse(JSON.stringify(KEYMAPS));
+const KB_ACTIONS = [['l', 'Links'], ['r', 'Rechts'], ['u', 'Omhoog (ook springen)'], ['d', 'Omlaag'], ['jmp', 'Springen'], ['atk', 'Aanval'], ['spc', 'Speciaal'], ['shd', 'Schild / ontwijken'], ['grb', 'Grijpen']];
+const PAD_TEXT = { l: 'Linkerstick / D-pad', r: 'Linkerstick / D-pad', u: 'Linkerstick / D-pad', d: 'Linkerstick / D-pad', jmp: 'X / Y', atk: 'A', spc: 'B', shd: 'LB / LT / RT', grb: 'RB' };
+function applyKeymaps() {
+  for (const m of ['kb1', 'kb2']) {
+    const src = settings.keys && settings.keys[m];
+    for (const [a] of KB_ACTIONS) KEYMAPS[m][a] = src && Array.isArray(src[a]) ? src[a].filter(c => typeof c === 'string').slice(0, 2) : DEFAULT_KEYMAPS[m][a].slice();
+  }
+  GAMEKEYS.clear(); for (const mm of Object.values(KEYMAPS)) for (const v of Object.values(mm)) for (const c of v) GAMEKEYS.add(c);
+}
+function keyName(c) {
+  if (!c) return '—';
+  const named = { Space: 'Spatie', ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓', ShiftLeft: 'Shift L', ShiftRight: 'Shift R', ControlLeft: 'Ctrl L', ControlRight: 'Ctrl R', AltLeft: 'Alt', AltRight: 'Alt Gr',
+    Comma: ',', Period: '.', Slash: '/', Semicolon: ';', Quote: "'", BracketLeft: '[', BracketRight: ']', Backslash: '\\', Minus: '-', Equal: '=', Backquote: '`', Enter: 'Enter', Tab: 'Tab', CapsLock: 'Caps Lock',
+    NumpadEnter: 'Num Enter', NumpadAdd: 'Num +', NumpadSubtract: 'Num −', NumpadMultiply: 'Num ×', NumpadDivide: 'Num ÷', NumpadDecimal: 'Num ,' };
+  if (named[c]) return named[c];
+  if (/^Key[A-Z]$/.test(c)) return c.slice(3);
+  if (/^Digit\d$/.test(c)) return c.slice(5);
+  if (/^Numpad\d$/.test(c)) return 'Num ' + c.slice(6);
+  return c;
+}
+let kbWait = null;
+function renderControls() {
+  const t = document.getElementById('ctlTable'); if (!t) return;
+  const cell = (m, a) => [0, 1].map(i => { const c = KEYMAPS[m][a][i]; const w = kbWait && kbWait.m === m && kbWait.a === a && kbWait.i === i; return `<button class="kb${c ? '' : ' empty'}${w ? ' wait' : ''}" data-m="${m}" data-a="${a}" data-i="${i}" aria-label="${m === 'kb1' ? 'Toetsenbord 1' : 'Toetsenbord 2'}, ${a}, toets ${i + 1}">${w ? 'Druk…' : keyName(c)}</button>`; }).join('');
+  t.innerHTML = '<thead><tr><th></th><th>Toetsenbord 1</th><th>Toetsenbord 2</th><th>Gamepad</th></tr></thead><tbody>'
+    + KB_ACTIONS.map(([a, label]) => `<tr><th>${label}</th><td>${cell('kb1', a)}</td><td>${cell('kb2', a)}</td><td>${PAD_TEXT[a]}</td></tr>`).join('')
+    + '<tr><th>Smash-aanval</th><td colspan="2">Richting tikken en tegelijk aanval; aanval vasthouden laadt op</td><td>Rechterstick</td></tr>'
+    + `<tr><th>Pauze</th><td colspan="2"><kbd>Esc</kbd>${GAMEKEYS.has('KeyP') ? '' : ' of <kbd>P</kbd>'}</td><td><kbd>Start</kbd></td></tr></tbody>`;
+  t.querySelectorAll('.kb').forEach(b => b.addEventListener('click', () => { kbWait = { m: b.dataset.m, a: b.dataset.a, i: +b.dataset.i }; renderControls(); $('#kbNote').textContent = 'Druk de nieuwe toets. Backspace wist, Esc annuleert.'; const nb = t.querySelector('.kb.wait'); if (nb) nb.focus(); }));
+}
+function setKey(code) {
+  const { m, a, i } = kbWait; kbWait = null;
+  const maps = { kb1: {}, kb2: {} }; for (const mm of ['kb1', 'kb2']) for (const [aa] of KB_ACTIONS) maps[mm][aa] = KEYMAPS[mm][aa].slice();
+  let msg = '';
+  if (code === 'Escape') msg = 'Niets gewijzigd.';
+  else if (code === 'Backspace' || code === 'Delete') { maps[m][a].splice(i, 1); msg = 'Toets gewist.'; }
+  else {
+    const taken = [];
+    for (const mm of ['kb1', 'kb2']) for (const [aa, label] of KB_ACTIONS) { const k = maps[mm][aa].indexOf(code); if (k >= 0 && !(mm === m && aa === a && k === i)) { maps[mm][aa].splice(k, 1); taken.push(`${label} (${mm === 'kb1' ? 'toetsenbord 1' : 'toetsenbord 2'})`); } }
+    const arr = maps[m][a]; if (i < arr.length) arr[i] = code; else arr.push(code);
+    const lab = KB_ACTIONS.find(x => x[0] === a)[1];
+    msg = `${keyName(code)} is nu ${lab} voor ${m === 'kb1' ? 'toetsenbord 1' : 'toetsenbord 2'}.` + (taken.length ? ` Weggehaald bij ${taken.join(', ')}.` : '');
+  }
+  if (code !== 'Escape') { settings.keys = maps; save(); applyKeymaps(); }
+  renderControls(); $('#kbNote').textContent = msg;
+}
+addEventListener('keydown', e => { if (!kbWait) return; e.preventDefault(); e.stopImmediatePropagation(); if (!e.repeat) setKey(e.code); }, true);
 function readKeys(map) { const o = blank(); for (const k of BTN) o[k] = map[k].some(c => keys.has(c) || tapped.has(c)); o.tap = true; return o; }
 function getPads() { try { return navigator.getGamepads ? navigator.getGamepads() : []; } catch (e) { return []; } }
 function readPad(i) {
@@ -593,6 +635,8 @@ Object.assign(CHARS, {
     col: { body: '#f7f3ea', dark: '#c9c2b0', acc: '#e0302f', skin: '#f2b632', fx: '#fff1b0' }, alt: { body: '#b5713a', dark: '#7d4a22', acc: '#e0302f', skin: '#f2b632', fx: '#ffd08a' } },
   knor: { name: 'Kakelknor', hidden: true, blurb: '', weight: 122, run: 5.6, acc: 0.85, jump: 13.5, djump: 12, grav: 0.9, fall: 13, ffall: 18, air: 3.9, airAcc: 0.36, airJumps: 1, w: 62, h: 64, pow: 1.2, reach: 1, lag: 1, limb: 15, sideRec: true, pz: 2.0,
     col: { body: '#f4a9b8', dark: '#d97a90', acc: '#7a3b2e', skin: '#ffc9d3', fx: '#ffd0dc' }, alt: { body: '#8a6a5a', dark: '#5e4538', acc: '#2e1d16', skin: '#b38c78', fx: '#f0c8a0' } },
+  bag: { name: 'Bokszak', hidden: true, blurb: '', weight: 100, run: 0, acc: 0, jump: 0, djump: 0, grav: 0.8, fall: 12, ffall: 16, air: 0, airAcc: 0, airJumps: 0, w: 46, h: 76, pow: 1, reach: 1, lag: 0, limb: 10,
+    col: { body: '#d9c6a0', dark: '#a8916a', acc: '#c0392b', skin: '#f0e2c4', fx: '#ffffff' }, alt: { body: '#d9c6a0', dark: '#a8916a', acc: '#c0392b', skin: '#f0e2c4', fx: '#ffffff' } },
   schim: { name: 'Schim', blurb: 'Pikzwarte snelheidsduivel. Schimsperen, spindash, teleport en een rode schokgolf.', weight: 90, run: 8.4, acc: 1.25, jump: 15.5, djump: 14.5, grav: 0.85, fall: 12.5, ffall: 18, air: 5.3, airAcc: 0.5, airJumps: 1, w: 40, h: 74, pow: 1, reach: 1, lag: -1, limb: 9, zoner: true, sideRec: true, hr: 0.165,
     col: { body: '#26252e', dark: '#121117', acc: '#e2283c', skin: '#f1c9a5', fx: '#ffd23f' }, alt: { body: '#62677a', dark: '#363a46', acc: '#3fa9ff', skin: '#f1c9a5', fx: '#9fe3ff' } },
 });
@@ -1092,6 +1136,7 @@ const SPECIALS = {
       hb: [H(40, -8, 26, 14, 30, 40, 95), H(-40, -8, 26, 14, 150, 40, 95)],
       tick: (f, t) => { if (t === 12) { dustFx(f.x, f.y, 10); G.shake = Math.max(G.shake, 6); SFX.boom(); } } }),
   }),
+  bag: () => ({}),
   joep: (M, H, s) => ({
     neutralB: M({ special: true, start: 10, active: 200, end: 0, dur: 230, pose: 'pkflash',
       tick: (f, t) => {
@@ -1190,7 +1235,7 @@ const SPECIALS = {
         f.held = null; v.holder = null; v.grounded = false; v.ground = null;
         v.x = f.x - f.facing * (f.c.w * 0.5 + v.c.w * 0.5 + 4); v.px = v.x; v.y = f.y - 4; v.py = v.y;
         applyHit(f, v, { d: 6, a: 60, b: 45, g: 20 }, -f.facing, v.x, v.y - v.c.h / 2, 1, { throw: true });
-        if (v.key !== 'poef') applyCopy(f, v.key);
+        if (v.key !== 'poef' && v.key !== 'bag') applyCopy(f, v.key);
         for (let i = 0; i < 6; i++) addP({ type: 'plus', x: f.x + rand(-20, 20), y: f.y - rand(20, f.c.h + 10), vy: -rand(1, 2), life: 26, max: 26, size: 8, color: f.col.fx });
         SFX.heal();
       } }),
@@ -1848,6 +1893,7 @@ class Fighter {
     if (G.mode === 'demo') this.stocks = 99;
   }
   respawn() {
+    if (G.training && this.key === 'bag') { const m = G.stage.main; this.reset(0, m.y); this.grounded = true; this.ground = m; this.state = 'idle'; this.facing = -1; return; }
     const n = G.fighters.length, xs = [-150, 150, -50, 50];
     this.reset(xs[G.fighters.indexOf(this) % 4] * (n === 2 ? 0.6 : 1), -330);
     this.state = 'respawn'; this.invuln = 150; this.t = 0;
@@ -1920,7 +1966,7 @@ function staleInfo(a, o) {
 }
 function applyHit(a, v, hb, dir, hx, hy, mult = 1, o = {}) {
   if (v.state === 'dead') return;
-  const st = a && a !== v ? staleInfo(a, o) : null;
+  const st = a && a !== v ? staleInfo(a, o) : null, trWas = G.training && v.key === 'bag' ? (v.state === 'hitstun' || v.state === 'grabbed' || v.hitlag > 0) : null;
   const d = hb.d * mult * (st ? st.mult : 1);
   if (!o.throw) {
     const vm = v.move;
@@ -1938,7 +1984,7 @@ function applyHit(a, v, hb, dir, hx, hy, mult = 1, o = {}) {
       return;
     }
   }
-  if (hb.noFlinch) { v.percent = Math.min(999, v.percent + d); v.hud = 10; if (a) { a.stats.dmg += d; if (a !== v) { v.lastHit = a; v.lastHitT = G.frame; } } sparkFx(hx, hy, a ? a.col.fx : '#ffffff', 2); SFX.hit(2); return; }
+  if (hb.noFlinch) { if (trWas !== null) trainHit(trWas, d, 0); v.percent = Math.min(999, v.percent + d); v.hud = 10; if (a) { a.stats.dmg += d; if (a !== v) { v.lastHit = a; v.lastHitT = G.frame; } } sparkFx(hx, hy, a ? a.col.fx : '#ffffff', 2); SFX.hit(2); return; }
   const wasGround = v.grounded ? v.ground : null; if (v.buried) { v.buried = false; v.frozen = 0; }
   if (v.holder && !o.throw) { const h = v.holder; h.held = null; if (h.state === 'holding') h.setState('idle'); v.holder = null; }
   if (v.held) { const w = v.held; w.holder = null; v.held = null; if (w.state === 'grabbed') { w.setState('air'); w.vy = -5; } }
@@ -1960,6 +2006,7 @@ function applyHit(a, v, hb, dir, hx, hy, mult = 1, o = {}) {
     const nlx = lx * c + Px * s, nly = ly * c + Py * s; lx = nlx; ly = nly;
   }
   const sp = kb * 0.15;
+  if (trWas !== null) trainHit(trWas, d, kb);
   v.lvx = lx * sp; v.lvy = ly * sp; v.vx = 0; v.vy = 0;
   if (v.lvy < -0.5 && v.grounded) { v.grounded = false; v.ground = null; }
   if (v.grounded) v.lvy = 0;
@@ -2264,7 +2311,7 @@ function demoRoster() {
 function startMatch(demo, custom, cfg) {
   const c = cfg || settings, sk = c.stage, sks = Object.keys(STAGES), S = makeStage(sk === 'random' || !STAGES[sk] ? sks[Math.random() * sks.length | 0] : sk);
   Object.assign(G, { stage: S, projs: [], items: [], parts: [], kos: [], frame: 0, shake: 0, flash: 0, paused: false, endT: 0, useItems: c.items, itemT: 480,
-    mode: demo ? 'demo' : 'match', countdown: demo ? 0 : 200, stocks: demo ? 99 : c.stocks, net: null, netClient: false });
+    training: false, mode: demo ? 'demo' : 'match', countdown: demo ? 0 : 200, stocks: demo ? 99 : c.stocks, net: null, netClient: false });
   const list = custom || (demo ? demoRoster() : activeSlots()), used = {}, n = list.length;
   const xs = n === 2 ? [-0.55, 0.55] : n === 3 ? [-0.6, 0, 0.6] : [-0.65, 0.65, -0.22, 0.22];
   G.fighters = list.map((s, k) => {
@@ -2487,6 +2534,7 @@ function drawPuppet(g, ck, col, P, o = {}) {
   g.translate(0, P.dy || 0);
   if (P.rot) { g.translate(0, -h * 0.5); g.rotate(P.rot); g.translate(0, h * 0.5); }
   if (ck === 'poef') { drawPoef(g, col, P, o); g.restore(); return; }
+  if (ck === 'bag') { drawBag(g, col, P, o); g.restore(); return; }
   if (ck === 'kakel' || ck === 'knor') { drawFarm(g, ck, col, P, o); g.restore(); return; }
   const hip = { x: 0, y: -hipH }, sh = { x: Math.sin(lean) * tl, y: -hipH - Math.cos(lean) * tl };
   const hd = { x: sh.x + Math.sin(lean) * hr * 0.95, y: sh.y - Math.cos(lean) * hr * 0.95 };
@@ -2800,6 +2848,58 @@ function drawFarm(g, ck, col, P, o) {
   if (o.hurt) eye(g, hx + hr * 0.35, hy - hr * 0.3, hr * 0.22, true); else { g.beginPath(); g.arc(hx + hr * 0.4, hy - hr * 0.3, hr * 0.12, 0, TAU); g.fillStyle = INK; g.fill(); }
   if (o.held) drawHeld(g, o.held, hx + hr * 1.2, hy + hr * 0.4, Math.PI / 2, h);
   g.restore();
+}
+function drawBag(g, col, P, o) {
+  const c = CHARS.bag, h = c.h, w = c.w, cr = P.crouch || 0, top = -h * (1 - cr * 0.2);
+  g.save(); g.rotate((P.lean || 0) * 0.3);
+  g.beginPath(); g.moveTo(-w * 0.32, top + 6); g.quadraticCurveTo(-w * 0.62, top + h * 0.35, -w * 0.5, -h * 0.08); g.quadraticCurveTo(0, h * 0.02, w * 0.5, -h * 0.08); g.quadraticCurveTo(w * 0.62, top + h * 0.35, w * 0.32, top + 6); g.quadraticCurveTo(0, top - 4, -w * 0.32, top + 6); g.closePath();
+  g.fillStyle = col.body; g.fill(); g.lineWidth = 3.5; g.strokeStyle = INK; g.stroke();
+  g.strokeStyle = col.dark; g.lineWidth = 2; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(-w * 0.42, top + h * 0.55); g.quadraticCurveTo(0, top + h * 0.62, w * 0.42, top + h * 0.55); g.stroke(); g.setLineDash([]);
+  g.beginPath(); g.ellipse(0, top + 2, w * 0.16, 6, 0, 0, TAU); g.fillStyle = col.dark; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
+  const ey = top + h * 0.32;
+  if (o.hurt) { g.lineWidth = 2.5; for (const ex of [-0.16, 0.16]) { g.beginPath(); g.moveTo(w * ex - 4, ey - 4); g.lineTo(w * ex + 4, ey + 4); g.moveTo(w * ex + 4, ey - 4); g.lineTo(w * ex - 4, ey + 4); g.stroke(); } g.beginPath(); g.ellipse(0, ey + 14, 5, 6, 0, 0, TAU); g.fillStyle = col.acc; g.fill(); g.stroke(); }
+  else { g.fillStyle = INK; for (const ex of [-0.16, 0.16]) { g.beginPath(); g.arc(w * ex, ey, 3.2, 0, TAU); g.fill(); } g.beginPath(); g.arc(0, ey + 8, 7, 0.25, Math.PI - 0.25); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke(); }
+  g.restore();
+}
+function drawBoxes(g) {
+  g.save(); g.lineWidth = 2;
+  for (const f of G.fighters) {
+    if (f.state === 'dead') continue;
+    g.strokeStyle = f.intang ? 'rgba(120,200,255,.9)' : 'rgba(255,230,90,.9)'; g.strokeRect(f.x - f.c.w / 2, f.y - f.c.h, f.c.w, f.c.h);
+    if (f.state === 'attack' && f.move) for (const hb of activeHB(f)) { g.strokeStyle = hb.grab ? 'rgba(190,120,255,.95)' : hb.sweet ? 'rgba(255,255,255,.95)' : 'rgba(255,70,70,.95)'; g.beginPath(); g.arc(f.x + hb.x * f.facing, f.y + hb.y, hb.r, 0, TAU); g.stroke(); }
+  }
+  g.strokeStyle = 'rgba(255,140,60,.9)'; for (const p of G.projs) { g.beginPath(); g.arc(p.x, p.y, p.r, 0, TAU); g.stroke(); }
+  g.restore();
+}
+const MOVE_NAMES = { jab: 'stoot', jab3: 'stoot 3', ftilt: 'tilt vooruit', utilt: 'tilt omhoog', dtilt: 'tilt omlaag', dash: 'rennende aanval', fsmash: 'smash vooruit', usmash: 'smash omhoog', dsmash: 'smash omlaag',
+  nair: 'nair', fair: 'fair', bair: 'bair', uair: 'uair', dair: 'dair', neutralB: 'speciaal', sideB: 'speciaal opzij', upB: 'speciaal omhoog', downB: 'speciaal omlaag',
+  fthrow: 'worp vooruit', bthrow: 'worp achteruit', uthrow: 'worp omhoog', dthrow: 'worp omlaag', getupAtk: 'opstaan-aanval', proj: 'projectiel', boom: 'ontploffing' };
+function trainHit(inCombo, d, kb) {
+  const T = G.tr; if (!T) return;
+  if (!inCombo) { T.n = 0; T.dmg = 0; }
+  T.n++; T.dmg += d; T.last = d; T.kb = kb;
+  if (T.n > T.best || (T.n === T.best && T.dmg > T.bestDmg)) { T.best = T.n; T.bestDmg = T.dmg; }
+}
+function drawTraining(g, V) {
+  if (!G.training || !G.tr) return;
+  setScreen(g, V);
+  const T = G.tr, pl = G.fighters.find(f => f.key !== 'bag'), bag = G.fighters.find(f => f.key === 'bag'), s = clamp(V.W / 1100, 0.75, 1);
+  const live = bag && (bag.state === 'hitstun' || bag.state === 'grabbed');
+  const st = pl && pl.stale ? pl.stale.reduce((m, e) => (m[e.k] = (m[e.k] || 0) + 1, m), {}) : {};
+  const stTxt = Object.entries(st).map(([k, n]) => (MOVE_NAMES[k] || k) + (n > 1 ? ' ×' + n : '')).join(', ') || 'niets';
+  const fmt = x => (Math.round(x * 10) / 10).toLocaleString('nl-NL');
+  const lines = [
+    [`Combo${live ? ' (loopt)' : ''}: ${T.n} ${T.n === 1 ? 'klap' : 'klappen'} · ${fmt(T.dmg)}%`, live ? '#ffc933' : '#f5f0e4'],
+    [`Beste combo: ${T.best} ${T.best === 1 ? 'klap' : 'klappen'} · ${fmt(T.bestDmg)}%`, '#f5f0e4'],
+    [`Laatste klap: ${fmt(T.last)}% · terugslag ${Math.round(T.kb)}`, '#f5f0e4'],
+    [`Verzwakt door herhaling: ${stTxt}`, '#aea4cb'],
+    [G.hudTop ? 'Pauzemenu: zak terugzetten, raakvlakken' : 'R: zak terugzetten · H: raakvlakken · Esc: pauze', '#aea4cb'],
+  ];
+  const lh = 18 * s, pad = 10 * s, wBox = Math.min(V.W - 24, 430 * s), hBox = lines.length * lh + pad * 2 + 16 * s, x = 12, y = G.hudTop ? V.H - hBox - 12 : 12;
+  g.fillStyle = 'rgba(18,14,29,.78)'; rr(g, x, y, wBox, hBox, 10); g.fill(); g.strokeStyle = 'rgba(255,255,255,.15)'; g.lineWidth = 1; g.stroke();
+  g.textAlign = 'left'; g.font = `${13 * s}px Impact, 'Arial Black', sans-serif`; g.fillStyle = '#ffc933'; g.fillText('TRAINING', x + pad, y + pad + 12 * s);
+  g.font = `${13 * s}px system-ui, 'Segoe UI', Arial, sans-serif`;
+  lines.forEach(([t, c2], i) => { g.fillStyle = c2; g.fillText(t, x + pad, y + pad + 16 * s + (i + 1) * lh - 4, wBox - pad * 2); });
 }
 function poefFlags(f) {
   const m = f.state === 'attack' ? f.move : null, M = f.M, t = f.mt;
@@ -3425,7 +3525,7 @@ function drawFighter(g, f, fr, z) {
   else if (f.state === 'attack' && f.move && f.move.absorb && f.mt >= f.move.absorb[0] && f.mt <= f.move.absorb[1]) { g.save(); g.setLineDash([8, 6]); g.lineDashOffset = -fr * 1.5; g.strokeStyle = f.col.acc; g.lineWidth = 4; g.globalAlpha = 0.85; g.beginPath(); g.arc(f.x, f.y - c.h * 0.5, c.h * 0.6, 0, TAU); g.stroke(); g.restore(); }
   if (f.state === 'dizzy') for (let i = 0; i < 3; i++) { const a = fr * 0.12 + i * TAU / 3; g.fillStyle = '#ffe14d'; star(g, f.x + Math.cos(a) * 22, f.y - c.h - 10 + Math.sin(a) * 6, 6); g.fill(); }
   // indicator
-  if (G.mode !== 'demo') {
+  if (G.mode !== 'demo' && f.key !== 'bag') {
     const s = 1 / z, ty = f.y - c.h - (f.state === 'ledge' ? -6 : 14) * s - (P.balloon ? 96 : 0) - (f.key === 'pip' ? 30 : f.key === 'volt' ? 12 : f.key === 'rat' ? 18 : 0);
     g.fillStyle = f.pc; g.beginPath(); g.moveTo(f.x, ty); g.lineTo(f.x - 8 * s, ty - 11 * s); g.lineTo(f.x + 8 * s, ty - 11 * s); g.closePath(); g.fill();
     g.font = `${13 * s}px Impact, 'Arial Black', sans-serif`; g.textAlign = 'center'; g.lineWidth = 4 * s; g.strokeStyle = INK;
@@ -3468,7 +3568,7 @@ function drawHUD(g, V) {
     g.globalAlpha = f.out ? 0.4 : 1;
     drawPortrait(g, f, px, y, 26 * s);
     g.font = `${12 * s}px system-ui, 'Segoe UI', Arial, sans-serif`; g.textAlign = 'left'; g.fillStyle = '#f5f0e4'; g.lineWidth = 3; g.strokeStyle = INK;
-    const nm = f.c.name.toUpperCase() + (f.cpu ? ' · CPU ' + f.lvl : ' · P' + (f.slot + 1));
+    const nm = f.c.name.toUpperCase() + (f.key === 'bag' ? '' : f.cpu ? ' · CPU ' + f.lvl : ' · P' + (f.slot + 1));
     g.strokeText(nm, px + 32 * s, y - 24 * s); g.fillText(nm, px + 32 * s, y - 24 * s);
     const pct = Math.floor(f.percent);
     g.font = `${38 * s}px Impact, 'Arial Black', sans-serif`; g.lineWidth = 7 * s; g.lineJoin = 'round';
@@ -3476,7 +3576,8 @@ function drawHUD(g, V) {
     if (f.state === 'dead' && f.out) { g.strokeText('KO', tx, ty); g.fillStyle = '#8f88a8'; g.fillText('KO', tx, ty); }
     else { g.strokeText(pct, tx, ty); g.fillStyle = pctColor(pct); g.fillText(pct, tx, ty); const wN = g.measureText(pct).width; g.font = `${18 * s}px Impact, 'Arial Black', sans-serif`; g.lineWidth = 5 * s; g.strokeText('%', tx + wN + 2, ty); g.fillText('%', tx + wN + 2, ty); }
     const st = Math.max(0, f.stocks);
-    if (st <= 6) for (let k = 0; k < st; k++) { g.beginPath(); g.arc(px + 36 * s + k * 13 * s, y + 28 * s, 5 * s, 0, TAU); g.fillStyle = f.pc; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke(); }
+    if (G.training) { /* onbeperkt */ }
+    else if (st <= 6) for (let k = 0; k < st; k++) { g.beginPath(); g.arc(px + 36 * s + k * 13 * s, y + 28 * s, 5 * s, 0, TAU); g.fillStyle = f.pc; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke(); }
     else { g.font = `${12 * s}px system-ui, 'Segoe UI', Arial, sans-serif`; g.fillStyle = f.pc; g.fillText('× ' + st, px + 32 * s, y + 32 * s); }
     g.globalAlpha = 1;
   });
@@ -3525,7 +3626,8 @@ function render() {
   for (const p of G.projs) drawProj(g, p, fr);
   drawParts(g, V.cam.z);
   drawKOs(g, V);
-  if (G.mode !== 'demo') { drawOffscreen(g, V); drawHUD(g, V); }
+  if (G.showBoxes && G.training) { setLayer(g, V, 1); drawBoxes(g); }
+  if (G.mode !== 'demo') { drawOffscreen(g, V); drawHUD(g, V); drawTraining(g, V); }
   if (S.lava && S.lava.st === 'warn') {
     setScreen(g, V); const a = 0.18 + 0.12 * Math.sin(fr * 0.25), lg = g.createLinearGradient(0, V.H * 0.6, 0, V.H);
     lg.addColorStop(0, 'rgba(255,80,20,0)'); lg.addColorStop(1, `rgba(255,80,20,${a})`); g.fillStyle = lg; g.fillRect(0, V.H * 0.6, V.W, V.H * 0.4);
@@ -3635,9 +3737,25 @@ function goFight() {
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   startMatch(false);
 }
+function goTraining() {
+  let si = settings.slots.findIndex(x => x.type !== 'off' && x.type !== 'cpu');
+  const s0 = settings.slots[si >= 0 ? si : 0], type = si >= 0 ? s0.type : (isTouch ? 'touch' : 'kb1'); if (si < 0) si = 0;
+  SFX.init(); save(); $('#msg').textContent = '';
+  menuEl.hidden = true; resEl.hidden = true; pauseEl.hidden = true; pbtn.hidden = false;
+  touchEl.hidden = type !== 'touch'; G.hudTop = type === 'touch';
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  startMatch(false, [{ i: si, ch: s0.ch, type, lvl: 5 }, { i: si === 1 ? 0 : 1, ch: 'bag', type: 'none', lvl: 1 }], Object.assign({}, settings, { stocks: 99, items: false }));
+  G.training = true; G.countdown = 60; G.tr = { n: 0, dmg: 0, last: 0, kb: 0, best: 0, bestDmg: 0 };
+}
+function resetBag() {
+  const bag = G.fighters.find(f => f.key === 'bag'); if (!bag || !G.training) return;
+  const m = G.stage.main; bag.reset(0, m.y); bag.grounded = true; bag.ground = m; bag.state = 'idle'; bag.facing = -1; bag.percent = 0;
+  G.tr = { n: 0, dmg: 0, last: 0, kb: 0, best: 0, bestDmg: 0 }; SFX.ui();
+}
 function setPause(p) {
   if (!(G.mode === 'match' || G.mode === 'gameover')) return;
-  $('#pauseTitle').textContent = G.net ? 'Online spel' : 'Pauze'; $('#quit').textContent = G.net ? 'Spel verlaten' : 'Naar menu';
+  $('#trBtns').hidden = !G.training; $('#trBoxes').textContent = G.showBoxes ? 'Raakvlakken verbergen' : 'Raakvlakken tonen';
+  $('#pauseTitle').textContent = G.net ? 'Online spel' : G.training ? 'Training' : 'Pauze'; $('#quit').textContent = G.net ? 'Spel verlaten' : 'Naar menu';
   if (G.net) { G.paused = false; pauseEl.hidden = !p; if (p) $('#resume').focus(); return; }
   G.paused = p; pauseEl.hidden = !p;
   if (p) $('#resume').focus(); else if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
@@ -4058,7 +4176,8 @@ function initNetUI() {
 addEventListener('keydown', e => {
   SFX.init();
   if ((G.mode === 'match' || G.mode === 'gameover') && GAMEKEYS.has(e.code)) e.preventDefault();
-  if (e.code === 'Escape' || (e.code === 'KeyP' && G.mode === 'match')) { if (G.mode === 'match' || G.mode === 'gameover') { setPause(pauseEl.hidden); e.preventDefault(); return; } if (G.mode === 'results' && !G.net) { showMenu(); return; } }
+  if (e.code === 'Escape' || (e.code === 'KeyP' && G.mode === 'match' && !GAMEKEYS.has('KeyP'))) { if (G.mode === 'match' || G.mode === 'gameover') { setPause(pauseEl.hidden); e.preventDefault(); return; } if (G.mode === 'results' && !G.net) { showMenu(); return; } }
+  if (G.training && G.mode === 'match' && !e.repeat && !GAMEKEYS.has(e.code)) { if (e.code === 'KeyR') { resetBag(); return; } if (e.code === 'KeyH') { G.showBoxes = !G.showBoxes; return; } }
   if (e.code === 'Enter' && !menuEl.hidden && netEl.hidden) { const a = document.activeElement; if (!a || a === document.body || a === cv) { goFight(); e.preventDefault(); } }
   keys.add(e.code); if (!e.repeat) tapped.add(e.code);
 });
@@ -4066,6 +4185,10 @@ addEventListener('keyup', e => keys.delete(e.code));
 addEventListener('blur', () => keys.clear());
 addEventListener('pointerdown', () => SFX.init(), { passive: true });
 $('#go').addEventListener('click', goFight);
+$('#train').addEventListener('click', goTraining);
+$('#trReset').addEventListener('click', () => { resetBag(); setPause(false); });
+$('#trBoxes').addEventListener('click', () => { G.showBoxes = !G.showBoxes; setPause(false); });
+$('#kbReset').addEventListener('click', () => { settings.keys = null; kbWait = null; save(); applyKeymaps(); renderControls(); $('#kbNote').textContent = 'Standaardtoetsen hersteld.'; });
 $('#resume').addEventListener('click', () => setPause(false));
 $('#quit').addEventListener('click', () => { if (G.net) netLeave(); else showMenu(); });
 $('#again').addEventListener('click', () => { if (G.net) netStartMatch(); else goFight(); });
@@ -4116,7 +4239,7 @@ function loop(now) {
   if (!menuEl.hidden) drawPreviews(now);
 }
 function boot(data) {
-  loadSaved();
+  loadSaved(); applyKeymaps(); renderControls();
   if (data && data.settings) settings = data.settings;
   resize(); buildMenu(); initNetUI(); showMenu(); requestAnimationFrame(loop);
   initNet();

@@ -28,6 +28,11 @@ python -m http.server 8000
 
 Ga daarna naar http://localhost:8000.
 
+## Training en toetsen
+
+- **Training: bokszak** (in het menu) zet je eerste menselijke speler tegenover een bokszak die niets doet, met onbeperkt levens. Linksboven staan je combo, de beste combo, de laatste klap en welke aanvallen verzwakt zijn door herhaling. Met **R** zet je de zak terug en met **H** toon je raakvlakken (ook via het pauzemenu).
+- Onder **Besturing en technieken** kun je de toetsen van beide toetsenbord-indelingen aanpassen: klik op een toets en druk de nieuwe. Je instellingen blijven bewaard in je browser.
+
 ## Online spelen
 
 1. Klik op **Online spelen**, vul je naam in en kies **Nieuw spel hosten**.
