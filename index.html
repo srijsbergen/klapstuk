@@ -305,7 +305,7 @@ window.KlapP2P = (() => {
     <div class="wrap">
       <header class="brand">
         <h1>Klapstuk</h1>
-        <p>Een platformvechter voor 2 tot 4 spelers, met dertien vechters. Elke klap telt op als <b>schade-%</b>; hoe hoger je percentage, hoe verder je vliegt. Sla je tegenstanders <b>buiten beeld</b> en hou zelf je levens.</p>
+        <p>Een platformvechter voor 2 tot 4 spelers, met veertien vechters. Elke klap telt op als <b>schade-%</b>; hoe hoger je percentage, hoe verder je vliegt. Sla je tegenstanders <b>buiten beeld</b> en hou zelf je levens.</p>
       </header>
 
       <p class="label">Vechters</p>
@@ -585,6 +585,8 @@ Object.assign(CHARS, {
     col: { body: '#7a4a2a', dark: '#4f2d17', acc: '#d8262f', skin: '#e8b98a', fx: '#ffd36b' }, alt: { body: '#45454f', dark: '#2a2a31', acc: '#3d8bff', skin: '#c9a98a', fx: '#9fd6ff' } },
   lonk: { name: 'Lonk', blurb: 'Zwaardvechter met schild en puntmuts. Een boog met oplaadbare pijlen, een boemerang die terugkomt, een draaiaanval en bommen die je vasthoudt en gooit.', weight: 104, run: 5.6, acc: 0.95, jump: 14.5, djump: 13.5, grav: 0.86, fall: 12.8, ffall: 17.5, air: 4.1, airAcc: 0.4, airJumps: 1, w: 42, h: 80, pow: 1.08, reach: 1.25, lag: 1, limb: 10, zoner: 'side', hr: 0.16,
     col: { body: '#3f9a3a', dark: '#2b6b28', acc: '#e8c547', skin: '#f6cfa8', fx: '#9ff0ff' }, alt: { body: '#c8402f', dark: '#8a2a1f', acc: '#e8c547', skin: '#f6cfa8', fx: '#ffb36b' } },
+  rat: { name: 'Bliksemrat', blurb: 'Kleine, snelle elektrische rat. Stroomballen over de grond, een oplaadbare kopstoot, een zigzaggende flitssprong en een bliksem uit de lucht.', weight: 79, run: 7.2, acc: 1.1, jump: 15, djump: 13.5, grav: 0.85, fall: 12, ffall: 17.5, air: 4.8, airAcc: 0.5, airJumps: 1, w: 40, h: 60, pow: 0.95, reach: 0.95, lag: -1, limb: 9, zoner: true, sideRec: true, hr: 0.25, arm: 0.14,
+    col: { body: '#ffd84a', dark: '#d9a514', acc: '#e8323c', skin: '#ffe98a', fx: '#fff27a' }, alt: { body: '#ffb34a', dark: '#c77a14', acc: '#ff6b9a', skin: '#ffd08a', fx: '#ffe08a' } },
   schim: { name: 'Schim', blurb: 'Pikzwarte snelheidsduivel. Schimsperen, spindash, teleport en een rode schokgolf.', weight: 90, run: 8.4, acc: 1.25, jump: 15.5, djump: 14.5, grav: 0.85, fall: 12.5, ffall: 18, air: 5.3, airAcc: 0.5, airJumps: 1, w: 40, h: 74, pow: 1, reach: 1, lag: -1, limb: 9, zoner: true, sideRec: true, hr: 0.165,
     col: { body: '#26252e', dark: '#121117', acc: '#e2283c', skin: '#f1c9a5', fx: '#ffd23f' }, alt: { body: '#62677a', dark: '#363a46', acc: '#3fa9ff', skin: '#f1c9a5', fx: '#9fe3ff' } },
 });
@@ -915,6 +917,55 @@ const SPECIALS = {
         if (t === 8 && !f.item) { const P = handPos(f); f.item = spawnItem('bomb', P.x, P.y, { holder: f, t: 1020, fuse: true, owner: f }); SFX.ui(); }
       } }),
   }),
+  rat: (M, H, s) => ({
+    neutralB: M({ special: true, start: 10, active: 1, end: 18, pose: 'cast',
+      tick: (f, t) => {
+        if (!f.grounded && f.vy > 1.2) f.vy = 1.2;
+        if (t !== 10) return;
+        const air = !f.grounded;
+        spawnProj({ type: 'jolt', owner: f, x: f.x + f.facing * 24 * s, y: f.y - (air ? 30 : 14) * s, vx: f.facing * (air ? 4 : 6), vy: air ? 4 : 0, grav: 0.5, bounce: 12, bv: 2.6, r: 10, life: 110, hb: { d: 5, a: 60, b: 18, g: 30 } });
+        SFX.zap();
+      } }),
+    sideB: M({ special: true, start: 6, active: 300, end: 0, dur: 320, pose: 'skullcharge', sparkCharge: true,
+      tick: (f, t) => {
+        if (!f.grounded && f.vy > 1.2) f.vy = 1.2; f.vx *= 0.8;
+        if (t < 6) return;
+        if (t === 6) f.mv.c = 0;
+        if (f.ctrl.h.spc && f.mv.c < 60) { f.mv.c++; f.charge = f.mv.c; return; }
+        const c = f.mv.c; f.startMove(f.M.skull); f.charge = c; SFX.swing();
+      } }),
+    skull: M({ special: true, start: 2, active: 22, end: 18, pose: 'skull', keepVel: true, noDrift: true, charge: true, chargeAt: -1, chargeMax: 60, chargeBoost: 2.2, ll: 14, sparkCharge: true,
+      hb: [H(16, -30, 26, 6, 40, 40, 55, { nr: 1 })],
+      noGrav: (f, t) => t <= 24,
+      tick: (f, t) => { if (t <= 24) { f.vx = f.facing * (8 + f.charge * 0.17); f.vy = 0; if (t % 2) ghostFx(f); } else f.vx *= 0.85; } }),
+    upB: M({ special: true, start: 5, active: 20, end: 14, pose: 'qa', helpless: true, ledgeOK: 6, noDrift: true, keepVel: true, ll: 10, zipFx: true,
+      hb: [H(0, -30, 26, 2, 70, 30, 30, { nr: 1, when: (f, t) => t > 5 && t <= 13 }), H(0, -30, 26, 2, 70, 30, 30, { nr: 1, grp: 1, when: (f, t) => f.mv.z2 && t > 15 && t <= 23 })],
+      noGrav: (f, t) => t >= 5 && t < 26,
+      tick: (f, t) => {
+        if (t < 5) { f.vx *= 0.7; f.vy *= 0.5; return; }
+        const dirIn = needUp => { let ix = f.ix, iy = f.iy; if (f.grounded && iy > 0) iy = 0; if (!ix && !iy) { if (!needUp) return null; iy = -1; } const n = Math.hypot(ix, iy); return [ix / n, iy / n]; };
+        const go = d => { if (d[0]) f.facing = Math.sign(d[0]); if (d[1] < 0) { f.grounded = false; f.ground = null; } };
+        if (t === 5) { f.mv.d = dirIn(true); go(f.mv.d); SFX.zap(); }
+        if (t >= 5 && t <= 13) { f.vx = f.mv.d[0] * 19; f.vy = f.mv.d[1] * 19; if (t % 2) ghostFx(f); }
+        if (t === 14) {
+          f.vx *= 0.15; f.vy *= 0.15;
+          const d2 = dirIn(false);
+          if (d2 && d2[0] * f.mv.d[0] + d2[1] * f.mv.d[1] < 0.9) { f.mv.z2 = d2; go(d2); SFX.zap(); } else f.mt = Math.max(f.mt, 25);
+        }
+        if (f.mv.z2 && t >= 15 && t <= 23) { f.vx = f.mv.z2[0] * 17; f.vy = f.mv.z2[1] * 17; if (t % 2) ghostFx(f); }
+        if (t === 24) { f.vx *= 0.2; f.vy *= 0.2; }
+      } }),
+    downB: M({ special: true, start: 10, active: 60, end: 20, dur: 90, pose: 'thunder', noGrav: (f, t) => t >= 10 && t < 70,
+      tick: (f, t) => {
+        if (t < 10) { f.vx *= 0.8; if (f.vy > 0) f.vy *= 0.5; return; }
+        if (!f.grounded) { f.vy = 0.4; f.vx *= 0.9; } else f.vx *= 0.8;
+        if (t === 10) { spawnProj({ type: 'thunder', owner: f, x: f.x, y: f.y - 420, vx: 0, vy: 24, r: 20, life: 40, pierce: true, reflect: false, hb: { d: 8, a: 85, b: 30, g: 45 }, tick: thunderTick }); f.mv.bolt = G.projs[G.projs.length - 1]; SFX.zap(); }
+        if (t > 10 && (!f.mv.bolt || f.mv.bolt.dead)) f.mt = Math.max(f.mt, 70);
+      } }),
+    thunderBurst: M({ special: true, start: 1, active: 6, end: 22, pose: 'thunderBurst', burstFx: true,
+      hb: [H(0, -30, 58, 15, 80, 50, 85, { nr: 1 })], noGrav: (f, t) => t < 10,
+      tick: (f, t) => { if (t === 1) { G.shake = Math.max(G.shake, 10); SFX.boom(); sparkFx(f.x, f.y - f.c.h / 2, '#fff27a', 14); } if (!f.grounded) { f.vy = 0; f.vx *= 0.8; } } }),
+  }),
   joep: (M, H, s) => ({
     neutralB: M({ special: true, start: 10, active: 200, end: 0, dur: 230, pose: 'pkflash',
       tick: (f, t) => {
@@ -1100,6 +1151,11 @@ function drawShieldL(g, x, y, h) {
   path(0.78); g.lineWidth = 2; g.strokeStyle = '#cfd6e6'; g.stroke();
   g.fillStyle = '#d8262f'; g.beginPath(); g.moveTo(0, -6 * k); g.lineTo(5 * k, 3 * k); g.lineTo(-5 * k, 3 * k); g.closePath(); g.fill();
   g.restore();
+}
+function thunderTick(p) {
+  const f = p.owner;
+  if (!f || f.state !== 'attack' || f.move !== f.M.downB || p.t < 2) return;
+  if (p.y >= f.y - f.c.h - 6 && p.y <= f.y && Math.abs(p.x - f.x) < f.c.w * 0.6 + 10) { p.dead = true; f.startMove(f.M.thunderBurst); }
 }
 function pkBoom(owner, x, y, r, hb) {
   spawnProj({ type: 'boom', x, y, owner, r, life: 7, hb, pierce: true, selfHit: false, reflect: false });
@@ -1771,7 +1827,7 @@ function updateProjs() {
     if (p.dead) continue;
     p.t++; p.life--; p.rot += p.spin || 0;
     if (!p.rest) { p.vy += p.grav; p.x += p.vx; p.y += p.vy; }
-    if (p.type !== 'boom' && p.type !== 'wave' && !p.rest) {
+    if (p.type !== 'boom' && p.type !== 'wave' && p.type !== 'thunder' && !p.rest) {
       if (p.vy > 0) for (const s of S.surf) {
         if (p.x >= s.x1 && p.x <= s.x2 && p.y - p.vy <= s.y && p.y >= s.y) {
           if (p.bounce > 0) { p.y = s.y; p.vy = -Math.abs(p.bv || 6); p.bounce--; }
@@ -2150,6 +2206,11 @@ const POSE = {
   bow: { wind: mk({ aF: [1.0, -0.6], plant: 'both' }), strike: mk({ aF: [1.57, -0.05], aB: [1.2, -1.9], plant: 'both' }) },
   lonkspin: { strike: mk({ aF: [1.57, 0], aB: [-1.2, -0.6], lean: 0.05, lF: [0.3, -0.4], lB: [-0.3, -0.4] }) },
   lonkpull: { wind: mk({ aF: [-2.4, -0.4], plant: 'both' }), strike: mk({ aF: [1.1, -0.9], plant: 'both' }) },
+  skullcharge: { strike: mk({ crouch: 0.45, lean: -0.2, aF: [0.5, -0.8], aB: [-0.5, -0.6], plant: 'both' }) },
+  skull: { strike: mk({ lean: 1.35, aF: [-0.3, 0], aB: [-0.5, 0], lF: [-0.8, -0.2], lB: [-1.0, -0.2] }) },
+  qa: { strike: mk({ lean: 0.9, aF: [-0.6, -0.3], aB: [-0.8, -0.3], lF: [-0.5, -0.4], lB: [-0.8, -0.4] }) },
+  thunder: { strike: mk({ crouch: 0.3, aF: [0.8, -1.4], aB: [0.6, -1.4], plant: 'both' }) },
+  thunderBurst: { strike: mk({ aF: [2.4, 0], aB: [-2.4, 0], lF: [0.5, -0.2], lB: [-0.5, -0.2] }) },
   pkflash: { wind: mk({ aF: [0.6, -1.0], plant: 'both' }), strike: mk({ aF: [2.5, -2.1], aB: [2.3, -2.1], crouch: 0.1, plant: 'both' }) },
   pkthunder: { strike: mk({ aF: [2.5, -2.1], aB: [2.3, -2.1], lF: [0.35, -0.7], lB: [-0.2, -0.5] }) },
   pkt2: { strike: mk({ lF: [1.4, -2.3], lB: [1.1, -2.2], aF: [1.4, -2.0], aB: [1.0, -2.0], crouch: 0.3 }), spin: 3 },
@@ -2260,7 +2321,7 @@ function drawPuppet(g, ck, col, P, o = {}) {
   };
   const lB = leg('lB'), lF = leg('lF');
   const aB = limbPts(sh.x, sh.y + 3, P.aB[0] + lean, P.aB[1], AL, AL), aF = limbPts(sh.x, sh.y + 3, P.aF[0] + lean, P.aF[1], AL, AL);
-  const handCol = { lonk: '#8a5a2b', klauw: col.body, bongo: col.skin, brick: col.dark, sable: col.dark, volt: col.body, gloei: col.acc, kwak: col.body, bliep: col.dark, schim: '#f4f4f4' }[ck] || col.skin;
+  const handCol = { rat: col.body, lonk: '#8a5a2b', klauw: col.body, bongo: col.skin, brick: col.dark, sable: col.dark, volt: col.body, gloei: col.acc, kwak: col.body, bliep: col.dark, schim: '#f4f4f4' }[ck] || col.skin;
   // back limbs
   const backCol = ck === 'klauw' ? shade(col.body, 0.78) : ck === 'lonk' ? '#cdc3aa' : col.dark;
   strokeLimb(g, lB, backCol, lw); foot(g, ck, lB, lw, col);
@@ -2272,6 +2333,14 @@ function drawPuppet(g, ck, col, P, o = {}) {
     const w = Math.sin(fr * 0.3) * 6;
     g.strokeStyle = INK; g.lineWidth = 9; g.beginPath(); g.moveTo(sh.x, sh.y); g.quadraticCurveTo(sh.x - 22, sh.y - 4 + w, sh.x - 40, sh.y + 6 - w); g.stroke();
     g.strokeStyle = col.acc; g.lineWidth = 5; g.stroke();
+  }
+  if (ck === 'rat') {
+    g.save(); g.translate(hip.x, hip.y); g.rotate(lean); g.lineWidth = 3; g.strokeStyle = INK; g.lineJoin = 'round';
+    const u = c.w, T = tl;
+    g.beginPath(); [[-0.2, -0.05], [-0.55, -0.32], [-0.42, -0.45], [-0.95, -0.85], [-1.2, -0.62], [-0.82, -0.36], [-0.95, -0.25], [-0.45, 0.1]].forEach(([x, y], i) => i ? g.lineTo(x * u, y * T) : g.moveTo(x * u, y * T));
+    g.closePath(); g.fillStyle = col.body; g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(-0.2 * u, -0.05 * T); g.lineTo(-0.38 * u, -0.2 * T); g.lineTo(-0.45 * u, 0.1 * T); g.closePath(); g.fillStyle = '#8a5a22'; g.fill(); g.stroke();
+    g.restore();
   }
   if (ck === 'klauw') {
     g.save(); g.translate(hip.x, hip.y); g.rotate(lean); g.lineWidth = 3; g.strokeStyle = INK;
@@ -2323,9 +2392,10 @@ function drawPuppet(g, ck, col, P, o = {}) {
     g.fillStyle = col.acc; g.beginPath(); g.arc(c.w * 0.02, -tl * 0.55, 4, 0, TAU); g.fill();
     g.strokeStyle = col.dark; g.lineWidth = 2; for (let q = 0; q < 3; q++) { g.beginPath(); g.moveTo(-c.w * 0.3, -tl * 0.18 + q * 5); g.lineTo(c.w * 0.3, -tl * 0.18 + q * 5); g.stroke(); }
   } else {
-    const tw = c.w * (ck === 'sable' ? 0.56 : ck === 'bongo' ? 0.82 : ck === 'klauw' ? 0.72 : 0.62);
+    const tw = c.w * (ck === 'sable' ? 0.56 : ck === 'bongo' ? 0.82 : ck === 'klauw' || ck === 'rat' ? 0.72 : 0.62);
     rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.fillStyle = col.body; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke();
     if (ck === 'volt') { g.fillStyle = col.acc; g.beginPath(); g.moveTo(2, -tl + 6); g.lineTo(-5, -tl * 0.5); g.lineTo(1, -tl * 0.5); g.lineTo(-3, -4); g.lineTo(7, -tl * 0.58); g.lineTo(1, -tl * 0.58); g.closePath(); g.fill(); }
+    else if (ck === 'rat') { g.strokeStyle = '#8a5a22'; g.lineWidth = 4; g.lineCap = 'round'; for (const q of [-0.72, -0.48]) { g.beginPath(); g.moveTo(-tw * 0.46, tl * q); g.lineTo(-tw * 0.18, tl * (q + 0.05)); g.stroke(); } }
     else if (ck === 'lonk') { g.beginPath(); g.moveTo(-tw * 0.5, 2); g.lineTo(tw * 0.5, 2); g.lineTo(tw * 0.64, hipH * 0.32); g.lineTo(-tw * 0.64, hipH * 0.32); g.closePath(); g.fillStyle = col.body; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke(); g.fillStyle = '#6b4423'; g.fillRect(-tw / 2, -tl * 0.26, tw, tl * 0.14); g.fillStyle = col.acc; g.fillRect(tw * 0.1, -tl * 0.27, tw * 0.2, tl * 0.16); }
     else if (ck === 'klauw') { g.beginPath(); g.ellipse(tw * 0.14, -tl * 0.45, tw * 0.34, tl * 0.5, 0, 0, TAU); g.fillStyle = col.skin; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke(); g.strokeStyle = 'rgba(21,17,31,.35)'; for (const q of [-0.72, -0.47, -0.22]) { g.beginPath(); g.moveTo(-tw * 0.12, tl * q); g.lineTo(tw * 0.42, tl * q); g.stroke(); } }
     else if (ck === 'bongo') { g.beginPath(); g.ellipse(tw * 0.14, -tl * 0.52, tw * 0.36, tl * 0.32, 0, 0, TAU); g.fillStyle = col.skin; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke();
@@ -2378,6 +2448,20 @@ function drawPuppet(g, ck, col, P, o = {}) {
       g.beginPath(); g.arc(hr * 0.5, -hr * 0.12, hr * 0.15, 0, TAU); g.fillStyle = col.acc; g.fill();
       g.beginPath(); g.moveTo(hr * 0.08, -hr * 0.56); g.lineTo(hr * 0.78, -hr * 0.36); g.lineWidth = 3; g.strokeStyle = INK; g.stroke();
     }
+  } else if (ck === 'rat') {
+    g.lineWidth = 3; g.strokeStyle = INK;
+    for (const [bx, ang] of [[-0.42, -0.45], [0.12, -0.12]]) {
+      g.save(); g.translate(hr * bx, -hr * 0.55); g.rotate(ang);
+      const ear = () => { g.beginPath(); g.moveTo(-hr * 0.26, 0); g.quadraticCurveTo(-hr * 0.3, -hr * 1.0, 0, -hr * 1.75); g.quadraticCurveTo(hr * 0.3, -hr * 1.0, hr * 0.26, 0); g.closePath(); };
+      ear(); g.fillStyle = col.body; g.fill(); g.save(); ear(); g.clip(); g.fillStyle = INK; g.fillRect(-hr, -hr * 1.9, hr * 2, hr * 0.62); g.restore(); ear(); g.stroke();
+      g.restore();
+    }
+    g.beginPath(); g.ellipse(0, 0, hr * 1.08, hr * 0.95, 0, 0, TAU); g.fillStyle = col.body; g.fill(); g.stroke();
+    g.beginPath(); g.arc(hr * 0.5, hr * 0.38, hr * 0.24, 0, TAU); g.fillStyle = col.acc; g.fill();
+    if (hurt) eye(g, hr * 0.42, -hr * 0.12, hr * 0.22, true);
+    else { g.beginPath(); g.ellipse(hr * 0.42, -hr * 0.12, hr * 0.15, hr * 0.2, 0, 0, TAU); g.fillStyle = INK; g.fill(); g.beginPath(); g.arc(hr * 0.45, -hr * 0.2, hr * 0.06, 0, TAU); g.fillStyle = '#ffffff'; g.fill(); }
+    g.beginPath(); g.arc(hr * 0.98, hr * 0.03, hr * 0.06, 0, TAU); g.fillStyle = INK; g.fill();
+    g.beginPath(); g.moveTo(hr * 0.62, hr * 0.22); g.quadraticCurveTo(hr * 0.72, hr * 0.34, hr * 0.8, hr * 0.24); g.quadraticCurveTo(hr * 0.88, hr * 0.34, hr * 0.98, hr * 0.22); g.lineWidth = 2; g.stroke();
   } else if (ck === 'lonk') {
     g.lineWidth = 3; g.strokeStyle = INK;
     const w = Math.sin(fr * 0.2) * hr * 0.15;
@@ -2509,6 +2593,15 @@ function drawCopyHat(g, ck, R, ty, fr) {
     case 'bongo':
       g.beginPath(); g.arc(0, ty + R * 0.45, R * 0.76, Math.PI, TAU); g.closePath(); g.fillStyle = C.body; g.fill(); g.stroke();
       g.beginPath(); g.moveTo(-R * 0.25, ty - R * 0.25); g.quadraticCurveTo(0, ty - R * 0.95, R * 0.12, ty - R * 0.3); g.quadraticCurveTo(R * 0.22, ty - R * 0.75, R * 0.42, ty - R * 0.2); g.fill(); g.stroke(); break;
+    case 'rat': {
+      for (const [bx, ang] of [[-0.42, -0.5], [0.22, -0.15]]) {
+        g.save(); g.translate(R * bx, ty + R * 0.3); g.rotate(ang);
+        const ear = () => { g.beginPath(); g.moveTo(-R * 0.16, 0); g.quadraticCurveTo(-R * 0.2, -R * 0.6, 0, -R * 1.05); g.quadraticCurveTo(R * 0.2, -R * 0.6, R * 0.16, 0); g.closePath(); };
+        ear(); g.fillStyle = C.body; g.fill(); g.save(); ear(); g.clip(); g.fillStyle = INK; g.fillRect(-R, -R * 1.15, R * 2, R * 0.38); g.restore(); ear(); g.stroke();
+        g.restore();
+      }
+      break;
+    }
     case 'lonk': {
       const w = Math.sin(fr * 0.2) * R * 0.08;
       g.beginPath(); g.moveTo(-R * 0.2, ty + R * 0.36); g.lineTo(R * 0.05, ty + R * 0.56); g.lineTo(R * 0.2, ty + R * 0.36); g.lineTo(R * 0.4, ty + R * 0.52); g.lineTo(R * 0.58, ty + R * 0.3); g.closePath(); g.fillStyle = '#f2d06b'; g.fill(); g.stroke();
@@ -2598,7 +2691,7 @@ function drawPoef(g, col, P, o) {
   arm(aF, col.body);
 }
 function foot(g, ck, p, lw, col) {
-  if (ck !== 'schim') { dot(g, p[4], p[5], lw * 0.62, ck === 'brick' ? INK : ck === 'joep' ? col.acc : ck === 'klauw' ? col.body : ck === 'bongo' ? col.skin : ck === 'lonk' ? '#6b4423' : col.dark); return; }
+  if (ck !== 'schim') { dot(g, p[4], p[5], lw * 0.62, ck === 'brick' ? INK : ck === 'joep' ? col.acc : ck === 'klauw' ? col.body : ck === 'bongo' ? col.skin : ck === 'lonk' ? '#6b4423' : ck === 'rat' ? col.body : col.dark); return; }
   g.save(); g.translate(p[4], p[5]); rr(g, -7, -6, 20, 10, 4); g.fillStyle = '#f4f4f4'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
   g.fillStyle = col.acc; g.fillRect(-1, -5, 5, 8); g.fillStyle = col.fx; g.globalAlpha *= 0.7; g.fillRect(-5, 4, 16, 3); g.restore();
 }
@@ -2874,6 +2967,15 @@ function drawProj(g, p, fr) {
     const col = p.owner ? p.owner.col.fx : '#ffd23f';
     g.fillStyle = hexA(col, 0.45); g.beginPath(); g.ellipse(-6, 0, 22, 9, 0, 0, TAU); g.fill();
     g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(16, 0); g.lineTo(-4, -4); g.lineTo(-18, 0); g.lineTo(-4, 4); g.closePath(); g.fill();
+  } else if (p.type === 'jolt') {
+    g.translate(0, -p.r * 0.7); g.globalCompositeOperation = 'lighter';
+    const rg = g.createRadialGradient(0, 0, 0, 0, 0, p.r * 1.7); rg.addColorStop(0, '#ffffff'); rg.addColorStop(0.45, '#fff27a'); rg.addColorStop(1, 'rgba(255,220,60,0)');
+    g.fillStyle = rg; g.beginPath(); g.arc(0, 0, p.r * 1.7, 0, TAU); g.fill();
+    g.strokeStyle = '#ffffff'; g.lineWidth = 2; g.beginPath(); for (let i = 0; i < 3; i++) { const a = rand(0, TAU); g.moveTo(Math.cos(a) * p.r * 0.5, Math.sin(a) * p.r * 0.5); g.lineTo(Math.cos(a + 0.5) * p.r * 1.6, Math.sin(a + 0.5) * p.r * 1.6); } g.stroke();
+  } else if (p.type === 'thunder') {
+    g.globalCompositeOperation = 'lighter'; g.lineCap = 'round'; g.lineJoin = 'round';
+    const pts = [[0, -260]]; for (let y = -230; y <= 0; y += 30) pts.push([rand(-12, 12), y]); pts[pts.length - 1][0] = 0;
+    for (const [w, col] of [[16, 'rgba(255,240,120,.35)'], [8, 'rgba(255,242,122,.8)'], [3, '#ffffff']]) { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke(); }
   } else if (p.type === 'arrow') {
     g.rotate(Math.atan2(p.vy, p.vx)); g.lineCap = 'round';
     g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(-18, 0); g.lineTo(10, 0); g.stroke(); g.strokeStyle = '#c9a36b'; g.lineWidth = 2.5; g.stroke();
@@ -3020,6 +3122,7 @@ function drawFighter(g, f, fr, z) {
   if (f.buried && f.frozen > 0) { g.beginPath(); g.rect(-300, -400, 600, 400); g.clip(); g.translate(0, c.h * 0.55); }
   const invBlink = f.invuln > 0 && f.state !== 'ledge' && fr % 10 < 5;
   if (f.state === 'attack' && f.move && f.move.warp && f.intang) g.globalAlpha = 0.12;
+  else if (f.state === 'attack' && f.move && f.move.zipFx && f.mt > 5 && f.mt <= 24) g.globalAlpha = 0.45;
   else if ((f.state === 'evade' || f.state === 'airdodge') && f.intang) g.globalAlpha = 0.55;
   else if (invBlink) g.globalAlpha = 0.75;
   let filt = 'none';
@@ -3039,6 +3142,12 @@ function drawFighter(g, f, fr, z) {
       const hx = f.x + f.facing * c.w * 0.45, hy = f.y - 70 * s, tx = hx + f.facing * (110 * s - c.w * 0.45) * k;
       g.lineCap = 'round'; g.strokeStyle = INK; g.lineWidth = 9; g.beginPath(); g.moveTo(hx, hy); g.lineTo(tx, hy); g.stroke(); g.strokeStyle = f.col.acc; g.lineWidth = 5; g.stroke(); dot(g, tx, hy, 7, f.col.acc);
     }
+  }
+  if (f.state === 'attack' && f.move && f.move.sparkCharge && f.charge > 0) { g.save(); g.globalCompositeOperation = 'lighter'; g.strokeStyle = hexA(f.col.fx, 0.3 + f.charge / 120); g.lineWidth = 2.5; g.beginPath(); for (let i = 0; i < 7; i++) { const a = rand(0, TAU), r0 = c.h * 0.35, r1 = c.h * (0.55 + f.charge / 150); g.moveTo(f.x + Math.cos(a) * r0, f.y - c.h * 0.5 + Math.sin(a) * r0); g.lineTo(f.x + Math.cos(a + 0.2) * r1, f.y - c.h * 0.5 + Math.sin(a + 0.2) * r1); } g.stroke(); g.restore(); }
+  if (f.state === 'attack' && f.move && f.move.burstFx && f.mt <= 10) {
+    const cy = f.y - c.h * 0.4, R2 = c.h * 1.15 * (0.6 + f.mt / 25); g.save(); g.globalCompositeOperation = 'lighter';
+    const rg = g.createRadialGradient(f.x, cy, 0, f.x, cy, R2); rg.addColorStop(0, 'rgba(255,255,255,.8)'); rg.addColorStop(0.4, hexA(f.col.fx, 0.55)); rg.addColorStop(1, hexA(f.col.fx, 0)); g.fillStyle = rg; g.beginPath(); g.arc(f.x, cy, R2, 0, TAU); g.fill();
+    g.strokeStyle = '#ffffff'; g.lineWidth = 2.5; g.beginPath(); for (let i = 0; i < 9; i++) { const a = i / 9 * TAU + rand(-0.2, 0.2); let x = f.x, y = cy; g.moveTo(x, y); for (let j = 1; j <= 3; j++) { x = f.x + Math.cos(a) * R2 * j / 3 + rand(-6, 6); y = cy + Math.sin(a) * R2 * j / 3 + rand(-6, 6); g.lineTo(x, y); } } g.stroke(); g.restore();
   }
   if (f.buried && f.frozen > 0) { g.fillStyle = '#6b4a2e'; g.strokeStyle = INK; g.lineWidth = 2.5; g.beginPath(); g.ellipse(f.x, f.y, c.w * 0.75, 9, 0, Math.PI, TAU); g.closePath(); g.fill(); g.stroke(); }
   if (f.state === 'attack' && f.move && f.move.kflame && f.mt > 10 && f.mt <= 80) {
@@ -3070,7 +3179,7 @@ function drawFighter(g, f, fr, z) {
   if (f.state === 'dizzy') for (let i = 0; i < 3; i++) { const a = fr * 0.12 + i * TAU / 3; g.fillStyle = '#ffe14d'; star(g, f.x + Math.cos(a) * 22, f.y - c.h - 10 + Math.sin(a) * 6, 6); g.fill(); }
   // indicator
   if (G.mode !== 'demo') {
-    const s = 1 / z, ty = f.y - c.h - (f.state === 'ledge' ? -6 : 14) * s - (P.balloon ? 96 : 0) - (f.key === 'pip' ? 30 : f.key === 'volt' ? 12 : 0);
+    const s = 1 / z, ty = f.y - c.h - (f.state === 'ledge' ? -6 : 14) * s - (P.balloon ? 96 : 0) - (f.key === 'pip' ? 30 : f.key === 'volt' ? 12 : f.key === 'rat' ? 18 : 0);
     g.fillStyle = f.pc; g.beginPath(); g.moveTo(f.x, ty); g.lineTo(f.x - 8 * s, ty - 11 * s); g.lineTo(f.x + 8 * s, ty - 11 * s); g.closePath(); g.fill();
     g.font = `${13 * s}px Impact, 'Arial Black', sans-serif`; g.textAlign = 'center'; g.lineWidth = 4 * s; g.strokeStyle = INK;
     const lbl = f.cpu ? 'CPU' : 'P' + (f.slot + 1); g.strokeText(lbl, f.x, ty - 14 * s); g.fillText(lbl, f.x, ty - 14 * s);
@@ -3307,7 +3416,7 @@ function showResults() {
 /* ---------------- online ---------------- */
 const netEl = $('#net');
 const ST_LIST = ['idle', 'walk', 'run', 'crouch', 'land', 'jumpsquat', 'air', 'attack', 'shield', 'evade', 'airdodge', 'hitstun', 'helpless', 'knockdown', 'dizzy', 'ledge', 'holding', 'grabbed', 'respawn', 'shieldbreak', 'dead'];
-const PT_LIST = ['spark', 'shuriken', 'fire', 'ice', 'pipbomb', 'bombT', 'boom', 'wave', 'laser', 'fist', 'bubble', 'spear', 'blast', 'bananaT', 'batT', 'blasterT', 'puffstar', 'pkbolt', 'pkfire', 'pkthunder', 'pkflash', 'arrow', 'boomer'];
+const PT_LIST = ['spark', 'shuriken', 'fire', 'ice', 'pipbomb', 'bombT', 'boom', 'wave', 'laser', 'fist', 'bubble', 'spear', 'blast', 'bananaT', 'batT', 'blasterT', 'puffstar', 'pkbolt', 'pkfire', 'pkthunder', 'pkflash', 'arrow', 'boomer', 'jolt', 'thunder'];
 const MODE_LIST = ['match', 'gameover', 'results'];
 const LAVA_ST = ['idle', 'warn', 'rise', 'hold', 'fall'];
 const CTR_MOVE = { pose: 'smashF', start: 3, active: 4, end: 20, dur: 27, hb: [] };
