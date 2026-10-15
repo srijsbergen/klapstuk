@@ -1148,13 +1148,13 @@ const SPECIALS = {
     sideB: M({ special: true, start: 8, active: 8, end: 20, pose: 'dashB', keepVel: true, noDrift: true, ll: 12,
       hb: [H(50, -42, 30, 12, 38, 50, 80, { nr: 1 })], noGrav: (f, t) => t <= 16,
       tick: (f, t) => { if (t < 8) { f.vx *= 0.6; f.vy *= 0.4; } else if (t <= 15) { f.vx = f.facing * 14; f.vy = 0; if (t % 2) ghostFx(f); } else if (t === 16) f.vx = f.facing * 3; } }),
-    upB: M({ special: true, start: 10, active: 16, end: 12, pose: 'riptide', helpless: true, ledgeOK: 10, noDrift: true, keepVel: true,
+    upB: M({ special: true, start: 10, active: 16, end: 12, pose: 'riptide', riptide: true, helpless: true, ledgeOK: 10, noDrift: true, keepVel: true,
       hb: [0, 1, 2].map(i => H(0, -40, 34, 3, 70, 25, 10, { nr: 1, f0: i * 5, f1: i * 5 + 5, grp: i + 1 })).concat([H(0, -40, 36, 6, 70, 50, 70, { nr: 1, f0: 15, f1: 16, grp: 9 })]),
       noGrav: (f, t) => t < 26,
       tick: (f, t) => {
         const drop = () => addP({ type: 'ember', x: f.x + rand(-16, 16), y: f.y - rand(10, f.c.h), vx: rand(-1, 1), vy: rand(-1, 1), life: 16, max: 16, size: 5, color: '#5fc7ff' });
         if (t < 10) { f.vx *= 0.8; f.vy *= 0.5; if (t % 2 === 0) drop(); return; }
-        if (t === 10) { let ix = f.ix, iy = f.iy; if (f.grounded && iy > 0) iy = 0; if (!ix && !iy) iy = -1; const n = Math.hypot(ix, iy); f.mv.d = [ix / n, iy / n]; if (ix) f.facing = ix; if (iy < 0) { f.grounded = false; f.ground = null; } SFX.zap(); }
+        if (t === 10) { let ix = f.ix, iy = f.iy; if (f.grounded && iy > 0) iy = 0; if (!ix && !iy) iy = -1; const n = Math.hypot(ix, iy); f.mv.d = [ix / n, iy / n]; if (ix) f.facing = ix; f.aim = Math.atan2(iy / n, (ix / n) * f.facing); if (iy < 0) { f.grounded = false; f.ground = null; } SFX.zap(); }
         if (t < 26) { f.vx = f.mv.d[0] * 16; f.vy = f.mv.d[1] * 16; if (t % 2) { ghostFx(f); drop(); } } else if (t === 26) { f.vx *= 0.3; f.vy *= 0.3; }
       } }),
     downB: M({ special: true, start: 4, active: 22, end: 20, pose: 'counter', counter: [4, 26], tick: f => { if (!f.grounded && f.vy > 1) f.vy = 1; } }),
@@ -2456,7 +2456,7 @@ const POSE = {
   peck: { strike: mk({ lean: 0.7, aF: [-0.6, 0], aB: [-0.8, 0], lF: [-0.4, -0.3], lB: [-0.7, -0.3] }) },
   flap: { strike: mk({ lF: [0.2, -0.5], lB: [-0.2, -0.5] }), fn: (f, t, P) => { const w = Math.sin(t * 0.6); P.aF = [1.6 + w * 1.3, 0]; P.aB = [1.4 + w * 1.3, 0]; return P; } },
   transform: { strike: mk({ crouch: 0.5, aF: [0.8, -1], aB: [0.6, -1], plant: 'both' }), fn: (f, t, P) => { P.dy = Math.sin(t * 1.3) * 2; return P; } },
-  riptide: { strike: mk({ aF: [3.0, 0], aB: [2.7, 0], lF: [0.1, -0.1], lB: [-0.1, -0.1] }), spin: 3 },
+  riptide: { wind: mk({ aF: [-2.5, -0.4], aB: [-0.6, -0.6], crouch: 0.3, plant: 'both' }), strike: mk({ aF: [3.05, 0], aB: [2.95, 0], lF: [0.06, 0], lB: [-0.06, 0] }) },
   pkflash: { wind: mk({ aF: [0.6, -1.0], plant: 'both' }), strike: mk({ aF: [2.5, -2.1], aB: [2.3, -2.1], crouch: 0.1, plant: 'both' }) },
   pkthunder: { strike: mk({ aF: [2.5, -2.1], aB: [2.3, -2.1], lF: [0.35, -0.7], lB: [-0.2, -0.5] }) },
   pkt2: { strike: mk({ lF: [1.4, -2.3], lB: [1.1, -2.2], aF: [1.4, -2.0], aB: [1.0, -2.0], crouch: 0.3 }), spin: 3 },
@@ -3516,7 +3516,11 @@ function drawFighter(g, f, fr, z) {
     g.fillStyle = rg; g.fillRect(f.x - 50, f.y, 100, 8); g.strokeStyle = f.pc; g.lineWidth = 2; g.beginPath(); g.ellipse(f.x, f.y + 4, 46, 9, 0, 0, TAU); g.stroke();
   }
   g.save(); g.translate(f.x + sx, f.y);
-  if (f.state === 'attack' && f.move && f.move.spinX && f.mt > f.move.start) { const k = Math.cos(f.mt * 0.55); g.scale(f.facing * (Math.abs(k) < 0.2 ? (k < 0 ? -0.2 : 0.2) : k), 1); } else g.scale(f.facing, 1);
+  if (f.state === 'attack' && f.move && f.move.riptide && f.mt > 10 && f.mt < 26) {
+    // fly head first along the launch direction and spin around that axis like a drill
+    g.scale(f.facing, 1); g.translate(0, -c.h / 2); g.rotate((f.aim || 0) + Math.PI / 2);
+    const k = Math.cos(f.mt * 0.9); g.scale(Math.abs(k) < 0.25 ? (k < 0 ? -0.25 : 0.25) : k, 1); g.translate(0, c.h / 2);
+  } else if (f.state === 'attack' && f.move && f.move.spinX && f.mt > f.move.start) { const k = Math.cos(f.mt * 0.55); g.scale(f.facing * (Math.abs(k) < 0.2 ? (k < 0 ? -0.2 : 0.2) : k), 1); } else g.scale(f.facing, 1);
   if (f.buried && f.frozen > 0) { g.beginPath(); g.rect(-300, -400, 600, 400); g.clip(); g.translate(0, c.h * 0.55); }
   const invBlink = f.invuln > 0 && f.state !== 'ledge' && fr % 10 < 5;
   if (f.state === 'attack' && f.move && f.move.warp && f.intang) g.globalAlpha = 0.12;
@@ -3549,6 +3553,18 @@ function drawFighter(g, f, fr, z) {
     g.strokeStyle = '#ffffff'; g.lineWidth = 2.5; g.beginPath(); for (let i = 0; i < 9; i++) { const a = i / 9 * TAU + rand(-0.2, 0.2); let x = f.x, y = cy; g.moveTo(x, y); for (let j = 1; j <= 3; j++) { x = f.x + Math.cos(a) * R2 * j / 3 + rand(-6, 6); y = cy + Math.sin(a) * R2 * j / 3 + rand(-6, 6); g.lineTo(x, y); } } g.stroke(); g.restore();
   }
   if (f.buried && f.frozen > 0) { g.fillStyle = '#6b4a2e'; g.strokeStyle = INK; g.lineWidth = 2.5; g.beginPath(); g.ellipse(f.x, f.y, c.w * 0.75, 9, 0, Math.PI, TAU); g.closePath(); g.fill(); g.stroke(); }
+  if (f.state === 'attack' && f.move && f.move.riptide && f.mt > 10 && f.mt < 30) {
+    const a = f.aim || 0, dx = Math.cos(a) * f.facing, dy = Math.sin(a), cx = f.x, cy = f.y - c.h / 2, ph = f.mt * 0.9, ang = Math.atan2(dy, dx);
+    g.save(); g.lineWidth = 2.5;
+    for (let i = 0; i < 5; i++) {
+      const off = c.h * 0.55 - i * c.h * 0.28, R = c.w * (0.55 + i * 0.12);
+      g.save(); g.translate(cx + dx * off, cy + dy * off); g.rotate(ang);
+      g.strokeStyle = `rgba(160,225,255,${0.8 - i * 0.13})`; g.beginPath(); g.ellipse(0, 0, 5, R, 0, 0, TAU); g.stroke();
+      const q = ph + i * 0.8; g.fillStyle = `rgba(255,255,255,${0.95 - i * 0.12})`; g.beginPath(); g.arc(Math.cos(q) * 5, Math.sin(q) * R, 3, 0, TAU); g.fill();
+      g.restore();
+    }
+    g.restore();
+  }
   if (f.state === 'attack' && f.move && f.move.yodel && f.mt > 10 && f.mt <= 80) {
     const s = c.h / 80, mx = f.x + f.facing * c.w * 0.5, my = f.y - 64 * s, L = 76 * s * c.reach, ca = Math.cos(f.aim || 0), sa = Math.sin(f.aim || 0), base = Math.atan2(sa, ca * f.facing);
     g.save(); g.lineCap = 'round';
@@ -4178,7 +4194,7 @@ function netFighter(f, r, nb, k, fresh) {
     f.state = st; f.facing = r[3] < 0 ? -1 : 1;
     const cp = typeof r[27] === 'string' && CHARS[r[27]] ? r[27] : null;
     if (cp !== (f.copy || null)) applyCopy(f, cp);
-    f.aim = clamp((r[28] | 0) / 100, -1, 1);
+    f.aim = clamp((r[28] | 0) / 100, -3.2, 3.2);
     if (typeof r[29] === 'string' && CHARS[r[29]] && r[29] !== f.key) setForm(f, r[29]);
     const mk = r[4];
     f.move = st === 'attack' ? (mk === 'ctr' ? CTR_MOVE : (typeof mk === 'string' && Object.prototype.hasOwnProperty.call(f.M, mk) ? f.M[mk] : f.M.jab)) : null;
