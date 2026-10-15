@@ -680,7 +680,7 @@ const THROWS = {
   poef:  { f: { d: 8, a: 45, b: 60, g: 60 }, b: { d: 8, a: 135, b: 55, g: 70 }, u: { d: 10, a: 90, b: 70, g: 75, fx: 'slam' },
            d: { d: 2, a: 80, b: 45, g: 30, start: 14, end: 6, pre: [3, 5, 7, 9, 11, 13], preD: 0.8 } },
   joep:  { f: { d: 9, a: 40, b: 95, g: 25, fx: 'psi' }, b: { d: 11, a: 135, b: 25, g: 120, fx: 'psi' }, u: { d: 8, a: 90, b: 75, g: 45, fx: 'psi' },
-           d: { d: 2, a: 70, b: 46, g: 35, fx: 'fire', start: 14, end: 6, pre: [4, 7, 10, 13], preD: 1 } },
+           d: { d: 4, a: 88, b: 55, g: 40, fx: 'psi', preFx: 'fire', under: true, start: 20, end: 8, pre: [4, 7, 10, 13, 16], preD: 1.2 } },
   klauw: { f: { d: 11, a: 40, b: 70, g: 70, fx: 'slam' }, b: { d: 12, a: 140, b: 60, g: 100, fx: 'slam' }, u: { d: 4, a: 90, b: 65, g: 55, start: 13, pre: [3, 6, 9, 12], preD: 1.5 },
            d: { d: 9, a: 75, b: 55, g: 45, fx: 'slam' } },
   bongo: { f: { d: 11, a: 40, b: 70, g: 70 }, b: { d: 12, a: 140, b: 60, g: 95 }, u: { d: 9, a: 90, b: 70, g: 70 }, d: { d: 7, a: 80, b: 50, g: 40, fx: 'slam' } },
@@ -693,8 +693,8 @@ const THROWS = {
            u: { d: 6, a: 90, b: 65, g: 50, fx: 'zap' }, d: { d: 3, a: 80, b: 40, g: 25, fx: 'zap', start: 12, end: 6, pre: [4, 7, 10], preD: 1 } },
 };
 function throwKB(thb, v) { const p = v.percent; return ((p / 10 + p * thb.d / 20) * 200 / (v.c.weight + 100) * 1.4 + 18) * thb.g / 100 + thb.b; }
-function throwFx(f, v, fx) {
-  const x = v.x, y = v.y - v.c.h / 2;
+function throwFx(f, v, fx, low) {
+  const x = v.x, y = low ? v.y - 12 : v.y - v.c.h / 2;
   if (fx === 'zap' || fx === 'psi') { sparkFx(x, y, fx === 'psi' ? '#9fe8ff' : f.col.fx, 9); addP({ type: 'ring', x, y, life: 14, max: 14, size: 22, color: fx === 'psi' ? '#ff9bd6' : '#ffffff' }); }
   else if (fx === 'fire') for (let i = 0; i < 10; i++) addP({ type: 'ember', x: x + rand(-14, 14), y: y + rand(-14, 14), vx: rand(-3, 3), vy: -rand(1, 4), life: 22, max: 22, size: 7, color: i % 2 ? '#ffb347' : '#ff6a2b' });
   else if (fx === 'slam') { dustFx(f.x, f.y, 10); G.shake = Math.max(G.shake, 8); }
@@ -705,11 +705,11 @@ function throwFx(f, v, fx) {
 }
 function throwTick(f, t) {
   const v = f.held, m = f.move; if (!v) return;
-  if (m.pre && m.pre.includes(t)) { v.percent = Math.min(999, v.percent + m.preD); v.hud = 6; f.stats.dmg += m.preD; v.hitlag = 2; f.hitlag = 2; throwFx(f, v, m.fx || 'burst'); SFX.hit(2); }
+  if (m.pre && m.pre.includes(t)) { v.percent = Math.min(999, v.percent + m.preD); v.hud = 6; f.stats.dmg += m.preD; v.hitlag = 2; f.hitlag = 2; throwFx(f, v, m.preFx || m.fx || 'burst', m.under); SFX.hit(2); }
   const k = Math.min(1, t / m.start); let ox = f.facing * (f.c.w * 0.5 + v.c.w * 0.5 - 4), oy = 0;
   if (m.pose === 'throwU') { ox *= (1 - k); oy = -f.c.h * 0.95 * k; }
   else if (m.pose === 'throwB') { ox = ox * Math.cos(k * Math.PI); oy = -Math.sin(k * Math.PI) * f.c.h * 0.6; }
-  else if (m.pose === 'throwD') { ox *= 0.6; }
+  else if (m.pose === 'throwD') { ox *= m.under ? 0.15 : 0.6; }
   v.x = f.x + ox; v.y = f.y + oy; v.px = v.x; v.py = v.y;
   if (t === m.start) {
     f.held = null; v.holder = null; v.grounded = false; v.ground = null;
@@ -891,6 +891,8 @@ function buildMoves(ck) {
     const o = TT[dir], m = mv[dir + 'throw']; if (!o) continue;
     m.thb = { d: o.d, a: o.a, b: o.b, g: o.g, freeze: o.freeze };
     if (o.fx) m.fx = o.fx;
+    if (o.preFx) m.preFx = o.preFx;
+    if (o.under) m.under = true;
     if (o.pre) { m.pre = o.pre; m.preD = o.preD || 1; }
     if (o.start) m.start = o.start;
     if (o.end != null) m.end = o.end;
@@ -1324,7 +1326,7 @@ const SPECIALS = {
         if (!f.grounded && f.vy > 1.5) f.vy = 1.5;
         if (t !== 10) return;
         const air = !f.grounded;
-        spawnProj({ type: 'pkbolt', owner: f, x: f.x + f.facing * 26 * s, y: f.y - 40 * s, vx: f.facing * (air ? 9.5 : 11), vy: air ? 5.5 : 0, r: 9, life: 24, hb: { d: 2, a: 80, b: 12, g: 0 },
+        spawnProj({ type: 'pkbolt', owner: f, x: f.x + f.facing * 26 * s, y: f.y - 40 * s, vx: f.facing * (air ? 9.5 : 11), vy: air ? 5.5 : 0, r: 9, life: 24, hb: { d: 2, a: 80, b: 12, g: 0, pin: true },
           onGround: (p, s2) => { p.dead = true; pkPillar(p.owner, p.x, s2.y - 24); }, afterHit: p => pkPillar(p.owner, p.x, p.y) });
         SFX.fire();
       } }),
@@ -1517,7 +1519,7 @@ function pkBoom(owner, x, y, r, hb) {
   boomFx(x, y, r); addP({ type: 'ring', x, y, life: 16, max: 16, size: r * 0.5, color: '#9dffb0' });
 }
 function pkPillar(owner, x, y) {
-  spawnProj({ type: 'pkfire', owner, x, y, r: 24, life: 48, pierce: true, reflect: false, hb: { d: 1.5, a: 85, b: 16, g: 0 },
+  spawnProj({ type: 'pkfire', owner, x, y, r: 24, life: 48, pierce: true, reflect: false, hb: { d: 1.5, a: 85, b: 16, g: 0, pin: true },
     tick: p => { if (p.t % 7 === 0) p.hitSet = new Set(); if (p.t === 42) { p.hitSet = new Set(); p.hb = { d: 4, a: 60, b: 45, g: 55 }; } } });
   SFX.fire();
 }
@@ -2123,7 +2125,7 @@ function processHits() {
         if (a.hitSet.has(key)) continue;
         if (!circleRect(hx, hy, hb.r, v.x - v.c.w / 2, v.y - v.c.h, v.c.w, v.c.h)) continue;
         if (hb.grab) {
-          if (v.intang || v.state === 'grabbed' || v.holder || v.state === 'ledge' || (!v.grounded && !hb.cmd)) continue;
+          if (v.intang || v.state === 'grabbed' || v.holder || v.state === 'ledge' || (!v.grounded && !hb.cmd && !(G.frame - (v.pinT ?? -99) <= 10))) continue;
           a.hitSet.add(key); hits.push({ grab: true, a, v, hb }); continue;
         }
         if (v.intang) continue;
@@ -2141,7 +2143,7 @@ function processHits() {
       for (const it of G.items) if (it.type === 'crate' && !it.dead && !it.holder && circleRect(hx, hy, hb.r, it.x - 22, it.y - 40, 44, 40)) breakCrate(it);
     }
   }
-  for (const h of hits) if (h.grab && h.a.state === 'attack' && h.v.state !== 'hitstun' && h.v.state !== 'dead' && !h.v.holder) { doGrab(h.a, h.v); if (h.hb.cmd) h.a.startMove(h.a.M[h.hb.cmd]); }
+  for (const h of hits) if (h.grab && h.a.state === 'attack' && (h.v.state !== 'hitstun' || G.frame - (h.v.pinT ?? -99) <= 10) && h.v.state !== 'dead' && !h.v.holder) { doGrab(h.a, h.v); if (h.hb.cmd) h.a.startMove(h.a.M[h.hb.cmd]); }
 }
 function staleInfo(a, o) {
   if (!a || !a.stale) return null;
@@ -2195,6 +2197,8 @@ function applyHit(a, v, hb, dir, hx, hy, mult = 1, o = {}) {
   if (trWas !== null) trainHit(trWas, d, kb);
   v.lvx = lx * sp; v.lvy = ly * sp; v.vx = 0; v.vy = 0;
   if (hb.link && a && !o.proj) { v.lvx = a.vx + (hx - v.x) * 0.2; v.lvy = a.vy + (hy - (v.y - v.c.h / 2)) * 0.2; }
+  // PK fire pins a grounded victim in place, and anyone caught in it can be grabbed
+  if (hb.pin) { v.pinT = G.frame; if (v.grounded) v.lvx = v.lvy = 0; }
   if (v.lvy < -0.5 && v.grounded) { v.grounded = false; v.ground = null; }
   if (v.grounded) v.lvy = 0;
   v.move = null; v.ev = null; v.hitstun = Math.floor(kb * 0.4); v.tumble = kb > 80; v.fastfall = false;
@@ -2254,6 +2258,7 @@ function updateProjs() {
     for (const v of G.fighters) {
       if (v.state === 'dead' || v.state === 'respawn') continue;
       if (v === p.owner && !p.selfHit) continue;
+      if (p.type === 'pkfire' && v.state === 'grabbed') continue;
       if (p.hitSet.has(v.id)) continue;
       if (!circleRect(p.x, p.y, p.r, v.x - v.c.w / 2, v.y - v.c.h, v.c.w, v.c.h)) continue;
       const vm = v.move;
@@ -2673,6 +2678,8 @@ function poseFor(f) {
     }
     case 'helpless': return mk({ lean: 0.3, aF: [2.6, -0.2], aB: [2.4, -0.3], lF: [0.4, -0.6], lB: [-0.1, -0.8] });
     case 'hitstun': case 'shieldbreak': case 'grabbed': {
+      // pinned flat on the ground under a thrower (Joep's down throw)
+      if (s === 'grabbed' && G.fighters.some(o => o !== f && o.state === 'attack' && o.move && o.move.under && Math.abs(o.x - f.x) < 30)) return mk({ rot: -Math.PI / 2, dy: f.c.h * 0.5 - f.c.limb * 0.6, aF: [0.2, -0.3], aB: [-0.3, -0.2], lF: [0.1, -0.2], lB: [-0.1, -0.1] });
       const P = mk({ lean: -0.45, aF: [2.6, 0.5], aB: [-2.3, -0.5], lF: [0.9, -1.1], lB: [-0.5, -0.4] });
       if (f.frozen > 0) return mk({ crouch: 0.2, aF: [1.2, -1.4], aB: [0.9, -1.3], lean: -0.1 });
       if ((f.tumble && !f.grounded && s === 'hitstun') || s === 'shieldbreak') P.rot = -f.t * 0.3;
