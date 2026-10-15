@@ -575,7 +575,7 @@ Object.assign(CHARS, {
     col: { body: '#57c84d', dark: '#2f8a2c', acc: '#ff7ab0', skin: '#e9f7b0', fx: '#c6ff8a' }, alt: { body: '#e6c02f', dark: '#9c7f12', acc: '#3cc0ff', skin: '#fff3c2', fx: '#fff08a' } },
   bliep: { name: 'Bliep', blurb: 'Robot met laser, raketvuist, jetpack en een magneet die projectielen opslurpt.', weight: 112, run: 5.4, acc: 0.9, jump: 13.8, djump: 12.8, grav: 0.8, fall: 12, ffall: 17, air: 4.4, airAcc: 0.4, airJumps: 1, w: 50, h: 86, pow: 1.05, reach: 1, lag: 1, limb: 12, zoner: 'side', hr: 0.16, arm: 0.18,
     col: { body: '#d9dde6', dark: '#8a91a3', acc: '#ff4fd8', skin: '#2a2d3a', fx: '#ff9cf0' }, alt: { body: '#3a4152', dark: '#1d222e', acc: '#52ff8e', skin: '#0f1219', fx: '#a6ffc6' } },
-  joep: { name: 'Joep', blurb: 'Jongen met pet en PSI-krachten. PK-vuur, PK-flits, PK-donder (stuur hem tegen jezelf om weg te schieten) en een PSI-schild dat projectielen opslurpt en je geneest.', weight: 94, run: 5.9, acc: 1, jump: 15, djump: 15.5, grav: 0.78, fall: 11.5, ffall: 16.5, air: 4.6, airAcc: 0.5, airJumps: 1, w: 40, h: 72, pow: 1, reach: 1, lag: 0, limb: 9, zoner: 'side', hr: 0.19, arm: 0.155,
+  joep: { name: 'Joep', blurb: 'Jongen met pet en PSI-krachten. PK-vuur, PK-flits, PK-donder (stuur hem tegen jezelf om weg te schieten; of druk nog eens op speciaal plus een richting) en een PSI-schild dat projectielen opslurpt en je geneest.', weight: 94, run: 5.9, acc: 1, jump: 15, djump: 15.5, grav: 0.78, fall: 11.5, ffall: 16.5, air: 4.6, airAcc: 0.5, airJumps: 1, w: 40, h: 72, pow: 1, reach: 1, lag: 0, limb: 9, zoner: 'side', hr: 0.19, arm: 0.155,
     col: { body: '#f2c94c', dark: '#2f4fa8', acc: '#e23b3b', skin: '#f6cfa8', fx: '#7dd8ff' }, alt: { body: '#9be36b', dark: '#5a3d9e', acc: '#ff9f1c', skin: '#f6cfa8', fx: '#ffd36b' } },
   poef: { name: 'Poef', blurb: 'Roze bolletje met vijf zweefsprongen. Zuigt vechters op en spuugt ze als ster uit of slikt ze door om hun neutrale aanval over te nemen, slaat met een hamer, snijdt omhoog en valt als een steen.', weight: 74, run: 5.6, acc: 1, jump: 13.5, djump: 10.5, grav: 0.6, fall: 9, ffall: 13.5, air: 4.4, airAcc: 0.42, airJumps: 5, w: 50, h: 60, pow: 0.95, reach: 0.95, lag: 0, limb: 9, pz: 1.55,
     col: { body: '#ffa3c9', dark: '#e0609b', acc: '#e8243f', skin: '#ff6f9f', fx: '#ffe36b' }, alt: { body: '#a9dcff', dark: '#5b9fd6', acc: '#2a4fc9', skin: '#ff8fb3', fx: '#c9f2ff' } },
@@ -959,20 +959,34 @@ function pkPillar(owner, x, y) {
 function pkThunderTick(p) {
   const f = p.owner;
   if (!f || f.state !== 'attack' || f.move !== f.M.upB) { p.dead = true; return; }
-  let want = null;
+  const angDiff = (a, b) => ((a - b + Math.PI) % TAU + TAU) % TAU - Math.PI;
+  const cx = f.x, cy = f.y - f.c.h / 2, home = Math.atan2(cy - p.y, cx - p.x), dist = Math.hypot(cx - p.x, cy - p.y), cur = Math.atan2(p.vy, p.vx);
+  let want = null, turn = 0.16;
   if (f.cpu) {
-    const m = G.stage.main, toward = f.x < (m.x1 + m.x2) / 2 ? 1 : -1, cx = f.x, cy = f.y - f.c.h / 2;
+    const m = G.stage.main, toward = f.x < (m.x1 + m.x2) / 2 ? 1 : -1;
     let tx = cx - toward * 90, ty = cy + 70;
     if (!p.ph && Math.hypot(tx - p.x, ty - p.y) < 40) p.ph = 1;
     if (p.ph) { tx = cx; ty = cy; }
     want = Math.atan2(ty - p.y, tx - p.x);
-  } else if (f.ix || f.iy) want = Math.atan2(f.iy, f.ix);
-  if (want != null) {
-    let a = Math.atan2(p.vy, p.vx), d = want - a; d = ((d + Math.PI) % TAU + TAU) % TAU - Math.PI;
-    a += clamp(d, -0.16, 0.16); p.vx = Math.cos(a) * 9.5; p.vy = Math.sin(a) * 9.5;
+  } else {
+    // keyboard help: press special again and the ball rushes back; you then launch in the
+    // direction you hold. Near you the ball is also pulled in when it (or your input) points your way
+    if (p.t > 4 && f.cons('spc')) { p.home = true; sparkFx(p.x, p.y, '#ffffff', 4); }
+    turn = 0.2;
+    if (p.home) { want = home; turn = 0.42; }
+    else {
+      if (f.ix || f.iy) want = Math.atan2(f.iy, f.ix);
+      const aim = want == null ? cur : want;
+      if (p.t > 12 && dist < 210 && Math.abs(angDiff(aim, home)) < 0.8) want = home;
+    }
   }
-  if (p.t > 12 && circleRect(p.x, p.y, p.r, f.x - f.c.w / 2, f.y - f.c.h, f.c.w, f.c.h)) {
-    const n = Math.hypot(p.vx, p.vy) || 1; f.pkt = { x: p.vx / n, y: p.vy / n }; p.dead = true; f.startMove(f.M.pkt2);
+  if (want != null) {
+    const a = cur + clamp(angDiff(want, cur), -turn, turn), sp = p.home ? 14 : 9.5;
+    p.vx = Math.cos(a) * sp; p.vy = Math.sin(a) * sp;
+  }
+  if (p.t > 12 && circleRect(p.x, p.y, p.r + 8, f.x - f.c.w / 2, f.y - f.c.h, f.c.w, f.c.h)) {
+    let dx = p.vx, dy = p.vy; if (p.home && (f.ix || f.iy)) { dx = f.ix; dy = f.iy; }
+    const n = Math.hypot(dx, dy) || 1; f.pkt = { x: dx / n, y: dy / n }; p.dead = true; f.startMove(f.M.pkt2);
   }
 }
 function splashLand(f) {
