@@ -595,8 +595,47 @@ Object.assign(CHARS, {
 const CHAR_KEYS = Object.keys(CHARS);
 
 let NEXT_ID = 1;
+/* Per-character throws. d = damage, a = angle, b = base knockback, g = growth (how strongly the
+   knockback scales with damage %). pre = frames with small hits before the release (preD each),
+   fx = effect on release. Unlisted fields keep the generic values. */
+const THROWS = {
+  volt:  { f: { d: 6, a: 40, b: 55, g: 45, fx: 'zap', pre: [3, 5], preD: 1 }, b: { d: 7, a: 135, b: 55, g: 50, fx: 'zap', pre: [4, 6], preD: 1 },
+           u: { d: 5, a: 90, b: 72, g: 55, fx: 'zap', pre: [4, 6], preD: 1 }, d: { d: 3, a: 82, b: 42, g: 28, fx: 'zap', start: 12, end: 6, pre: [3, 5, 7, 9], preD: 1 } },
+  brick: { f: { d: 11, a: 40, b: 70, g: 70, fx: 'slam' }, b: { d: 12, a: 140, b: 60, g: 95, fx: 'slam' }, u: { d: 9, a: 88, b: 65, g: 80 }, d: { d: 8, a: 75, b: 55, g: 50, fx: 'slam' } },
+  sable: { f: { d: 8, a: 28, b: 60, g: 60, fx: 'slash' }, b: { d: 9, a: 140, b: 50, g: 72, fx: 'slash' }, u: { d: 6, a: 90, b: 55, g: 40, fx: 'slash' }, d: { d: 5, a: 85, b: 45, g: 30, fx: 'slash', end: 8 } },
+  pip:   { f: { d: 8, a: 45, b: 55, g: 60, fx: 'fire' }, b: { d: 7, a: 130, b: 45, g: 55, fx: 'ice', freeze: 18 }, u: { d: 7, a: 90, b: 70, g: 60, fx: 'burst' }, d: { d: 6, a: 80, b: 50, g: 40, fx: 'burst' } },
+  gloei: { f: { d: 10, a: 38, b: 60, g: 75, fx: 'fire' }, b: { d: 11, a: 135, b: 55, g: 85, fx: 'fire' }, u: { d: 9, a: 88, b: 60, g: 70, fx: 'fire' },
+           d: { d: 3, a: 70, b: 45, g: 40, fx: 'fire', start: 12, end: 8, pre: [3, 6, 9], preD: 1.5 } },
+  kwak:  { f: { d: 7, a: 40, b: 70, g: 50 }, b: { d: 9, a: 150, b: 50, g: 75 }, u: { d: 6, a: 95, b: 80, g: 40 }, d: { d: 6, a: 80, b: 40, g: 30, fx: 'slam', end: 8 } },
+  bliep: { f: { d: 8, a: 35, b: 60, g: 65, fx: 'zap' }, b: { d: 9, a: 135, b: 50, g: 80, fx: 'zap' }, u: { d: 9, a: 88, b: 55, g: 85, fx: 'jet' },
+           d: { d: 3, a: 70, b: 45, g: 35, fx: 'slam', start: 12, pre: [3, 6, 9], preD: 1 } },
+  schim: { f: { d: 7, a: 40, b: 50, g: 55 }, b: { d: 8, a: 135, b: 55, g: 60 }, u: { d: 4, a: 90, b: 55, g: 45, fx: 'zap', start: 11, pre: [4, 7, 10], preD: 1 },
+           d: { d: 3, a: 80, b: 45, g: 30, start: 12, end: 6, pre: [3, 5, 7, 9, 11], preD: 1 } },
+  poef:  { f: { d: 8, a: 45, b: 60, g: 60 }, b: { d: 8, a: 135, b: 55, g: 70 }, u: { d: 10, a: 90, b: 70, g: 75, fx: 'slam' },
+           d: { d: 2, a: 80, b: 45, g: 30, start: 14, end: 6, pre: [3, 5, 7, 9, 11, 13], preD: 0.8 } },
+  joep:  { f: { d: 9, a: 40, b: 95, g: 25, fx: 'psi' }, b: { d: 11, a: 135, b: 25, g: 120, fx: 'psi' }, u: { d: 8, a: 90, b: 75, g: 45, fx: 'psi' },
+           d: { d: 2, a: 70, b: 46, g: 35, fx: 'fire', start: 14, end: 6, pre: [4, 7, 10, 13], preD: 1 } },
+  klauw: { f: { d: 11, a: 40, b: 70, g: 70, fx: 'slam' }, b: { d: 12, a: 140, b: 60, g: 100, fx: 'slam' }, u: { d: 4, a: 90, b: 65, g: 55, start: 13, pre: [3, 6, 9, 12], preD: 1.5 },
+           d: { d: 9, a: 75, b: 55, g: 45, fx: 'slam' } },
+  bongo: { f: { d: 11, a: 40, b: 70, g: 70 }, b: { d: 12, a: 140, b: 60, g: 95 }, u: { d: 9, a: 90, b: 70, g: 70 }, d: { d: 7, a: 80, b: 50, g: 40, fx: 'slam' } },
+  lonk:  { f: { d: 7, a: 40, b: 60, g: 50 }, b: { d: 9, a: 135, b: 50, g: 72 }, u: { d: 8, a: 90, b: 60, g: 55, fx: 'slash' }, d: { d: 5, a: 80, b: 40, g: 30, end: 8 } },
+  rat:   { f: { d: 4, a: 40, b: 50, g: 55, fx: 'zap', start: 11, pre: [4, 7, 10], preD: 1 }, b: { d: 9, a: 135, b: 50, g: 65, fx: 'zap' },
+           u: { d: 6, a: 90, b: 65, g: 50, fx: 'zap' }, d: { d: 3, a: 80, b: 40, g: 25, fx: 'zap', start: 12, end: 6, pre: [4, 7, 10], preD: 1 } },
+};
+function throwKB(thb, v) { const p = v.percent; return ((p / 10 + p * thb.d / 20) * 200 / (v.c.weight + 100) * 1.4 + 18) * thb.g / 100 + thb.b; }
+function throwFx(f, v, fx) {
+  const x = v.x, y = v.y - v.c.h / 2;
+  if (fx === 'zap' || fx === 'psi') { sparkFx(x, y, fx === 'psi' ? '#9fe8ff' : f.col.fx, 9); addP({ type: 'ring', x, y, life: 14, max: 14, size: 22, color: fx === 'psi' ? '#ff9bd6' : '#ffffff' }); }
+  else if (fx === 'fire') for (let i = 0; i < 10; i++) addP({ type: 'ember', x: x + rand(-14, 14), y: y + rand(-14, 14), vx: rand(-3, 3), vy: -rand(1, 4), life: 22, max: 22, size: 7, color: i % 2 ? '#ffb347' : '#ff6a2b' });
+  else if (fx === 'slam') { dustFx(f.x, f.y, 10); G.shake = Math.max(G.shake, 8); }
+  else if (fx === 'slash') for (let i = 0; i < 3; i++) addP({ type: 'line', x, y, vx: rand(-8, 8), vy: rand(-8, 8), life: 12, max: 12, size: 26, color: '#ffffff', drag: 0.85 });
+  else if (fx === 'ice') sparkFx(x, y, '#bff1ff', 8);
+  else if (fx === 'jet') for (let i = 0; i < 8; i++) addP({ type: 'ember', x: f.x + rand(-12, 12), y: f.y - rand(0, 20), vy: rand(2, 5), life: 16, max: 16, size: 7, color: '#ffb347' });
+  else if (fx === 'burst') { sparkFx(x, y, f.col.fx, 8); addP({ type: 'flash', x, y, life: 8, max: 8, size: 30, color: hexA(f.col.fx, 0.8) }); }
+}
 function throwTick(f, t) {
   const v = f.held, m = f.move; if (!v) return;
+  if (m.pre && m.pre.includes(t)) { v.percent = Math.min(999, v.percent + m.preD); v.hud = 6; f.stats.dmg += m.preD; v.hitlag = 2; f.hitlag = 2; throwFx(f, v, m.fx || 'burst'); SFX.hit(2); }
   const k = Math.min(1, t / m.start); let ox = f.facing * (f.c.w * 0.5 + v.c.w * 0.5 - 4), oy = 0;
   if (m.pose === 'throwU') { ox *= (1 - k); oy = -f.c.h * 0.95 * k; }
   else if (m.pose === 'throwB') { ox = ox * Math.cos(k * Math.PI); oy = -Math.sin(k * Math.PI) * f.c.h * 0.6; }
@@ -606,6 +645,7 @@ function throwTick(f, t) {
     f.held = null; v.holder = null; v.grounded = false; v.ground = null;
     if (m.pose === 'throwD' && f.grounded) { v.grounded = true; v.ground = f.ground; v.y = f.y; }
     applyHit(f, v, m.thb, f.facing, v.x, v.y - v.c.h / 2, 1, { throw: true });
+    if (m.fx) throwFx(f, v, m.fx);
   }
 }
 function buildMoves(ck) {
@@ -647,6 +687,16 @@ function buildMoves(ck) {
     shoot: M({ start: 4, active: 1, end: 10, pose: 'cast', tick: (f, t) => { if (!f.grounded && f.vy > 1.5) f.vy = 1.5; if (t === f.move.start && f.item && f.item.type === 'blaster' && f.item.ammo > 0) { f.item.ammo--; spawnProj({ type: 'blast', owner: f, x: f.x + f.facing * 42 * s, y: f.y - 46 * s, vx: f.facing * 16, r: 8, life: 40, hb: { d: 4, a: 30, b: 12, g: 10 } }); SFX.shoot(); } } }),
   };
   Object.assign(mv, SPECIALS[ck](M, H, s));
+  const TT = THROWS[ck] || {};
+  for (const dir of ['f', 'b', 'u', 'd']) {
+    const o = TT[dir], m = mv[dir + 'throw']; if (!o) continue;
+    m.thb = { d: o.d, a: o.a, b: o.b, g: o.g, freeze: o.freeze };
+    if (o.fx) m.fx = o.fx;
+    if (o.pre) { m.pre = o.pre; m.preD = o.preD || 1; }
+    if (o.start) m.start = o.start;
+    if (o.end != null) m.end = o.end;
+    m.dur = m.start + m.active + m.end;
+  }
   if (ck === 'joep') { const f = mv.fsmash; f.bat = true; f.reflect = [f.start - 1, f.start + f.active]; f.hb = f.hb.map(h => Object.assign({}, h, { x: h.x * 1.25, d: Math.round(h.d * 1.1 * 10) / 10 })); }
   const SW = ck === 'sable' || ck === 'lonk', mid = -c.h * 0.5 * s * 80 / c.h;
   for (const k in mv) {
@@ -2028,9 +2078,10 @@ class AI {
     if (st === 'respawn') { if (f.t > 40 && Math.random() < 0.05) o.d = true; return o; }
     if (st === 'holding') {
       if (f.t > 6 && Math.random() < 0.2) {
-        const nearEdge = f.x < m.x1 + 160 ? -1 : f.x > m.x2 - 160 ? 1 : 0, t = f.held;
-        if (nearEdge && t && t.percent > 60) o[nearEdge < 0 ? 'l' : 'r'] = true;
-        else o[['u', 'd', 'l', 'r'][Math.random() * 4 | 0]] = true;
+        const t = f.held, fk = f.facing > 0 ? 'r' : 'l', bk = f.facing > 0 ? 'l' : 'r';
+        const opts = t ? [['f', fk], ['b', bk], ['u', 'u'], ['d', 'd']].map(([k2, key]) => ({ key, kb: throwKB(f.M[k2 + 'throw'].thb, t) })).sort((a, b) => b.kb - a.kb) : [];
+        if (opts.length && opts[0].kb > 165) o[opts[0].key] = true;
+        else o[Math.random() < 0.7 ? (Math.random() < 0.5 ? 'd' : 'u') : (Math.random() < 0.5 ? fk : bk)] = true;
       }
       return o;
     }
