@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d1731'/%3E%3Cpolygon points='32.0,4.0 36.9,14.6 46.5,7.9 45.4,19.6 57.1,18.5 50.4,28.1 61.0,33.0 50.4,37.9 57.1,47.5 45.4,46.4 46.5,58.1 36.9,51.4 32.0,62.0 27.1,51.4 17.5,58.1 18.6,46.4 6.9,47.5 13.6,37.9 3.0,33.0 13.6,28.1 6.9,18.5 18.6,19.6 17.5,7.9 27.1,14.6' fill='%23ffc933' stroke='%23ff5a3d' stroke-width='3' stroke-linejoin='round'/%3E%3Ctext x='32' y='44' font-family='Impact,Arial Black,sans-serif' font-size='30' text-anchor='middle' fill='%23120e1d'%3EK%3C/text%3E%3C/svg%3E">
 <meta name="description" content="Klapstuk: een platformvechter voor 2 tot 4 spelers in de browser, lokaal of online.">
 <style>body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>Klapstuk</title>
@@ -554,8 +555,8 @@ class Ctrl {
 
 /* ---------------- characters ---------------- */
 const CHARS = {
-  volt: { name: 'Volt', blurb: 'Snel en licht. Vonken op afstand, bliksemdash en een spiegel.', weight: 84, run: 7.4, acc: 1.1, jump: 15.5, djump: 14.5, grav: 0.78, fall: 11.5, ffall: 16.5, air: 5.4, airAcc: 0.5, airJumps: 1, w: 40, h: 74, pow: 0.9, reach: 1, lag: -1, limb: 10,
-    col: { body: '#ffcb2e', dark: '#c98a00', acc: '#29e0d0', skin: '#fff0bd', fx: '#9ff6ff' }, alt: { body: '#ff8ad1', dark: '#c4459a', acc: '#ffe14d', skin: '#ffe0f2', fx: '#fff2a0' } },
+  volt: { name: 'Volt', blurb: 'Snelle vos die hard valt. Blaster zonder terugslag, een vurige vlucht, een schijnaanval en een reflector die je met een sprong afbreekt.', weight: 78, run: 7.8, acc: 1.2, jump: 16, djump: 15, grav: 0.95, fall: 14, ffall: 19.5, air: 5, airAcc: 0.5, airJumps: 1, w: 40, h: 74, pow: 0.92, reach: 1, lag: -1, limb: 10, hr: 0.17,
+    col: { body: '#e08a3c', dark: '#a85a20', acc: '#d8262f', skin: '#fff4e6', fx: '#ff6a4a', jacket: '#4f7f3a' }, alt: { body: '#8f8f9e', dark: '#5e5e6c', acc: '#3d6fe0', skin: '#f0f0f4', fx: '#9fd6ff', jacket: '#3a3f52' } },
   brick: { name: 'Brok', blurb: 'Zwaar en traag, maar elke klap telt dubbel. Pantser op zijn ram.', weight: 128, run: 4.9, acc: 0.8, jump: 14, djump: 12.8, grav: 0.82, fall: 12.5, ffall: 17.5, air: 3.9, airAcc: 0.36, airJumps: 1, w: 58, h: 94, pow: 1.25, reach: 1.05, lag: 2, limb: 17,
     col: { body: '#8d93a3', dark: '#5b6070', acc: '#ff6a2b', skin: '#b6bccb', fx: '#ffb36b' }, alt: { body: '#a57d5c', dark: '#6e4f36', acc: '#5cf0ff', skin: '#c9a283', fx: '#a8f6ff' } },
   sable: { name: 'Sabel', blurb: 'Zwaardvechter met lange reikwijdte, schaduwstap en counter.', weight: 96, run: 6.4, acc: 1, jump: 15.8, djump: 14.6, grav: 0.8, fall: 12, ffall: 17, air: 4.9, airAcc: 0.45, airJumps: 1, w: 40, h: 82, pow: 1, reach: 1.32, lag: 0, limb: 10,
@@ -667,8 +668,8 @@ function spawnWave(f, dir, plat) {
 }
 const SPECIALS = {
   volt: (M, H, s) => ({
-    neutralB: M({ special: true, start: 8, active: 1, end: 14, pose: 'cast',
-      tick: (f, t) => { if (!f.grounded && f.vy > 1.5) f.vy = 1.5; if (t === 8) { spawnProj({ type: 'spark', owner: f, x: f.x + f.facing * 30 * s, y: f.y - 44 * s, vx: f.facing * 15, r: 11, life: 48, hb: { d: 4, a: 25, b: 14, g: 6 } }); SFX.shoot(); } } }),
+    neutralB: M({ special: true, start: 5, active: 1, end: 9, pose: 'cast',
+      tick: (f, t) => { if (!f.grounded && f.vy > 1.5) f.vy = 1.5; if (t === 5) { spawnProj({ type: 'laser', owner: f, x: f.x + f.facing * 32 * s, y: f.y - 44 * s, vx: f.facing * 26, r: 6, life: 26, hb: { d: 3, a: 0, b: 0, g: 0, noFlinch: true } }); SFX.zap(); } } }),
     sideB: M({ special: true, start: 9, active: 10, end: 18, pose: 'dashB', keepVel: true, noDrift: true, ll: 10,
       hb: [H(14, -40, 28, 7, 40, 42, 62, { nr: 1 })], noGrav: (f, t) => t <= 20,
       tick: (f, t) => { if (t < 9) { f.vx *= 0.7; f.vy *= 0.5; } else if (t <= 18) { f.vx = f.facing * 19; f.vy = 0; if (t % 2) ghostFx(f); } else if (t === 19) f.vx = f.facing * 5; } }),
@@ -682,8 +683,16 @@ const SPECIALS = {
         } else if (t < 30) ghostFx(f);
         else if (t === 30) { f.vx *= 0.3; f.vy *= 0.3; }
       } }),
-    downB: M({ special: true, start: 3, active: 24, end: 12, pose: 'reflect', reflect: [3, 27],
-      hb: [H(0, -40, 32, 4, 80, 30, 30, { nr: 1, f1: 3 })], tick: f => { if (!f.grounded && f.vy > 1) f.vy = 1; } }),
+    downB: M({ special: true, start: 1, active: 24, end: 12, pose: 'reflect', reflect: [1, 25],
+      hb: [H(0, -40, 32, 4, 80, 30, 30, { nr: 1, f1: 3 })],
+      tick: (f, t) => {
+        if (!f.grounded && f.vy > 1) f.vy = 1;
+        if (t > 3 && f.bf.jmp > 0 && (f.grounded || f.jumps > 0)) {
+          f.cons('jmp');
+          if (f.grounded) { f.jsTap = false; return f.setState('jumpsquat'); }
+          f.jumps--; f.vy = -f.c.djump; f.vx = f.ix * f.c.air * 0.9; f.djT = 14; f.fastfall = false; SFX.jump(); return f.setState('air');
+        }
+      } }),
   }),
   brick: (M, H, s) => ({
     neutralB: M({ special: true, start: 16, active: 4, end: 28, pose: 'punchC', charge: true, chargeKey: 'spc', chargeAt: 12, chargeMax: 90, chargeBoost: 1.2,
@@ -1775,6 +1784,7 @@ function applyHit(a, v, hb, dir, hx, hy, mult = 1, o = {}) {
       return;
     }
   }
+  if (hb.noFlinch) { v.percent = Math.min(999, v.percent + d); v.hud = 10; if (a) { a.stats.dmg += d; if (a !== v) { v.lastHit = a; v.lastHitT = G.frame; } } sparkFx(hx, hy, a ? a.col.fx : '#ffffff', 2); SFX.hit(2); return; }
   const wasGround = v.grounded ? v.ground : null; if (v.buried) { v.buried = false; v.frozen = 0; }
   if (v.holder && !o.throw) { const h = v.holder; h.held = null; if (h.state === 'holding') h.setState('idle'); v.holder = null; }
   if (v.held) { const w = v.held; w.holder = null; v.held = null; if (w.state === 'grabbed') { w.setState('air'); w.vy = -5; } }
@@ -2321,14 +2331,20 @@ function drawPuppet(g, ck, col, P, o = {}) {
   };
   const lB = leg('lB'), lF = leg('lF');
   const aB = limbPts(sh.x, sh.y + 3, P.aB[0] + lean, P.aB[1], AL, AL), aF = limbPts(sh.x, sh.y + 3, P.aF[0] + lean, P.aF[1], AL, AL);
-  const handCol = { rat: col.body, lonk: '#8a5a2b', klauw: col.body, bongo: col.skin, brick: col.dark, sable: col.dark, volt: col.body, gloei: col.acc, kwak: col.body, bliep: col.dark, schim: '#f4f4f4' }[ck] || col.skin;
+  const handCol = { rat: col.body, lonk: '#8a5a2b', klauw: col.body, bongo: col.skin, brick: col.dark, sable: col.dark, volt: col.skin, gloei: col.acc, kwak: col.body, bliep: col.dark, schim: '#f4f4f4' }[ck] || col.skin;
   // back limbs
-  const backCol = ck === 'klauw' ? shade(col.body, 0.78) : ck === 'lonk' ? '#cdc3aa' : col.dark;
+  const backCol = ck === 'klauw' ? shade(col.body, 0.78) : ck === 'lonk' ? '#cdc3aa' : ck === 'volt' ? shade(col.jacket, 0.78) : col.dark;
   strokeLimb(g, lB, backCol, lw); foot(g, ck, lB, lw, col);
   strokeLimb(g, aB, backCol, lw * 0.9); dot(g, aB[4], aB[5], lw * (ck === 'gloei' ? 0.95 : ck === 'bongo' ? 0.8 : ck === 'klauw' ? 0.7 : 0.6), handCol);
   if (ck === 'lonk') drawShieldL(g, aB[4], aB[5], h);
   if (ck === 'lonk' && !o.sword) { g.lineCap = 'round'; g.strokeStyle = INK; g.lineWidth = 9; g.beginPath(); g.moveTo(sh.x - 18, sh.y - 12); g.lineTo(hip.x + 12, hip.y + 6); g.stroke(); g.strokeStyle = '#6b4423'; g.lineWidth = 5; g.stroke(); g.strokeStyle = '#4f6bd8'; g.lineWidth = 5; g.beginPath(); g.moveTo(sh.x - 18, sh.y - 12); g.lineTo(sh.x - 24, sh.y - 20); g.stroke(); }
   if (ck === 'sable' && !o.sword) { g.strokeStyle = INK; g.lineWidth = 8; g.beginPath(); g.moveTo(sh.x - 22, sh.y - 10); g.lineTo(hip.x + 14, hip.y + 10); g.stroke(); g.strokeStyle = '#3b2a20'; g.lineWidth = 4; g.stroke(); }
+  if (ck === 'volt') { // bushy tail
+    g.save(); g.translate(hip.x, hip.y); g.rotate(lean - 0.55 + Math.sin(fr * 0.15) * 0.08); g.lineWidth = 3; g.strokeStyle = INK;
+    g.beginPath(); g.ellipse(-c.w * 0.62, -tl * 0.02, c.w * 0.58, tl * 0.2, 0, 0, TAU); g.fillStyle = col.body; g.fill(); g.stroke();
+    g.beginPath(); g.ellipse(-c.w * 1.04, -tl * 0.02, c.w * 0.2, tl * 0.15, 0, 0, TAU); g.fillStyle = col.skin; g.fill(); g.lineWidth = 2; g.stroke();
+    g.restore();
+  }
   if (ck === 'volt') { // scarf tails
     const w = Math.sin(fr * 0.3) * 6;
     g.strokeStyle = INK; g.lineWidth = 9; g.beginPath(); g.moveTo(sh.x, sh.y); g.quadraticCurveTo(sh.x - 22, sh.y - 4 + w, sh.x - 40, sh.y + 6 - w); g.stroke();
@@ -2394,7 +2410,7 @@ function drawPuppet(g, ck, col, P, o = {}) {
   } else {
     const tw = c.w * (ck === 'sable' ? 0.56 : ck === 'bongo' ? 0.82 : ck === 'klauw' || ck === 'rat' ? 0.72 : 0.62);
     rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.fillStyle = col.body; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke();
-    if (ck === 'volt') { g.fillStyle = col.acc; g.beginPath(); g.moveTo(2, -tl + 6); g.lineTo(-5, -tl * 0.5); g.lineTo(1, -tl * 0.5); g.lineTo(-3, -4); g.lineTo(7, -tl * 0.58); g.lineTo(1, -tl * 0.58); g.closePath(); g.fill(); }
+    if (ck === 'volt') { g.save(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.clip(); g.fillStyle = col.jacket; g.fillRect(-tw, -tl - 6, tw * 2, tl + 20); g.fillStyle = col.skin; g.fillRect(-tw * 0.02, -tl - 6, tw * 0.36, tl * 0.82); g.fillStyle = '#3a2a1a'; g.fillRect(-tw, -tl * 0.14, tw * 2, tl * 0.11); g.restore(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.lineWidth = 3; g.strokeStyle = INK; g.stroke(); }
     else if (ck === 'rat') { g.strokeStyle = '#8a5a22'; g.lineWidth = 4; g.lineCap = 'round'; for (const q of [-0.72, -0.48]) { g.beginPath(); g.moveTo(-tw * 0.46, tl * q); g.lineTo(-tw * 0.18, tl * (q + 0.05)); g.stroke(); } }
     else if (ck === 'lonk') { g.beginPath(); g.moveTo(-tw * 0.5, 2); g.lineTo(tw * 0.5, 2); g.lineTo(tw * 0.64, hipH * 0.32); g.lineTo(-tw * 0.64, hipH * 0.32); g.closePath(); g.fillStyle = col.body; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke(); g.fillStyle = '#6b4423'; g.fillRect(-tw / 2, -tl * 0.26, tw, tl * 0.14); g.fillStyle = col.acc; g.fillRect(tw * 0.1, -tl * 0.27, tw * 0.2, tl * 0.16); }
     else if (ck === 'klauw') { g.beginPath(); g.ellipse(tw * 0.14, -tl * 0.45, tw * 0.34, tl * 0.5, 0, 0, TAU); g.fillStyle = col.skin; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke(); g.strokeStyle = 'rgba(21,17,31,.35)'; for (const q of [-0.72, -0.47, -0.22]) { g.beginPath(); g.moveTo(-tw * 0.12, tl * q); g.lineTo(tw * 0.42, tl * q); g.stroke(); } }
@@ -2505,10 +2521,19 @@ function drawPuppet(g, ck, col, P, o = {}) {
     g.fillStyle = '#ffffff'; g.beginPath(); g.arc(-hr * 0.05, -hr * 0.78, hr * 0.17, 0, TAU); g.fill();
   } else if (ck === 'volt') {
     g.fillStyle = col.body; g.strokeStyle = INK; g.lineWidth = 3;
-    for (const ex of [-0.55, 0.05]) { g.beginPath(); g.moveTo(hr * ex - hr * 0.3, -hr * 0.6); g.lineTo(hr * ex - hr * 0.1, -hr * 2.0); g.lineTo(hr * ex + hr * 0.35, -hr * 0.75); g.closePath(); g.fill(); g.stroke(); }
-    g.beginPath(); g.arc(0, 0, hr, 0, TAU); g.fill(); g.stroke();
-    g.beginPath(); g.ellipse(hr * 0.55, hr * 0.35, hr * 0.5, hr * 0.38, 0, 0, TAU); g.fillStyle = col.skin; g.fill(); g.lineWidth = 2; g.stroke();
-    eye(g, hr * 0.38, -hr * 0.18, hr * 0.32, hurt);
+    for (const ex of [-0.55, 0.0]) {
+      g.beginPath(); g.moveTo(hr * ex - hr * 0.3, -hr * 0.55); g.lineTo(hr * ex - hr * 0.05, -hr * 1.75); g.lineTo(hr * ex + hr * 0.32, -hr * 0.7); g.closePath(); g.fillStyle = col.body; g.fill(); g.stroke();
+      g.beginPath(); g.moveTo(hr * ex - hr * 0.14, -hr * 0.75); g.lineTo(hr * ex - hr * 0.04, -hr * 1.4); g.lineTo(hr * ex + hr * 0.16, -hr * 0.8); g.closePath(); g.fillStyle = col.skin; g.fill();
+    }
+    g.beginPath(); g.arc(0, 0, hr, 0, TAU); g.fillStyle = col.body; g.fill(); g.stroke();
+    g.beginPath(); g.ellipse(-hr * 0.05, hr * 0.45, hr * 0.48, hr * 0.36, 0, 0, TAU); g.fillStyle = col.skin; g.fill();
+    g.beginPath(); g.moveTo(hr * 0.35, -hr * 0.38); g.quadraticCurveTo(hr * 1.1, -hr * 0.28, hr * 1.62, hr * 0.16); g.lineTo(hr * 0.45, hr * 0.3); g.closePath(); g.fillStyle = col.body; g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(hr * 0.25, hr * 0.06); g.lineTo(hr * 1.56, hr * 0.2); g.quadraticCurveTo(hr * 1.0, hr * 0.78, hr * 0.2, hr * 0.7); g.closePath(); g.fillStyle = col.skin; g.fill(); g.lineWidth = 2; g.stroke();
+    g.beginPath(); g.arc(hr * 1.6, hr * 0.14, hr * 0.11, 0, TAU); g.fillStyle = INK; g.fill();
+    eye(g, hr * 0.3, -hr * 0.28, hr * 0.27, hurt);
+    dot(g, -hr * 0.3, -hr * 0.05, hr * 0.2, '#9aa0ad');
+    g.strokeStyle = '#9aa0ad'; g.lineWidth = 2.5; g.lineCap = 'round'; g.beginPath(); g.moveTo(-hr * 0.2, hr * 0.1); g.quadraticCurveTo(hr * 0.05, hr * 0.62, hr * 0.42, hr * 0.62); g.stroke();
+    g.fillStyle = '#5e6472'; g.beginPath(); g.arc(hr * 0.44, hr * 0.62, hr * 0.08, 0, TAU); g.fill();
   } else if (ck === 'sable') {
     g.beginPath(); g.arc(0, 0, hr, 0, TAU); g.fillStyle = col.body; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke();
     rr(g, hr * 0.05, -hr * 0.45, hr * 0.95, hr * 0.55, hr * 0.25); g.fillStyle = col.skin; g.fill(); g.lineWidth = 2; g.stroke();
@@ -2526,7 +2551,7 @@ function drawPuppet(g, ck, col, P, o = {}) {
   }
   g.restore();
   // front leg & arm
-  strokeLimb(g, lF, ck === 'pip' || ck === 'joep' ? col.dark : ck === 'lonk' ? '#ece3cc' : col.body, lw); foot(g, ck, lF, lw, col);
+  strokeLimb(g, lF, ck === 'pip' || ck === 'joep' ? col.dark : ck === 'lonk' ? '#ece3cc' : ck === 'volt' ? col.jacket : col.body, lw); foot(g, ck, lF, lw, col);
   if (ck === 'pip') { // robe overlaps front leg top
     g.save(); g.translate(hip.x, hip.y); g.rotate(lean);
     g.beginPath(); g.moveTo(-c.w * 0.24, -tl); g.lineTo(c.w * 0.24, -tl); g.lineTo(c.w * 0.56, hipH * 0.62); g.lineTo(-c.w * 0.1, hipH * 0.62); g.closePath();
@@ -2691,7 +2716,7 @@ function drawPoef(g, col, P, o) {
   arm(aF, col.body);
 }
 function foot(g, ck, p, lw, col) {
-  if (ck !== 'schim') { dot(g, p[4], p[5], lw * 0.62, ck === 'brick' ? INK : ck === 'joep' ? col.acc : ck === 'klauw' ? col.body : ck === 'bongo' ? col.skin : ck === 'lonk' ? '#6b4423' : ck === 'rat' ? col.body : col.dark); return; }
+  if (ck !== 'schim') { dot(g, p[4], p[5], lw * 0.62, ck === 'brick' ? INK : ck === 'joep' ? col.acc : ck === 'klauw' ? col.body : ck === 'bongo' ? col.skin : ck === 'lonk' ? '#6b4423' : ck === 'rat' ? col.body : ck === 'volt' ? '#ececf2' : col.dark); return; }
   g.save(); g.translate(p[4], p[5]); rr(g, -7, -6, 20, 10, 4); g.fillStyle = '#f4f4f4'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
   g.fillStyle = col.acc; g.fillRect(-1, -5, 5, 8); g.fillStyle = col.fx; g.globalAlpha *= 0.7; g.fillRect(-5, 4, 16, 3); g.restore();
 }
