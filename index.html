@@ -33,7 +33,7 @@ body{background:var(--ink);color:var(--fg);font-family:var(--ui);overflow:hidden
 .slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:12px}
 .slot{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
 .slot.on{border-color:var(--pc)}
-.slot.off .pv,.slot.off .pick{opacity:.28}
+.slot.off .pv,.slot.off .cn{opacity:.35}
 .slot-head{display:flex;align-items:center;gap:10px}
 .tag{font-family:var(--display);font-size:24px;line-height:1;color:var(--pc)}
 select,button,input{font:inherit;color:inherit}
@@ -41,18 +41,27 @@ button{cursor:pointer}
 select{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-width:0;flex:1}
 .pv{width:100%;max-width:100%;aspect-ratio:18/16;height:auto;display:block;border-radius:10px;cursor:pointer;
   background:radial-gradient(circle at 50% 78%,color-mix(in srgb,var(--pc) 34%,transparent),transparent 68%)}
-.pick{display:flex;align-items:center;gap:8px}
-.arrow{width:38px;height:38px;flex:none;border-radius:50%;background:var(--panel-2);border:1px solid var(--line);font-size:14px}
-.arrow:hover{border-color:var(--pc)}
 .cn{text-align:center;flex:1;min-width:0}
 .cn b{font-family:var(--display);font-weight:400;font-size:21px;display:block;line-height:1.1}
 .cn small{color:var(--mute);font-size:12.5px;display:block;min-height:4em;line-height:1.35}
-.chips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
-.chip{padding:0;border:2px solid var(--line);border-radius:10px;background:var(--panel-2);min-width:0}
-.chip:hover{border-color:var(--mute)}
-.chip[aria-pressed="true"]{border-color:var(--pc);background:color-mix(in srgb,var(--pc) 22%,var(--panel-2))}
-.chip canvas{width:100%;max-width:100%;height:auto;aspect-ratio:1;display:block}
-.slot.off .chips{opacity:.35}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:6px}
+.cgrid.small{grid-template-columns:repeat(auto-fill,minmax(66px,1fr));max-height:300px;overflow-y:auto;padding:2px}
+.cg{position:relative;background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:4px 4px 5px;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
+.cg:hover,.cg:focus-visible{border-color:var(--mute)}
+.cg.taken{border-color:#d9d2ee}
+.cg canvas{width:100%;max-width:100%;aspect-ratio:1;height:auto;display:block}
+.cg span{font-size:11.5px;font-weight:700;line-height:1.15;text-align:center;overflow-wrap:anywhere}
+.cgrid.small .cg span{font-size:10.5px}
+.pucks{position:absolute;top:3px;left:3px;right:3px;display:flex;flex-wrap:wrap;gap:2px;pointer-events:none}
+.puck{font-family:var(--display);font-size:11px;line-height:1;padding:3px 5px;border-radius:999px;background:var(--pc);color:#120e1d;border:2px solid #120e1d}
+.puck.active{box-shadow:0 0 0 2px #fff;animation:puckPulse 1s ease-in-out infinite alternate}
+@keyframes puckPulse{from{transform:scale(1)}to{transform:scale(1.18)}}
+@media (prefers-reduced-motion:reduce){.puck.active{animation:none}}
+.slot{cursor:pointer}
+.slot.active{box-shadow:0 0 0 3px var(--pc),0 0 18px color-mix(in srgb,var(--pc) 45%,transparent)}
+.slot .tagbtn{background:none;border:0;padding:0}
+.slot .now{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--pc);margin-left:auto;white-space:nowrap}
+.cghint{color:var(--mute);font-size:13.5px;margin:-6px 0 0}
 .lvl{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mute)}
 .lvl input{flex:1;min-width:0;accent-color:var(--pc)}
 .lvl output{font-family:var(--display);color:var(--fg);min-width:1.2em;text-align:right;font-variant-numeric:tabular-nums}
@@ -314,6 +323,8 @@ window.KlapP2P = (() => {
       </header>
 
       <p class="label">Vechters</p>
+      <p class="cghint">Klik op een spelerkaart (of de puck P1–P4) en kies dan een vechter in het rooster. Een uitgezette speler die je een vechter geeft, doet mee als CPU.</p>
+      <section class="cgrid" id="cgrid" aria-label="Vechters kiezen"></section>
       <section class="slots" id="slots"></section>
 
       <div class="row">
@@ -389,7 +400,8 @@ window.KlapP2P = (() => {
         <p class="code">Spelcode <b id="netCodeShow"></b></p>
         <div class="netrow" id="netInvite" hidden><label class="sr" for="netLink">Uitnodigingslink</label><input id="netLink" class="txt" readonly><button class="btn small" id="netCopy">Kopieer link</button></div>
         <ul id="netPlayers" class="netlist"></ul>
-        <div class="opt"><label for="netCh">Jouw vechter</label><select id="netCh"></select></div>
+        <p class="label">Kies je vechter</p>
+        <div class="cgrid small" id="netGrid" aria-label="Vechters kiezen"></div>
         <div class="opt"><label for="netSrc">Jouw besturing</label><select id="netSrc"><option value="kb1">Toetsenbord 1</option><option value="kb2">Toetsenbord 2</option><option value="pad1">Gamepad 1</option><option value="pad2">Gamepad 2</option><option value="touch">Aanraakscherm</option></select></div>
         <div id="netHostOpts" class="netsec">
           <div class="opt"><label for="netStage">Podium</label><select id="netStage"></select></div>
@@ -2339,8 +2351,8 @@ function startMatch(demo, custom, cfg) {
   const list = custom || (demo ? demoRoster() : activeSlots()), used = {}, n = list.length;
   const xs = n === 2 ? [-0.55, 0.55] : n === 3 ? [-0.6, 0, 0.6] : [-0.65, 0.65, -0.22, 0.22];
   G.fighters = list.map((s, k) => {
-    const alt = (used[s.ch] || 0) % 2 === 1; used[s.ch] = (used[s.ch] || 0) + 1;
-    const f = new Fighter(s.i, s.ch, demo ? 'cpu' : s.type, demo ? 6 : s.lvl, alt);
+    const ck = pickChar(s.ch), alt = (used[ck] || 0) % 2 === 1; used[ck] = (used[ck] || 0) + 1;
+    const f = new Fighter(s.i, ck, demo ? 'cpu' : s.type, demo ? 6 : s.lvl, alt);
     if (s.peer) f.ctrl.peer = s.peer;
     const x = S.main.x2 * xs[k];
     f.reset(x, S.main.y); f.grounded = true; f.ground = S.main; f.state = 'idle'; f.facing = x <= 0 ? 1 : -1;
@@ -3726,34 +3738,65 @@ function render() {
 const TYPES = [['kb1', 'Toetsenbord 1'], ['kb2', 'Toetsenbord 2'], ['pad1', 'Gamepad 1'], ['pad2', 'Gamepad 2'], ['touch', 'Aanraakscherm'], ['cpu', 'CPU'], ['off', 'Uit']];
 let demoTimer = 0;
 function restartDemoSoon() { clearTimeout(demoTimer); demoTimer = setTimeout(() => { if (!menuEl.hidden) startMatch(true); }, 250); }
+/* ---------------- shared character grid ---------------- */
+let activeSlot = 0;
+const charName = k => k === 'random' ? 'Willekeurig' : CHARS[k] ? CHARS[k].name : '?';
+const charBlurb = k => k === 'random' ? 'Elke wedstrijd een verrassing: je krijgt een willekeurige vechter.' : CHARS[k] ? CHARS[k].blurb : '';
+const pickChar = k => k === 'random' || !CHARS[k] || CHARS[k].hidden ? CHAR_KEYS[Math.random() * CHAR_KEYS.length | 0] : k;
+function drawRandomIcon(g, W, H) {
+  g.save(); g.font = `${Math.round(H * 0.62)}px Impact, 'Arial Black', sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round';
+  g.lineWidth = H * 0.06; g.strokeStyle = INK; g.strokeText('?', W / 2, H * 0.55); g.fillStyle = '#ffc933'; g.fillText('?', W / 2, H * 0.55); g.restore();
+}
+function buildCharGrid(el, onPick) {
+  el.innerHTML = [...CHAR_KEYS, 'random'].map(k => `<button class="cg" data-c="${k}" aria-label="${charName(k)}" title="${charName(k)}"><canvas width="128" height="128" aria-hidden="true"></canvas><span>${charName(k)}</span><i class="pucks"></i></button>`).join('');
+  el.querySelectorAll('.cg').forEach(b => {
+    const g = b.querySelector('canvas').getContext('2d'), k = b.dataset.c;
+    if (k === 'random') drawRandomIcon(g, 128, 128); else drawPortrait(g, { pc: '#3e3462', key: k, col: CHARS[k].col, state: 'idle' }, 64, 64, 60);
+    b.addEventListener('click', () => onPick(k));
+  });
+}
+function setPucks(el, pucks) {
+  el.querySelectorAll('.cg').forEach(b => { const box = b.querySelector('.pucks'); box.innerHTML = ''; b.classList.remove('taken'); });
+  for (const pk of pucks) {
+    const b = el.querySelector(`.cg[data-c="${pk.ch}"]`); if (!b) continue;
+    const sp = document.createElement('b'); sp.className = 'puck' + (pk.active ? ' active' : ''); sp.style.setProperty('--pc', pk.color); sp.textContent = pk.label;
+    b.querySelector('.pucks').appendChild(sp); b.classList.add('taken');
+  }
+}
+function refreshGrid() {
+  const el = document.getElementById('cgrid'); if (!el) return;
+  setPucks(el, settings.slots.map((s, i) => ({ s, i })).filter(({ s, i }) => s.type !== 'off' || i === activeSlot).map(({ s, i }) => ({ ch: s.ch, color: PCOL[i], label: 'P' + (i + 1), active: i === activeSlot })));
+  settings.slots.forEach((s, i) => { const el2 = document.getElementById('slot' + i); if (el2) { el2.classList.toggle('active', i === activeSlot); el2.querySelector('.now').hidden = i !== activeSlot; } });
+}
+function setActiveSlot(i) { activeSlot = i; refreshGrid(); }
+function pickForActive(k) {
+  const s = settings.slots[activeSlot]; s.ch = k;
+  if (s.type === 'off') s.type = 'cpu';
+  refreshSlot(activeSlot); save(); SFX.ui(); restartDemoSoon();
+}
 function refreshSlot(i) {
-  const s = settings.slots[i], el = document.getElementById('slot' + i), c = CHARS[s.ch];
-  el.className = 'slot ' + (s.type === 'off' ? 'off' : 'on');
+  const s = settings.slots[i], el = document.getElementById('slot' + i);
+  el.className = 'slot ' + (s.type === 'off' ? 'off' : 'on') + (i === activeSlot ? ' active' : '');
   document.getElementById('ty' + i).value = s.type;
-  document.getElementById('cn' + i).textContent = c.name;
-  document.getElementById('cb' + i).textContent = c.blurb;
-  el.querySelectorAll('.chip').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.c === s.ch)));
+  document.getElementById('cn' + i).textContent = charName(s.ch);
+  document.getElementById('cb' + i).textContent = charBlurb(s.ch);
   document.getElementById('lvw' + i).hidden = s.type !== 'cpu';
   document.getElementById('lv' + i).value = s.lvl; document.getElementById('lo' + i).textContent = s.lvl;
+  refreshGrid();
 }
 function buildMenu() {
+  buildCharGrid(document.getElementById('cgrid'), pickForActive);
   const wrap = $('#slots'); wrap.innerHTML = '';
   settings.slots.forEach((s, i) => {
     const el = document.createElement('div'); el.id = 'slot' + i; el.style.setProperty('--pc', PCOL[i]);
-    el.innerHTML = `<div class="slot-head"><span class="tag">P${i + 1}</span><label class="sr" for="ty${i}">Besturing speler ${i + 1}</label><select id="ty${i}">${TYPES.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></div>
-      <canvas class="pv" id="pv${i}" width="360" height="320" aria-label="Kies vechter speler ${i + 1}" tabindex="0"></canvas>
-      <div class="pick"><button class="arrow" data-d="-1" aria-label="Vorige vechter">◀</button><div class="cn"><b id="cn${i}"></b><small id="cb${i}"></small></div><button class="arrow" data-d="1" aria-label="Volgende vechter">▶</button></div>
-      <div class="chips" role="group" aria-label="Vechters">${CHAR_KEYS.map(k => `<button class="chip" data-c="${k}" aria-label="${CHARS[k].name}" title="${CHARS[k].name}"><canvas width="96" height="96" aria-hidden="true"></canvas></button>`).join('')}</div>
+    el.innerHTML = `<div class="slot-head"><button class="tagbtn" aria-label="Kies voor speler ${i + 1}"><span class="tag">P${i + 1}</span></button><label class="sr" for="ty${i}">Besturing speler ${i + 1}</label><select id="ty${i}">${TYPES.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></div>
+      <span class="now" hidden>kiest nu</span>
+      <canvas class="pv" id="pv${i}" width="360" height="320" aria-label="Speler ${i + 1}: klik om voor deze speler te kiezen" tabindex="0"></canvas>
+      <div class="cn"><b id="cn${i}"></b><small id="cb${i}"></small></div>
       <div class="lvl" id="lvw${i}"><label for="lv${i}">CPU-niveau</label><input type="range" id="lv${i}" min="1" max="9"><output id="lo${i}"></output></div>`;
     wrap.appendChild(el);
-    const cyc = d => { const k = CHAR_KEYS.indexOf(settings.slots[i].ch); settings.slots[i].ch = CHAR_KEYS[(k + d + CHAR_KEYS.length) % CHAR_KEYS.length]; refreshSlot(i); save(); SFX.ui(); restartDemoSoon(); };
-    el.querySelectorAll('.arrow').forEach(b => b.addEventListener('click', () => cyc(+b.dataset.d)));
-    el.querySelector('.pv').addEventListener('click', () => cyc(1));
-    el.querySelectorAll('.chip').forEach(b => {
-      b.addEventListener('click', () => { settings.slots[i].ch = b.dataset.c; refreshSlot(i); save(); SFX.ui(); restartDemoSoon(); });
-      drawPortrait(b.querySelector('canvas').getContext('2d'), { pc: PCOL[i], key: b.dataset.c, col: CHARS[b.dataset.c].col, state: 'idle' }, 48, 48, 44);
-    });
-    el.querySelector('.pv').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cyc(1); } });
+    el.addEventListener('click', e => { if (e.target.closest('select,input,label')) return; setActiveSlot(i); });
+    el.querySelector('.pv').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveSlot(i); document.querySelector('#cgrid .cg').focus(); } });
     el.querySelector('select').addEventListener('change', e => { settings.slots[i].type = e.target.value; refreshSlot(i); save(); $('#msg').textContent = ''; restartDemoSoon(); });
     el.querySelector('input').addEventListener('input', e => { settings.slots[i].lvl = +e.target.value; refreshSlot(i); save(); });
     refreshSlot(i);
@@ -3791,6 +3834,7 @@ function drawPreviews(now) {
     const cnv = document.getElementById('pv' + i); if (!cnv) return;
     const g = cnv.getContext('2d'), W = cnv.width, H = cnv.height, c = CHARS[s.ch], t = now / 1000 + i * 0.7;
     g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H);
+    if (!c) { drawRandomIcon(g, W, H); return; }
     const used = settings.slots.slice(0, i).filter(x => x.ch === s.ch && x.type !== 'off').length;
     const col = s.type !== 'off' && used % 2 === 1 ? c.alt : c.col;
     const cyc = t % 4; let P;
@@ -4015,16 +4059,18 @@ async function renderLobby() {
   $('#netInvite').hidden = !NET.p2p; if (NET.p2p) $('#netLink').value = inviteLink();
   const ps = await names(ord.map(x => pm.get(x).by));
   if (tok !== NET.rtok) return;
-  const ul = $('#netPlayers'); ul.innerHTML = '';
+  const ul = $('#netPlayers'); ul.innerHTML = ''; const pucks = [];
   ord.forEach((peer, i) => {
     const p = pm.get(peer), pr = p.presence || {}, li = document.createElement('li'), b = document.createElement('b'), sp = document.createElement('span'), em = document.createElement('em');
-    const ck = CHARS[pr.ch] ? pr.ch : 'volt';
+    const ck = pr.ch === 'random' || (CHARS[pr.ch] && !CHARS[pr.ch].hidden) ? pr.ch : 'volt';
+    if (i < 4) pucks.push({ ch: ck, color: PCOL[i], label: 'P' + (i + 1), active: !!p.sameTab });
     li.style.setProperty('--pc', i < 4 ? PCOL[i] : '#8f88a8');
     b.textContent = i < 4 ? 'P' + (i + 1) : 'Kijkt';
     sp.textContent = ((p.by && ps[p.by] && ps[p.by].name) || cleanName(pr.nm) || (pr.role === 'host' ? 'Host' : 'Speler')) + (p.sameTab ? ' (jij)' : '') + (pr.role === 'host' ? ' · host' : '');
-    em.textContent = CHARS[ck].name;
+    em.textContent = charName(ck);
     li.append(b, sp, em); ul.appendChild(li);
   });
+  setPucks($('#netGrid'), pucks);
   const host = NET.role === 'host';
   $('#netHostOpts').hidden = !host; $('#netGo').hidden = !host;
   if (host) {
@@ -4046,7 +4092,7 @@ function netSetCh(ck) {
 function netStartMatch() {
   if (NET.role !== 'host' || !NET.game) return;
   const { pm, ord } = lobbyOrder();
-  const list = ord.slice(0, 4).map((peer, i) => peer === NET.me ? { i, ch: NET.ch, type: NET.src, lvl: 5, peer } : { i, ch: CHARS[(pm.get(peer).presence || {}).ch] ? pm.get(peer).presence.ch : 'volt', type: 'net', lvl: 5, peer });
+  const list = ord.slice(0, 4).map((peer, i) => peer === NET.me ? { i, ch: pickChar(NET.ch), type: NET.src, lvl: 5, peer } : { i, ch: pickChar((pm.get(peer).presence || {}).ch), type: 'net', lvl: 5, peer });
   if (NET.cfg.cpu) while (list.length < 4) list.push({ i: list.length, ch: CHAR_KEYS[Math.random() * CHAR_KEYS.length | 0], type: 'cpu', lvl: 5, peer: null });
   if (list.length < 2) { netMsg('Wacht op een tweede speler, of zet CPU\'s aan.'); return; }
   SFX.init(); netMsg('');
@@ -4216,10 +4262,10 @@ function netFighter(f, r, nb, k, fresh) {
 }
 function initNetUI() {
   const ns = $('#netStage'); ns.innerHTML = [...Object.entries(STAGES).map(([k, d]) => `<option value="${k}">${d.name}</option>`), '<option value="random">Willekeurig</option>'].join('');
-  $('#netCh').innerHTML = CHAR_KEYS.map(k => `<option value="${k}">${CHARS[k].name}</option>`).join('');
-  if (CHARS[settings.netCh]) NET.ch = settings.netCh;
+  buildCharGrid($('#netGrid'), k => netSetCh(k));
+  if (settings.netCh === 'random' || (CHARS[settings.netCh] && !CHARS[settings.netCh].hidden)) NET.ch = settings.netCh;
   if (['kb1', 'kb2', 'pad1', 'pad2', 'touch'].includes(settings.netSrc)) NET.src = settings.netSrc;
-  $('#netCh').value = NET.ch; $('#netSrc').value = NET.src;
+  $('#netSrc').value = NET.src;
   $('#online').addEventListener('click', openNet);
   NET.nm = cleanName(settings.netName); $('#netName').value = NET.nm;
   $('#netName').addEventListener('change', e => { NET.nm = cleanName(e.target.value); e.target.value = NET.nm; settings.netName = NET.nm; save(); if (NET.game) NET.game.presence({ nm: NET.nm }).catch(() => {}); renderLobby(); });
@@ -4238,7 +4284,6 @@ function initNetUI() {
   $('#netCode').addEventListener('input', e => { const v = cleanCode(e.target.value); if (v !== e.target.value) e.target.value = v; });
   $('#netLeave').addEventListener('click', () => netLeave());
   $('#netGo').addEventListener('click', netStartMatch);
-  $('#netCh').addEventListener('change', e => netSetCh(CHARS[e.target.value] ? e.target.value : 'volt'));
   $('#netSrc').addEventListener('change', e => { NET.src = e.target.value; settings.netSrc = NET.src; save(); });
   ns.addEventListener('change', e => { NET.cfg.stage = e.target.value; hostLobbyPresence(); renderLobby(); });
   $('#netStocks').addEventListener('change', e => { NET.cfg.stocks = clamp(+e.target.value | 0, 1, 5); hostLobbyPresence(); renderLobby(); });
