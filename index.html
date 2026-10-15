@@ -1344,10 +1344,14 @@ const SPECIALS = {
       onStart: f => { const d = f.pkt || { x: 0, y: -1 }; f.mv.dx = d.x; f.mv.dy = d.y; if (Math.abs(d.x) > 0.2) f.facing = Math.sign(d.x); if (d.y < 0) { f.grounded = false; f.ground = null; } sparkFx(f.x, f.y - f.c.h / 2, f.col.fx, 10); SFX.boom(); },
       noGrav: (f, t) => t < 28,
       tick: (f, t) => { if (t < 27) { f.vx = f.mv.dx * 17; f.vy = f.mv.dy * 17; if (t % 2) ghostFx(f); } else if (t === 27) { f.vx *= 0.35; f.vy *= 0.35; } } }),
-    downB: M({ special: true, start: 2, active: 400, end: 0, dur: 420, pose: 'magnet', absorb: [2, 999],
+    downB: M({ special: true, start: 2, active: 400, end: 0, dur: 420, pose: 'magnet', absorb: [2, 999], noDrift: true,
       hb: [H(0, -38, 36, 4, 80, 40, 20, { nr: 1, f1: 2 })],
+      // in the air the shield freezes Joep's momentum for a moment, once per airtime
+      onStart: f => { f.mv.stall = !f.grounded && !f.magStall; if (f.mv.stall) f.magStall = true; },
+      noGrav: (f, t) => f.mv.stall && t <= 20,
       tick: (f, t) => {
-        if (!f.grounded && f.vy > 1) f.vy = 1;
+        if (f.mv.stall && t <= 20 && !f.grounded) { f.vx = 0; f.vy = 0; }
+        else if (!f.grounded) { f.drift(0.4); if (f.vy > 1) f.vy = 1; }
         if (t === 2) SFX.shield();
         if (t > 4 && f.bf.jmp > 0 && (f.grounded || f.jumps > 0)) {
           f.cons('jmp');
@@ -2006,7 +2010,7 @@ class Fighter {
       }
     }
   }
-  resetAir() { this.jumps = this.c.airJumps + (this.feather > 0 ? 2 : 0); this.airdodged = false; this.sideBUsed = false; this.upBUsed = false; }
+  resetAir() { this.jumps = this.c.airJumps + (this.feather > 0 ? 2 : 0); this.magStall = false; this.airdodged = false; this.sideBUsed = false; this.upBUsed = false; }
   land(p) {
     const s = this.state;
     if (s === 'hitstun' && this.tumble) {
