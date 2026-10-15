@@ -577,7 +577,7 @@ Object.assign(CHARS, {
     col: { body: '#d9dde6', dark: '#8a91a3', acc: '#ff4fd8', skin: '#2a2d3a', fx: '#ff9cf0' }, alt: { body: '#3a4152', dark: '#1d222e', acc: '#52ff8e', skin: '#0f1219', fx: '#a6ffc6' } },
   joep: { name: 'Joep', blurb: 'Jongen met pet en PSI-krachten. PK-vuur, PK-flits, PK-donder (stuur hem tegen jezelf om weg te schieten) en een PSI-schild dat projectielen opslurpt en je geneest.', weight: 94, run: 5.9, acc: 1, jump: 15, djump: 15.5, grav: 0.78, fall: 11.5, ffall: 16.5, air: 4.6, airAcc: 0.5, airJumps: 1, w: 40, h: 72, pow: 1, reach: 1, lag: 0, limb: 9, zoner: 'side', hr: 0.19, arm: 0.155,
     col: { body: '#f2c94c', dark: '#2f4fa8', acc: '#e23b3b', skin: '#f6cfa8', fx: '#7dd8ff' }, alt: { body: '#9be36b', dark: '#5a3d9e', acc: '#ff9f1c', skin: '#f6cfa8', fx: '#ffd36b' } },
-  poef: { name: 'Poef', blurb: 'Roze bolletje met vijf zweefsprongen. Zuigt vechters op en spuugt ze als ster uit, slaat met een hamer, snijdt omhoog en valt als een steen.', weight: 74, run: 5.6, acc: 1, jump: 13.5, djump: 10.5, grav: 0.6, fall: 9, ffall: 13.5, air: 4.4, airAcc: 0.42, airJumps: 5, w: 50, h: 60, pow: 0.95, reach: 0.95, lag: 0, limb: 9, pz: 1.55,
+  poef: { name: 'Poef', blurb: 'Roze bolletje met vijf zweefsprongen. Zuigt vechters op en spuugt ze als ster uit of slikt ze door om hun neutrale aanval over te nemen, slaat met een hamer, snijdt omhoog en valt als een steen.', weight: 74, run: 5.6, acc: 1, jump: 13.5, djump: 10.5, grav: 0.6, fall: 9, ffall: 13.5, air: 4.4, airAcc: 0.42, airJumps: 5, w: 50, h: 60, pow: 0.95, reach: 0.95, lag: 0, limb: 9, pz: 1.55,
     col: { body: '#ffa3c9', dark: '#e0609b', acc: '#e8243f', skin: '#ff6f9f', fx: '#ffe36b' }, alt: { body: '#a9dcff', dark: '#5b9fd6', acc: '#2a4fc9', skin: '#ff8fb3', fx: '#c9f2ff' } },
   schim: { name: 'Schim', blurb: 'Pikzwarte snelheidsduivel. Schimsperen, spindash, teleport en een rode schokgolf.', weight: 90, run: 8.4, acc: 1.25, jump: 15.5, djump: 14.5, grav: 0.85, fall: 12.5, ffall: 18, air: 5.3, airAcc: 0.5, airJumps: 1, w: 40, h: 74, pow: 1, reach: 1, lag: -1, limb: 9, zoner: true, sideRec: true, hr: 0.165,
     col: { body: '#26252e', dark: '#121117', acc: '#e2283c', skin: '#f1c9a5', fx: '#ffd23f' }, alt: { body: '#62677a', dark: '#363a46', acc: '#3fa9ff', skin: '#f1c9a5', fx: '#9fe3ff' } },
@@ -639,9 +639,20 @@ function buildMoves(ck) {
   Object.assign(mv, SPECIALS[ck](M, H, s));
   if (ck === 'joep') { const f = mv.fsmash; f.bat = true; f.reflect = [f.start - 1, f.start + f.active]; f.hb = f.hb.map(h => Object.assign({}, h, { x: h.x * 1.25, d: Math.round(h.d * 1.1 * 10) / 10 })); }
   for (const k in mv) mv[k].netKey = k;
+  Object.defineProperty(mv, '_mk', { value: { M, H, s } });
   return mv;
 }
 
+function applyCopy(f, vk) {
+  f.copy = vk && SPECIALS[vk] ? vk : null;
+  f.M = buildMoves(f.key);
+  if (!f.copy) return;
+  const b = f.M._mk, sp = SPECIALS[vk](b.M, b.H, b.s);
+  for (const k in sp) {
+    if (k === 'sideB' || k === 'upB' || k === 'downB' || (k !== 'neutralB' && f.M[k])) continue;
+    f.M[k] = sp[k]; f.M[k].netKey = k;
+  }
+}
 function spawnWave(f, dir, plat) {
   spawnProj({ type: 'wave', owner: f, x: f.x + dir * 30, y: f.y - 14, vx: dir * 9, r: 22, life: 22, pierce: true, reflect: false, hb: { d: 9, a: 80, b: 40, g: 62 },
     tick: p => { if (plat && (p.x < plat.x1 - 10 || p.x > plat.x2 + 10)) p.dead = true; } });
@@ -850,6 +861,7 @@ const SPECIALS = {
         else f.vx = approach(f.vx, f.ix * 3, 0.3);
         if (f.ix) f.facing = f.ix;
         v.x = f.x; v.y = f.y; v.px = v.x; v.py = v.y; v.vx = v.vy = 0; v.grounded = f.grounded; v.ground = f.ground;
+        if (t >= 6 && ((f.ctrl.h.d && f.ctrl.age.d <= 1) || (f.cpu && t === 24 && Math.random() < 0.6))) return f.startMove(f.M.swallow);
         if ((t >= 12 && (f.cons('spc') || f.cons('atk'))) || t >= 100 - Math.min(60, f.mv.esc * 5)) f.startMove(f.M.spit);
       } }),
     spit: M({ special: true, start: 6, active: 1, end: 16, pose: 'spit', throw: true, swallow: true, onLand: () => {},
@@ -863,6 +875,18 @@ const SPECIALS = {
         const st = { type: 'puffstar', owner: f, x: f.x + f.facing * 34 * s, y: f.y - 30 * s, vx: f.facing * 13, r: 16, life: 38, spin: 0.35, hb: { d: 8, a: 35, b: 40, g: 60 } };
         spawnProj(st); G.projs[G.projs.length - 1].hitSet.add(v.id);
         sparkFx(f.x + f.facing * 30, f.y - 30, f.col.fx, 8); SFX.shoot();
+      } }),
+    swallow: M({ special: true, start: 14, active: 1, end: 12, pose: 'full', throw: true, swallow: true, onLand: () => {},
+      tick: (f, t) => {
+        const v = f.held; if (!v || v.holder !== f) return;
+        v.x = f.x; v.y = f.y; v.px = v.x; v.py = v.y;
+        if (t < 14) return;
+        f.held = null; v.holder = null; v.grounded = false; v.ground = null;
+        v.x = f.x - f.facing * (f.c.w * 0.5 + v.c.w * 0.5 + 4); v.px = v.x; v.y = f.y - 4; v.py = v.y;
+        applyHit(f, v, { d: 6, a: 60, b: 45, g: 20 }, -f.facing, v.x, v.y - v.c.h / 2, 1, { throw: true });
+        if (v.key !== 'poef') applyCopy(f, v.key);
+        for (let i = 0; i < 6; i++) addP({ type: 'plus', x: f.x + rand(-20, 20), y: f.y - rand(20, f.c.h + 10), vy: -rand(1, 2), life: 26, max: 26, size: 8, color: f.col.fx });
+        SFX.heal();
       } }),
     sideB: M({ special: true, start: 14, active: 4, end: 22, pose: 'hammer', ll: 12,
       hb: [H(58, -34, 28, 15, 40, 45, 92, { nr: 1 }), H(34, -58, 22, 12, 50, 40, 86, { nr: 1 })],
@@ -1036,7 +1060,7 @@ class Fighter {
     this.ai = this.cpu ? new AI(this, lvl) : null;
     this.M = buildMoves(ck);
     this.stocks = G.stocks; this.stats = { ko: 0, falls: 0, dmg: 0, sd: 0 }; this.out = false; this.elim = 0;
-    this.bf = { atk: 0, spc: 0, jmp: 0, shd: 0, grb: 0 }; this.lastShd = -99; this.hud = 0; this.runPh = 0; this.djT = 0; this.deadT = 0;
+    this.bf = { atk: 0, spc: 0, jmp: 0, shd: 0, grb: 0 }; this.lastShd = -99; this.hud = 0; this.runPh = 0; this.djT = 0; this.deadT = 0; this.copy = null;
     this.reset(0, 0);
   }
   reset(x, y) {
@@ -1442,6 +1466,7 @@ class Fighter {
     if (this.holder) { const h = this.holder; h.held = null; if (h.state === 'holding') h.setState('idle'); this.holder = null; }
     if (this.item) { G.items = G.items.filter(i => i !== this.item); this.item = null; }
     this.state = 'dead'; this.deadT = 80; this.move = null; this.ev = null;
+    if (this.copy) applyCopy(this, null);
     if (this.stocks <= 0) { this.out = true; this.elim = G.frame; }
     G.shake = Math.max(G.shake, 18); SFX.ko();
     if (G.mode === 'demo') this.stocks = 99;
@@ -2217,8 +2242,36 @@ function drawPuppet(g, ck, col, P, o = {}) {
 }
 function poefFlags(f) {
   const m = f.state === 'attack' ? f.move : null, M = f.M, t = f.mt;
-  return { puff: f.djT > 0 && f.state === 'air', inhale: m === M.neutralB && t >= 4 && t <= 50, full: m === M.mouthful, spit: m === M.spit,
+  return { puff: f.djT > 0 && f.state === 'air', inhale: !f.copy && m === M.neutralB && t >= 4 && t <= 50, full: m === M.mouthful || (m === M.swallow && t < 14), copy: f.copy, spit: m === M.spit,
     hammer: m === M.sideB, blade: m === M.upB && t >= 3, stone: m === M.downB && t >= 6 };
+}
+function drawCopyHat(g, ck, R, ty, fr) {
+  const C = CHARS[ck].col; g.lineWidth = 3; g.strokeStyle = INK; g.lineJoin = 'round';
+  const poly = (pts, fill) => { g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x * R, ty + y * R) : g.moveTo(x * R, ty + y * R)); g.closePath(); g.fillStyle = fill; g.fill(); g.stroke(); };
+  switch (ck) {
+    case 'volt': poly([[-0.67, 0.25], [-0.5, -0.85], [-0.2, 0.2]], C.body); poly([[-0.02, 0.2], [0.15, -0.85], [0.45, 0.25]], C.body); break;
+    case 'brick': g.beginPath(); g.arc(0, ty + R * 0.45, R * 0.78, Math.PI, TAU); g.closePath(); g.fillStyle = C.body; g.fill(); g.stroke(); rr(g, R * 0.05, ty + R * 0.05, R * 0.7, R * 0.2, 3); g.fillStyle = C.acc; g.fill(); g.lineWidth = 2; g.stroke(); break;
+    case 'sable': {
+      const w = Math.sin(fr * 0.25) * 4; g.lineCap = 'round';
+      for (const [y0, y1] of [[0.3, 0.1], [0.35, 0.6]]) { g.beginPath(); g.moveTo(-R * 0.75, ty + R * y0); g.quadraticCurveTo(-R * 1.2, ty + R * y1 + w, -R * 1.55, ty + R * y1 - w); g.strokeStyle = INK; g.lineWidth = 7; g.stroke(); g.strokeStyle = C.acc; g.lineWidth = 3.5; g.stroke(); }
+      rr(g, -R * 0.85, ty + R * 0.18, R * 1.7, R * 0.24, R * 0.1); g.fillStyle = C.acc; g.fill(); g.strokeStyle = INK; g.lineWidth = 2.5; g.stroke(); break;
+    }
+    case 'pip':
+      g.beginPath(); g.moveTo(-R * 0.62, ty + R * 0.3); g.quadraticCurveTo(-R * 0.1, ty - R * 0.5, -R * 0.45, ty - R * 1.35); g.quadraticCurveTo(R * 0.2, ty - R * 0.4, R * 0.62, ty + R * 0.3); g.closePath(); g.fillStyle = C.body; g.fill(); g.stroke();
+      g.beginPath(); g.ellipse(0, ty + R * 0.3, R * 0.82, R * 0.14, 0, 0, TAU); g.fillStyle = C.dark; g.fill(); g.stroke();
+      star(g, -R * 0.12, ty - R * 0.2, R * 0.18); g.fillStyle = C.acc; g.fill(); break;
+    case 'gloei': poly([[-0.62, 0.3], [-0.58, -0.45], [-0.28, -0.02], [-0.02, -0.8 - Math.sin(fr * 0.5) * 0.08], [0.2, -0.05], [0.5, -0.55], [0.62, 0.3]], C.acc); break;
+    case 'kwak': for (const ex of [-0.25, 0.35]) { g.beginPath(); g.arc(R * ex, ty - R * 0.02, R * 0.3, 0, TAU); g.fillStyle = C.body; g.fill(); g.stroke(); eye(g, R * ex + R * 0.06, ty - R * 0.05, R * 0.17, false); } break;
+    case 'bliep':
+      g.beginPath(); g.arc(0, ty + R * 0.75, R * 0.8, Math.PI * 1.12, Math.PI * 1.88); g.lineCap = 'round'; g.strokeStyle = INK; g.lineWidth = 8; g.stroke(); g.strokeStyle = C.body; g.lineWidth = 4; g.stroke();
+      g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(0, ty + R * 0.02); g.lineTo(-R * 0.15, ty - R * 0.7); g.stroke(); dot(g, -R * 0.15, ty - R * 0.82, R * 0.15, C.acc); break;
+    case 'schim': for (const [y0, len] of [[0.05, 1.25], [0.4, 1.4], [0.75, 1.1]]) poly([[-0.3, y0 - 0.15], [-len, y0 - 0.12], [-0.3, y0 + 0.2]], C.body); break;
+    case 'joep':
+      g.beginPath(); g.moveTo(R * 0.4, ty + R * 0.3); g.quadraticCurveTo(R * 1.05, ty + R * 0.12, R * 1.25, ty + R * 0.38); g.lineTo(R * 0.4, ty + R * 0.44); g.closePath(); g.fillStyle = C.dark; g.fill(); g.stroke();
+      g.beginPath(); g.arc(0, ty + R * 0.42, R * 0.72, Math.PI * 1.02, Math.PI * 1.98); g.closePath(); g.fillStyle = C.acc; g.fill(); g.stroke();
+      g.fillStyle = '#ffffff'; g.beginPath(); g.arc(-R * 0.05, ty + R * 0.02, R * 0.12, 0, TAU); g.fill(); break;
+    default: g.beginPath(); g.arc(0, ty + R * 0.4, R * 0.7, Math.PI, TAU); g.closePath(); g.fillStyle = C.body; g.fill(); g.stroke();
+  }
 }
 function drawPoef(g, col, P, o) {
   const h = CHARS.poef.h, R = h * 0.46, cr = P.crouch || 0, lean = (P.lean || 0) * 0.55, fr = o.fr || 0, base = -h * 0.06;
@@ -2282,6 +2335,7 @@ function drawPoef(g, col, P, o) {
   } else if (o.full || o.puff) { g.beginPath(); g.arc(mx, my, R * 0.06, 0, TAU); g.fillStyle = '#7a1030'; g.fill(); }
   else if (o.hurt) { g.beginPath(); g.moveTo(mx - R * 0.1, my + R * 0.04); g.lineTo(mx + R * 0.1, my); g.stroke(); }
   else { g.beginPath(); g.arc(mx, my - R * 0.05, R * 0.08, 0.25, Math.PI - 0.25); g.stroke(); }
+  if (o.copy) drawCopyHat(g, o.copy, R, cy - R * sy, fr);
   g.restore();
   foot(footAt('lF'));
   const [hx, hy, ang] = aF, dx = Math.sin(ang), dy = Math.cos(ang);
@@ -2780,7 +2834,7 @@ function pctColor(p) {
 function drawPortrait(g, f, x, y, r) {
   g.save(); g.beginPath(); g.arc(x, y, r, 0, TAU); g.fillStyle = hexA(f.pc, 0.35); g.fill(); g.clip();
   const c = CHARS[f.key], s = r * (c.pz || 2.5) / c.h; g.translate(x, y + c.h * 0.42 * s + r * 0.25); g.scale(s, s);
-  drawPuppet(g, f.key, f.col, mk({ aF: [0.5, -0.8] }), { fr: G.frame, hurt: f.state === 'dead' });
+  drawPuppet(g, f.key, f.col, mk({ aF: [0.5, -0.8] }), { fr: G.frame, hurt: f.state === 'dead', copy: f.copy });
   g.restore();
   g.beginPath(); g.arc(x, y, r, 0, TAU); g.lineWidth = 3; g.strokeStyle = f.pc; g.stroke();
 }
@@ -3219,7 +3273,7 @@ function snapF(f) {
   const fl = (f.grounded ? 1 : 0) | (f.tumble ? 2 : 0) | (f.tumbleAnim ? 4 : 0) | (f.adDir ? 8 : 0) | (f.intang ? 16 : 0) | (f.item ? 32 : 0) | (f.out ? 64 : 0) | (f.star > 0 ? 128 : 0) | (f.feather > 0 ? 256 : 0);
   const mk = f.move ? (f.move.netKey || 'ctr') : '';
   return [ST_LIST.indexOf(f.state), Math.round(f.x), Math.round(f.y), f.facing, mk, f.mt | 0, f.charge | 0, f.t | 0, fl, Math.round(f.percent * 10), f.stocks, Math.round(f.shieldHP), f.invuln | 0, f.hitlag | 0, f.frozen | 0, f.flash | 0, f.djT | 0,
-    Math.round(f.runPh * 100) % 100000, Math.round(f.vx * 10), evk, evd, ev ? ev.dur : 0, f.stats.ko, f.stats.falls, Math.round(f.stats.dmg), f.elim | 0, f.item ? ITEM_LIST.indexOf(f.item.type) : -1];
+    Math.round(f.runPh * 100) % 100000, Math.round(f.vx * 10), evk, evd, ev ? ev.dur : 0, f.stats.ko, f.stats.falls, Math.round(f.stats.dmg), f.elim | 0, f.item ? ITEM_LIST.indexOf(f.item.type) : -1, f.copy || ''];
 }
 function netSnap() {
   const F = G.fighters, P = [];
@@ -3320,6 +3374,8 @@ function netFighter(f, r, nb, k, fresh) {
   if (fresh) {
     const prevState = f.state, prevPct = f.percent;
     f.state = st; f.facing = r[3] < 0 ? -1 : 1;
+    const cp = typeof r[27] === 'string' && CHARS[r[27]] ? r[27] : null;
+    if (cp !== (f.copy || null)) applyCopy(f, cp);
     const mk = r[4];
     f.move = st === 'attack' ? (mk === 'ctr' ? CTR_MOVE : (typeof mk === 'string' && Object.prototype.hasOwnProperty.call(f.M, mk) ? f.M[mk] : f.M.jab)) : null;
     f.mt = r[5] | 0; f.charge = r[6] | 0; f.t = r[7] | 0;
