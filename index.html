@@ -811,7 +811,7 @@ const SPECIALS = {
       } }),
     upB: M({ special: true, start: 8, active: 90, end: 0, dur: 100, pose: 'pkthunder', helpless: true, noDrift: true, ledgeOK: 9, noGrav: () => true,
       tick: (f, t) => {
-        if (!f.grounded) f.vy = Math.min(f.vy + 0.12, 1.4); f.vx *= 0.9;
+        if (!f.grounded) f.vy = f.vy < 0 ? f.vy * 0.75 : Math.min(f.vy + 0.12, 1.4); f.vx *= 0.9;
         if (t === 8) {
           spawnProj({ type: 'pkthunder', owner: f, x: f.x, y: f.y - f.c.h - 16, vx: 0, vy: -9.5, r: 11, life: 80, hb: { d: 7, a: 60, b: 30, g: 55 }, tick: pkThunderTick });
           f.mv.ball = G.projs[G.projs.length - 1]; SFX.zap();
