@@ -306,7 +306,7 @@ window.KlapP2P = (() => {
     <div class="wrap">
       <header class="brand">
         <h1>Klapstuk</h1>
-        <p>Een platformvechter voor 2 tot 4 spelers, met veertien vechters. Elke klap telt op als <b>schade-%</b>; hoe hoger je percentage, hoe verder je vliegt. Sla je tegenstanders <b>buiten beeld</b> en hou zelf je levens.</p>
+        <p>Een platformvechter voor 2 tot 4 spelers, met vijftien vechters. Elke klap telt op als <b>schade-%</b>; hoe hoger je percentage, hoe verder je vliegt. Sla je tegenstanders <b>buiten beeld</b> en hou zelf je levens.</p>
       </header>
 
       <p class="label">Vechters</p>
@@ -589,10 +589,14 @@ Object.assign(CHARS, {
     col: { body: '#3f9a3a', dark: '#2b6b28', acc: '#e8c547', skin: '#f6cfa8', fx: '#9ff0ff' }, alt: { body: '#c8402f', dark: '#8a2a1f', acc: '#e8c547', skin: '#f6cfa8', fx: '#ffb36b' } },
   rat: { name: 'Bliksemrat', blurb: 'Kleine, snelle elektrische rat. Stroomballen over de grond, een oplaadbare kopstoot, een zigzaggende flitssprong en een bliksem uit de lucht.', weight: 79, run: 7.2, acc: 1.1, jump: 15, djump: 13.5, grav: 0.85, fall: 12, ffall: 17.5, air: 4.8, airAcc: 0.5, airJumps: 1, w: 40, h: 60, pow: 0.95, reach: 0.95, lag: -1, limb: 9, zoner: true, sideRec: true, hr: 0.25, arm: 0.14,
     col: { body: '#ffd84a', dark: '#d9a514', acc: '#e8323c', skin: '#ffe98a', fx: '#fff27a' }, alt: { body: '#ffb34a', dark: '#c77a14', acc: '#ff6b9a', skin: '#ffd08a', fx: '#ffe08a' } },
+  kakel: { name: 'Kakelknor', blurb: 'Gedaantewisselaar. Als kip zweeft hij met vier kleine extra sprongetjes en schiet hij eieren; als varken bijt, stoot en plet hij. Speciaal omlaag wisselt van vorm.', weight: 70, run: 5.4, acc: 0.9, jump: 13, djump: 7.5, grav: 0.45, fall: 6.5, ffall: 10, air: 4.6, airAcc: 0.45, airJumps: 4, w: 40, h: 62, pow: 0.9, reach: 0.95, lag: 0, limb: 8, zoner: true, pz: 2.0,
+    col: { body: '#f7f3ea', dark: '#c9c2b0', acc: '#e0302f', skin: '#f2b632', fx: '#fff1b0' }, alt: { body: '#b5713a', dark: '#7d4a22', acc: '#e0302f', skin: '#f2b632', fx: '#ffd08a' } },
+  knor: { name: 'Kakelknor', hidden: true, blurb: '', weight: 122, run: 5.6, acc: 0.85, jump: 13.5, djump: 12, grav: 0.9, fall: 13, ffall: 18, air: 3.9, airAcc: 0.36, airJumps: 1, w: 62, h: 64, pow: 1.2, reach: 1, lag: 1, limb: 15, sideRec: true, pz: 2.0,
+    col: { body: '#f4a9b8', dark: '#d97a90', acc: '#7a3b2e', skin: '#ffc9d3', fx: '#ffd0dc' }, alt: { body: '#8a6a5a', dark: '#5e4538', acc: '#2e1d16', skin: '#b38c78', fx: '#f0c8a0' } },
   schim: { name: 'Schim', blurb: 'Pikzwarte snelheidsduivel. Schimsperen, spindash, teleport en een rode schokgolf.', weight: 90, run: 8.4, acc: 1.25, jump: 15.5, djump: 14.5, grav: 0.85, fall: 12.5, ffall: 18, air: 5.3, airAcc: 0.5, airJumps: 1, w: 40, h: 74, pow: 1, reach: 1, lag: -1, limb: 9, zoner: true, sideRec: true, hr: 0.165,
     col: { body: '#26252e', dark: '#121117', acc: '#e2283c', skin: '#f1c9a5', fx: '#ffd23f' }, alt: { body: '#62677a', dark: '#363a46', acc: '#3fa9ff', skin: '#f1c9a5', fx: '#9fe3ff' } },
 });
-const CHAR_KEYS = Object.keys(CHARS);
+const CHAR_KEYS = Object.keys(CHARS).filter(k => !CHARS[k].hidden);
 
 let NEXT_ID = 1;
 /* Per-character throws. d = damage, a = angle, b = base knockback, g = growth (how strongly the
@@ -619,6 +623,9 @@ const THROWS = {
            d: { d: 9, a: 75, b: 55, g: 45, fx: 'slam' } },
   bongo: { f: { d: 11, a: 40, b: 70, g: 70 }, b: { d: 12, a: 140, b: 60, g: 95 }, u: { d: 9, a: 90, b: 70, g: 70 }, d: { d: 7, a: 80, b: 50, g: 40, fx: 'slam' } },
   lonk:  { f: { d: 7, a: 40, b: 60, g: 50 }, b: { d: 9, a: 135, b: 50, g: 72 }, u: { d: 8, a: 90, b: 60, g: 55, fx: 'slash' }, d: { d: 5, a: 80, b: 40, g: 30, end: 8 } },
+  kakel: { f: { d: 6, a: 45, b: 55, g: 50 }, b: { d: 7, a: 135, b: 50, g: 60 }, u: { d: 3, a: 90, b: 65, g: 45, start: 11, pre: [4, 7, 10], preD: 1 },
+           d: { d: 2, a: 80, b: 40, g: 28, start: 12, end: 6, pre: [3, 6, 9], preD: 1 } },
+  knor:  { f: { d: 11, a: 40, b: 70, g: 70, fx: 'slam' }, b: { d: 12, a: 140, b: 60, g: 95 }, u: { d: 9, a: 90, b: 70, g: 70 }, d: { d: 10, a: 75, b: 55, g: 50, fx: 'slam' } },
   rat:   { f: { d: 4, a: 40, b: 50, g: 55, fx: 'zap', start: 11, pre: [4, 7, 10], preD: 1 }, b: { d: 9, a: 135, b: 50, g: 65, fx: 'zap' },
            u: { d: 6, a: 90, b: 65, g: 50, fx: 'zap' }, d: { d: 3, a: 80, b: 40, g: 25, fx: 'zap', start: 12, end: 6, pre: [4, 7, 10], preD: 1 } },
 };
@@ -1035,6 +1042,56 @@ const SPECIALS = {
       hb: [H(0, -30, 58, 15, 80, 50, 85, { nr: 1 })], noGrav: (f, t) => t < 10,
       tick: (f, t) => { if (t === 1) { G.shake = Math.max(G.shake, 10); SFX.boom(); sparkFx(f.x, f.y - f.c.h / 2, '#fff27a', 14); } if (!f.grounded) { f.vy = 0; f.vx *= 0.8; } } }),
   }),
+  kakel: (M, H, s) => ({
+    neutralB: M({ special: true, start: 8, active: 1, end: 12, pose: 'cast',
+      tick: (f, t) => {
+        if (!f.grounded && f.vy > 1) f.vy = 1;
+        if (t !== 8) return;
+        spawnProj({ type: 'egg', owner: f, x: f.x + f.facing * 20 * s, y: f.y - 36 * s, vx: f.facing * 7.5, vy: -5, grav: 0.35, r: 9, life: 120, spin: 0.25, hb: { d: 6, a: 50, b: 25, g: 40 }, onGround: p => { p.dead = true; eggBreak(p); }, afterHit: eggBreak });
+        SFX.shoot();
+      } }),
+    sideB: M({ special: true, start: 6, active: 18, end: 14, pose: 'peck', keepVel: true, noDrift: true, ll: 10,
+      hb: [0, 1, 2].map(i => H(26, -30, 20, 2, 50, 20, 10, { nr: 1, f0: i * 5, f1: i * 5 + 3, grp: i + 1 })).concat([H(30, -30, 24, 5, 40, 40, 60, { nr: 1, f0: 15, f1: 18, grp: 5 })]),
+      noGrav: (f, t) => t >= 6 && t < 24,
+      tick: (f, t) => { if (t < 6) { f.vx *= 0.7; f.vy *= 0.5; } else if (t < 24) { f.vx = f.facing * 8; f.vy = Math.min(f.vy, 0) * 0.5 - 0.3; if (t % 4 === 0) addP({ type: 'ember', x: f.x - f.facing * 14, y: f.y - rand(10, 40), vx: -f.facing * rand(1, 3), vy: rand(0, 1.5), life: 18, max: 18, size: 5, color: '#ffffff' }); } } }),
+    upB: M({ special: true, start: 4, active: 44, end: 0, dur: 48, pose: 'flap', helpless: true, ledgeOK: 4, noDrift: true,
+      hb: [0, 1, 2, 3].map(i => H(0, -30, 26, 3, 85, 30, 20, { nr: 1, grp: i + 1, f0: i * 11, f1: i * 11 + 4 })),
+      noGrav: (f, t) => t < 48,
+      tick: (f, t) => {
+        if (t < 4) { f.vy *= 0.5; return; }
+        if ((t - 4) % 11 === 0) { f.vy = -7.5; f.grounded = false; f.ground = null; SFX.jump(); addP({ type: 'ember', x: f.x + rand(-16, 16), y: f.y - 20, vx: rand(-2, 2), vy: rand(0.5, 2), life: 24, max: 24, size: 5, color: '#ffffff' }); }
+        else f.vy = Math.min(f.vy + 0.55, 3);
+        f.vx = approach(f.vx, f.ix * 3.8, 0.35);
+      } }),
+    downB: transformMove(M, 'knor'),
+  }),
+  knor: (M, H, s) => ({
+    neutralB: M({ special: true, start: 12, active: 4, end: 20, pose: 'bite', ll: 12,
+      hb: [H(48, -30, 26, 12, 45, 40, 75, { nr: 1 })],
+      tick: (f, t) => { if (!f.grounded && f.vy > 1.5) f.vy = 1.5; if (t === 10) f.vx += f.facing * 4; if (t === 12) SFX.swing(); } }),
+    sideB: M({ special: true, start: 10, active: 20, end: 18, pose: 'ram', keepVel: true, noDrift: true, armor: [6, 30], ll: 12,
+      hb: [H(36, -30, 28, 11, 38, 50, 72, { nr: 1 })], noGrav: (f, t) => t >= 10 && t < 30,
+      tick: (f, t) => { if (t < 10) f.vx *= 0.8; else if (t < 30) { f.vx = f.facing * 10; f.vy = Math.min(f.vy, 0.5); if (t % 3 === 0 && f.grounded) dustFx(f.x - f.facing * 24, f.y, 2); } else f.vx *= 0.8; } }),
+    upB: M({ special: true, start: 6, active: 80, end: 0, dur: 90, pose: 'squash', helpless: true, ledgeOK: 10, ll: 18,
+      hb: [H(0, -30, 30, 8, 85, 45, 60, { nr: 1, when: (f, t) => t > 6 && t < 16 }), H(0, 0, 32, 12, 280, 30, 70, { nr: 1, grp: 1, when: f => f.mv.fall && !f.grounded })],
+      tick: (f, t) => {
+        if (t < 6) { f.vx *= 0.8; if (f.vy > 0) f.vy *= 0.5; return; }
+        if (t === 6) { f.vy = -17; f.vx = f.ix * 3; f.grounded = false; f.ground = null; SFX.jump(); }
+        f.vx = approach(f.vx, f.ix * 3.5, 0.3); if (f.vy > 2) f.mv.fall = true;
+      },
+      onLand: f => {
+        if (f.mv.fall) { spawnWave(f, 1, f.ground); spawnWave(f, -1, f.ground); dustFx(f.x, f.y, 12); G.shake = Math.max(G.shake, 9); SFX.boom(); }
+        f.move = null; f.lag = 18; f.setState('land');
+      } }),
+    downB: transformMove(M, 'kakel'),
+    dair: M({ start: 8, active: 30, end: 10, pose: 'squash', aerial: true, ll: 16,
+      hb: [H(0, 4, 30, 13, 280, 30, 80, { nr: 1 })],
+      tick: (f, t) => { if (t >= 8) f.vy = Math.max(f.vy, 14); },
+      onLand: f => { dustFx(f.x, f.y, 10); G.shake = Math.max(G.shake, 6); SFX.boom(); f.move = null; f.lag = 16; f.setState('land'); } }),
+    dsmash: M({ start: 12, active: 4, end: 26, pose: 'squash', charge: true,
+      hb: [H(40, -8, 26, 14, 30, 40, 95), H(-40, -8, 26, 14, 150, 40, 95)],
+      tick: (f, t) => { if (t === 12) { dustFx(f.x, f.y, 10); G.shake = Math.max(G.shake, 6); SFX.boom(); } } }),
+  }),
   joep: (M, H, s) => ({
     neutralB: M({ special: true, start: 10, active: 200, end: 0, dur: 230, pose: 'pkflash',
       tick: (f, t) => {
@@ -1226,6 +1283,22 @@ function thunderTick(p) {
   if (!f || f.state !== 'attack' || f.move !== f.M.downB || p.t < 2) return;
   if (p.y >= f.y - f.c.h - 6 && p.y <= f.y && Math.abs(p.x - f.x) < f.c.w * 0.6 + 10) { p.dead = true; f.startMove(f.M.thunderBurst); }
 }
+function transformMove(M, to) {
+  return M({ special: true, start: 14, active: 1, end: 10, pose: 'transform',
+    tick: (f, t) => {
+      if (!f.grounded && f.vy > 1) f.vy = 1; f.vx *= 0.85;
+      if (t === 1 || t === 12) for (let i = 0; i < 10; i++) addP({ type: 'smoke', x: f.x + rand(-24, 24), y: f.y - rand(5, f.c.h), vx: rand(-2, 2), vy: -rand(0.5, 2), life: 26, max: 26, size: rand(10, 16), drag: 0.92 });
+      if (t === 12) { setForm(f, to); SFX.heal(); }
+    } });
+}
+function setForm(f, nk) {
+  if (!CHARS[nk] || f.key === nk) return;
+  f.key = nk; f.c = CHARS[nk]; f.col = f.altCol ? f.c.alt : f.c.col; f.M = buildMoves(nk);
+  f.jumps = Math.min(f.jumps, f.c.airJumps);
+}
+function eggBreak(p) {
+  for (let i = 0; i < 8; i++) addP({ type: 'ember', x: p.x + rand(-6, 6), y: p.y + rand(-6, 6), vx: rand(-3, 3), vy: -rand(1, 4), grav: 0.3, life: 20, max: 20, size: 4, color: i % 3 ? '#fffaf0' : '#ffd34d' });
+}
 function pkBoom(owner, x, y, r, hb) {
   spawnProj({ type: 'boom', x, y, owner, r, life: 7, hb, pierce: true, selfHit: false, reflect: false });
   boomFx(x, y, r); addP({ type: 'ring', x, y, life: 16, max: 16, size: r * 0.5, color: '#9dffb0' });
@@ -1348,7 +1421,7 @@ const G = { mode: 'none', fighters: [], projs: [], items: [], parts: [], kos: []
 const GROUNDED_ACT = ['idle', 'walk', 'run', 'crouch'];
 class Fighter {
   constructor(slot, ck, src, lvl, alt) {
-    this.id = NEXT_ID++; this.slot = slot; this.key = ck; this.c = CHARS[ck]; this.col = alt ? this.c.alt : this.c.col; this.pc = PCOL[slot];
+    this.id = NEXT_ID++; this.slot = slot; this.key = ck; this.c = CHARS[ck]; this.col = alt ? this.c.alt : this.c.col; this.altCol = !!alt; this.baseKey = ck; this.pc = PCOL[slot];
     this.src = src; this.cpu = src === 'cpu'; this.ctrl = new Ctrl(src); this.lvl = lvl;
     this.ai = this.cpu ? new AI(this, lvl) : null;
     this.M = buildMoves(ck);
@@ -1769,6 +1842,7 @@ class Fighter {
     if (this.item) { G.items = G.items.filter(i => i !== this.item); this.item = null; }
     this.state = 'dead'; this.deadT = 80; this.move = null; this.ev = null;
     if (this.copy) applyCopy(this, null);
+    if (this.baseKey && this.key !== this.baseKey) setForm(this, this.baseKey);
     if (this.stocks <= 0) { this.out = true; this.elim = G.frame; }
     G.shake = Math.max(G.shake, 18); SFX.ko();
     if (G.mode === 'demo') this.stocks = 99;
@@ -2308,6 +2382,12 @@ const POSE = {
   qa: { strike: mk({ lean: 0.9, aF: [-0.6, -0.3], aB: [-0.8, -0.3], lF: [-0.5, -0.4], lB: [-0.8, -0.4] }) },
   thunder: { strike: mk({ crouch: 0.3, aF: [0.8, -1.4], aB: [0.6, -1.4], plant: 'both' }) },
   thunderBurst: { strike: mk({ aF: [2.4, 0], aB: [-2.4, 0], lF: [0.5, -0.2], lB: [-0.5, -0.2] }) },
+  peck: { strike: mk({ lean: 0.7, aF: [-0.6, 0], aB: [-0.8, 0], lF: [-0.4, -0.3], lB: [-0.7, -0.3] }) },
+  flap: { strike: mk({ lF: [0.2, -0.5], lB: [-0.2, -0.5] }), fn: (f, t, P) => { const w = Math.sin(t * 0.6); P.aF = [1.6 + w * 1.3, 0]; P.aB = [1.4 + w * 1.3, 0]; return P; } },
+  transform: { strike: mk({ crouch: 0.5, aF: [0.8, -1], aB: [0.6, -1], plant: 'both' }), fn: (f, t, P) => { P.dy = Math.sin(t * 1.3) * 2; return P; } },
+  bite: { wind: mk({ lean: -0.25, plant: 'both' }), strike: mk({ lean: 0.35, lF: [0.6, -0.2], lB: [-0.6, -0.2], plant: 'both' }) },
+  ram: { strike: mk({ lean: 0.4, lF: [0.9, -0.4], lB: [-0.9, -0.4] }) },
+  squash: { wind: mk({ crouch: 0.2, lF: [0.6, -1.0], lB: [-0.6, -1.0] }), strike: mk({ crouch: 0.7, lF: [1.0, -0.4], lB: [-1.0, -0.4] }) },
   pkflash: { wind: mk({ aF: [0.6, -1.0], plant: 'both' }), strike: mk({ aF: [2.5, -2.1], aB: [2.3, -2.1], crouch: 0.1, plant: 'both' }) },
   pkthunder: { strike: mk({ aF: [2.5, -2.1], aB: [2.3, -2.1], lF: [0.35, -0.7], lB: [-0.2, -0.5] }) },
   pkt2: { strike: mk({ lF: [1.4, -2.3], lB: [1.1, -2.2], aF: [1.4, -2.0], aB: [1.0, -2.0], crouch: 0.3 }), spin: 3 },
@@ -2407,6 +2487,7 @@ function drawPuppet(g, ck, col, P, o = {}) {
   g.translate(0, P.dy || 0);
   if (P.rot) { g.translate(0, -h * 0.5); g.rotate(P.rot); g.translate(0, h * 0.5); }
   if (ck === 'poef') { drawPoef(g, col, P, o); g.restore(); return; }
+  if (ck === 'kakel' || ck === 'knor') { drawFarm(g, ck, col, P, o); g.restore(); return; }
   const hip = { x: 0, y: -hipH }, sh = { x: Math.sin(lean) * tl, y: -hipH - Math.cos(lean) * tl };
   const hd = { x: sh.x + Math.sin(lean) * hr * 0.95, y: sh.y - Math.cos(lean) * hr * 0.95 };
   const leg = k => {
@@ -2671,6 +2752,55 @@ function drawPuppet(g, ck, col, P, o = {}) {
   }
   g.restore();
 }
+function drawFarm(g, ck, col, P, o) {
+  const h = CHARS[ck].h, cr = P.crouch || 0, lean = (P.lean || 0) * 0.6, fr = o.fr || 0;
+  g.lineCap = 'round'; g.lineJoin = 'round'; g.strokeStyle = INK;
+  if (ck === 'kakel') {
+    for (const k of ['lB', 'lF']) {
+      const [u] = P[k], hx = k === 'lF' ? 4 : -5, hy = -h * 0.16, L = h * 0.18, planted = o.grounded && (P.plant === 'both' || (P.plant === 'B' && k === 'lB'));
+      const fx = hx + Math.sin(u) * L, fy = planted ? 0 : hy + Math.cos(u) * L;
+      g.lineWidth = 6; g.strokeStyle = INK; g.beginPath(); g.moveTo(hx, hy); g.lineTo(fx, fy); g.stroke(); g.lineWidth = 3; g.strokeStyle = col.skin; g.stroke();
+      g.lineWidth = 2.5; g.strokeStyle = col.skin; g.beginPath(); for (const a of [-0.5, 0, 0.5]) { g.moveTo(fx, fy); g.lineTo(fx + Math.cos(a) * 8, fy + Math.sin(a) * 3); } g.stroke();
+    }
+    g.save(); g.translate(0, -h * 0.12); g.rotate(lean); g.translate(0, h * 0.12);
+    const by = -h * 0.36 * (1 - cr * 0.3), rx = h * 0.34 * (1 + cr * 0.15), ry = h * 0.26 * (1 - cr * 0.25);
+    g.strokeStyle = INK; g.lineWidth = 3;
+    for (const [a, l] of [[-0.9, 0.24], [-0.5, 0.28], [-0.15, 0.22]]) { g.save(); g.translate(-rx * 0.85, by - ry * 0.2); g.rotate(a - 1.2); g.beginPath(); g.ellipse(0, -h * l * 0.5, h * 0.06, h * l * 0.5, 0, 0, TAU); g.fillStyle = col.body; g.fill(); g.stroke(); g.restore(); }
+    const wing = (a, c2) => { g.save(); g.translate(h * 0.02, by - ry * 0.1); g.rotate(-(a + lean)); g.beginPath(); g.ellipse(0, h * 0.13, h * 0.08, h * 0.15, 0, 0, TAU); g.fillStyle = c2; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke(); g.restore(); };
+    wing(P.aB[0], col.dark);
+    g.beginPath(); g.ellipse(0, by, rx, ry, 0, 0, TAU); g.fillStyle = col.body; g.fill(); g.lineWidth = 3; g.stroke();
+    const hx = h * 0.22, hy = by - ry * 1.05, hr = h * 0.16;
+    g.fillStyle = col.acc; for (const [dx, r] of [[-0.35, 0.32], [0, 0.38], [0.35, 0.3]]) { g.beginPath(); g.arc(hx + hr * dx, hy - hr * 0.95, hr * r, 0, TAU); g.fill(); g.lineWidth = 2; g.stroke(); }
+    g.beginPath(); g.arc(hx, hy, hr, 0, TAU); g.fillStyle = col.body; g.fill(); g.lineWidth = 3; g.stroke();
+    g.beginPath(); g.moveTo(hx + hr * 0.8, hy - hr * 0.25); g.lineTo(hx + hr * 1.75, hy + hr * 0.1); g.lineTo(hx + hr * 0.8, hy + hr * 0.4); g.closePath(); g.fillStyle = col.skin; g.fill(); g.lineWidth = 2; g.stroke();
+    g.beginPath(); g.ellipse(hx + hr * 0.85, hy + hr * 0.75, hr * 0.18, hr * 0.32, 0, 0, TAU); g.fillStyle = col.acc; g.fill();
+    if (o.hurt) eye(g, hx + hr * 0.35, hy - hr * 0.15, hr * 0.3, true); else { g.beginPath(); g.arc(hx + hr * 0.4, hy - hr * 0.15, hr * 0.17, 0, TAU); g.fillStyle = INK; g.fill(); }
+    wing(P.aF[0], col.body);
+    if (o.held) { const a = P.aF[0] + lean; drawHeld(g, o.held, h * 0.02 + Math.sin(a) * h * 0.26, by - ry * 0.1 + Math.cos(a) * h * 0.26, a, h); }
+    g.restore();
+    return;
+  }
+  // varken
+  const by = -h * 0.42 * (1 - cr * 0.3), rx = h * 0.52 * (1 + cr * 0.12), ry = h * 0.3 * (1 - cr * 0.3);
+  g.save(); g.translate(0, -h * 0.1); g.rotate(lean); g.translate(0, h * 0.1);
+  for (const [lx, k, dark] of [[-0.32, 'lB', true], [0.26, 'lF', true], [-0.24, 'lB', false], [0.34, 'lF', false]]) {
+    const [u] = P[k], x0 = h * lx, y0 = by + ry * 0.55, L = Math.max(4, -y0 - (o.grounded ? 0 : -h * 0.06)), a = u * 0.45;
+    g.save(); g.translate(x0, y0); g.rotate(-a); rr(g, -h * 0.07, 0, h * 0.14, L, 5); g.fillStyle = dark ? col.dark : col.body; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
+    g.fillStyle = col.acc; g.fillRect(-h * 0.07, L - 5, h * 0.14, 5); g.restore();
+  }
+  g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.arc(-rx - 4, by - ry * 0.3, 6, 0.3, Math.PI * 1.7); g.stroke(); g.strokeStyle = col.body; g.lineWidth = 2; g.stroke();
+  g.beginPath(); g.ellipse(0, by, rx, ry, 0, 0, TAU); g.fillStyle = col.body; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke();
+  const hx = rx * 0.78, hy = by - ry * 0.35, hr = h * 0.26;
+  g.beginPath(); g.moveTo(hx - hr * 0.6, hy - hr * 0.6); g.lineTo(hx - hr * 0.55, hy - hr * 1.35); g.lineTo(hx - hr * 0.05, hy - hr * 0.85); g.closePath(); g.fillStyle = col.dark; g.fill(); g.lineWidth = 2.5; g.stroke();
+  g.beginPath(); g.arc(hx, hy, hr, 0, TAU); g.fillStyle = col.body; g.fill(); g.lineWidth = 3; g.stroke();
+  g.beginPath(); g.moveTo(hx + hr * 0.05, hy - hr * 0.75); g.lineTo(hx + hr * 0.45, hy - hr * 1.3); g.lineTo(hx + hr * 0.6, hy - hr * 0.6); g.closePath(); g.fillStyle = col.dark; g.fill(); g.lineWidth = 2.5; g.stroke();
+  if (o.bite) { g.beginPath(); g.moveTo(hx + hr * 0.3, hy + hr * 0.25); g.lineTo(hx + hr * 1.25, hy + hr * 0.05); g.lineTo(hx + hr * 1.2, hy + hr * 0.75); g.closePath(); g.fillStyle = '#5a1020'; g.fill(); g.stroke(); g.fillStyle = '#ffffff'; for (const tx of [0.7, 0.95]) { g.beginPath(); g.moveTo(hx + hr * tx, hy + hr * 0.12); g.lineTo(hx + hr * (tx + 0.1), hy + hr * 0.12); g.lineTo(hx + hr * (tx + 0.05), hy + hr * 0.32); g.closePath(); g.fill(); } }
+  g.beginPath(); g.ellipse(hx + hr * 0.92, hy + hr * 0.05, hr * 0.32, hr * 0.38, 0, 0, TAU); g.fillStyle = col.skin; g.fill(); g.lineWidth = 2.5; g.stroke();
+  g.fillStyle = INK; for (const ny of [-0.1, 0.2]) { g.beginPath(); g.ellipse(hx + hr * 1.0, hy + hr * ny, hr * 0.06, hr * 0.09, 0, 0, TAU); g.fill(); }
+  if (o.hurt) eye(g, hx + hr * 0.35, hy - hr * 0.3, hr * 0.22, true); else { g.beginPath(); g.arc(hx + hr * 0.4, hy - hr * 0.3, hr * 0.12, 0, TAU); g.fillStyle = INK; g.fill(); }
+  if (o.held) drawHeld(g, o.held, hx + hr * 1.2, hy + hr * 0.4, Math.PI / 2, h);
+  g.restore();
+}
 function poefFlags(f) {
   const m = f.state === 'attack' ? f.move : null, M = f.M, t = f.mt;
   return { puff: f.djT > 0 && f.state === 'air', inhale: !f.copy && m === M.neutralB && t >= 4 && t <= 50, full: m === M.mouthful || (m === M.swallow && t < 14), copy: f.copy, spit: m === M.spit,
@@ -2705,6 +2835,8 @@ function drawCopyHat(g, ck, R, ty, fr) {
     case 'bongo':
       g.beginPath(); g.arc(0, ty + R * 0.45, R * 0.76, Math.PI, TAU); g.closePath(); g.fillStyle = C.body; g.fill(); g.stroke();
       g.beginPath(); g.moveTo(-R * 0.25, ty - R * 0.25); g.quadraticCurveTo(0, ty - R * 0.95, R * 0.12, ty - R * 0.3); g.quadraticCurveTo(R * 0.22, ty - R * 0.75, R * 0.42, ty - R * 0.2); g.fill(); g.stroke(); break;
+    case 'kakel': g.fillStyle = C.acc; for (const [dx, r] of [[-0.3, 0.2], [0, 0.25], [0.3, 0.19]]) { g.beginPath(); g.arc(R * dx, ty + R * 0.05, R * r, 0, TAU); g.fill(); g.lineWidth = 2; g.stroke(); } break;
+    case 'knor': poly([[-0.55, 0.3], [-0.6, -0.25], [-0.2, 0.15]], C.dark); poly([[0.2, 0.15], [0.55, -0.25], [0.55, 0.3]], C.dark); break;
     case 'rat': {
       for (const [bx, ang] of [[-0.42, -0.5], [0.22, -0.15]]) {
         g.save(); g.translate(R * bx, ty + R * 0.3); g.rotate(ang);
@@ -3079,6 +3211,9 @@ function drawProj(g, p, fr) {
     const col = p.owner ? p.owner.col.fx : '#ffd23f';
     g.fillStyle = hexA(col, 0.45); g.beginPath(); g.ellipse(-6, 0, 22, 9, 0, 0, TAU); g.fill();
     g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(16, 0); g.lineTo(-4, -4); g.lineTo(-18, 0); g.lineTo(-4, 4); g.closePath(); g.fill();
+  } else if (p.type === 'egg') {
+    g.rotate(p.rot); g.beginPath(); g.ellipse(0, 0, 7, 9, 0, 0, TAU); g.fillStyle = '#fffaf0'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
+    g.fillStyle = 'rgba(255,255,255,.8)'; g.beginPath(); g.ellipse(-2, -3, 2, 3, -0.4, 0, TAU); g.fill();
   } else if (p.type === 'jolt') {
     g.translate(0, -p.r * 0.7); g.globalCompositeOperation = 'lighter';
     const rg = g.createRadialGradient(0, 0, 0, 0, 0, p.r * 1.7); rg.addColorStop(0, '#ffffff'); rg.addColorStop(0.45, '#fff27a'); rg.addColorStop(1, 'rgba(255,220,60,0)');
@@ -3244,7 +3379,7 @@ function drawFighter(g, f, fr, z) {
   else if (f.frozen > 0 && !f.buried) filt = 'saturate(0.3) brightness(1.2) hue-rotate(160deg)';
   if (filt !== 'none' && 'filter' in g) g.filter = filt;
   const sword = (f.key === 'sable' || f.key === 'lonk') && f.state === 'attack' && f.move && !f.move.throw && !['cast', 'counter', 'throwItem', 'pick', 'bow', 'lonkpull'].includes(f.move.pose);
-  drawPuppet(g, f.key, f.col, P, { grounded: f.grounded || f.state === 'land', fr: fr + f.id * 30, sword, held: f.item ? f.item.type : f.state === 'attack' && f.move && f.move.bat ? 'bat' : null, wings: f.feather > 0, bow: f.key === 'lonk' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, pull: f.charge, jet: f.key === 'bliep' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 4, hurt: f.state === 'hitstun' || f.state === 'knockdown' || f.state === 'dizzy' || f.state === 'shieldbreak' || f.state === 'grabbed', ...(f.key === 'poef' ? poefFlags(f) : {}) });
+  drawPuppet(g, f.key, f.col, P, { grounded: f.grounded || f.state === 'land', fr: fr + f.id * 30, sword, held: f.item ? f.item.type : f.state === 'attack' && f.move && f.move.bat ? 'bat' : null, wings: f.feather > 0, bite: f.key === 'knor' && f.state === 'attack' && f.move === f.M.neutralB && f.mt >= 8 && f.mt <= 18, bow: f.key === 'lonk' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, pull: f.charge, jet: f.key === 'bliep' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 4, hurt: f.state === 'hitstun' || f.state === 'knockdown' || f.state === 'dizzy' || f.state === 'shieldbreak' || f.state === 'grabbed', ...(f.key === 'poef' ? poefFlags(f) : {}) });
   if ('filter' in g) g.filter = 'none';
   g.globalAlpha = 1; g.restore();
   if (f.key === 'kwak' && f.state === 'attack' && f.move === f.M.sideB) {
@@ -3528,7 +3663,7 @@ function showResults() {
 /* ---------------- online ---------------- */
 const netEl = $('#net');
 const ST_LIST = ['idle', 'walk', 'run', 'crouch', 'land', 'jumpsquat', 'air', 'attack', 'shield', 'evade', 'airdodge', 'hitstun', 'helpless', 'knockdown', 'dizzy', 'ledge', 'holding', 'grabbed', 'respawn', 'shieldbreak', 'dead'];
-const PT_LIST = ['spark', 'shuriken', 'fire', 'ice', 'pipbomb', 'bombT', 'boom', 'wave', 'laser', 'fist', 'bubble', 'spear', 'blast', 'bananaT', 'batT', 'blasterT', 'puffstar', 'pkbolt', 'pkfire', 'pkthunder', 'pkflash', 'arrow', 'boomer', 'jolt', 'thunder'];
+const PT_LIST = ['spark', 'shuriken', 'fire', 'ice', 'pipbomb', 'bombT', 'boom', 'wave', 'laser', 'fist', 'bubble', 'spear', 'blast', 'bananaT', 'batT', 'blasterT', 'puffstar', 'pkbolt', 'pkfire', 'pkthunder', 'pkflash', 'arrow', 'boomer', 'jolt', 'thunder', 'egg'];
 const MODE_LIST = ['match', 'gameover', 'results'];
 const LAVA_ST = ['idle', 'warn', 'rise', 'hold', 'fall'];
 const CTR_MOVE = { pose: 'smashF', start: 3, active: 4, end: 20, dur: 27, hb: [] };
@@ -3758,7 +3893,7 @@ function snapF(f) {
   const fl = (f.grounded ? 1 : 0) | (f.tumble ? 2 : 0) | (f.tumbleAnim ? 4 : 0) | (f.adDir ? 8 : 0) | (f.intang ? 16 : 0) | (f.item ? 32 : 0) | (f.out ? 64 : 0) | (f.star > 0 ? 128 : 0) | (f.feather > 0 ? 256 : 0) | (f.buried ? 512 : 0) | (f.punchStore >= 100 ? 1024 : 0);
   const mk = f.move ? (f.move.netKey || 'ctr') : '';
   return [ST_LIST.indexOf(f.state), Math.round(f.x), Math.round(f.y), f.facing, mk, f.mt | 0, f.charge | 0, f.t | 0, fl, Math.round(f.percent * 10), f.stocks, Math.round(f.shieldHP), f.invuln | 0, f.hitlag | 0, f.frozen | 0, f.flash | 0, f.djT | 0,
-    Math.round(f.runPh * 100) % 100000, Math.round(f.vx * 10), evk, evd, ev ? ev.dur : 0, f.stats.ko, f.stats.falls, Math.round(f.stats.dmg), f.elim | 0, f.item ? ITEM_LIST.indexOf(f.item.type) : -1, f.copy || '', Math.round((f.aim || 0) * 100)];
+    Math.round(f.runPh * 100) % 100000, Math.round(f.vx * 10), evk, evd, ev ? ev.dur : 0, f.stats.ko, f.stats.falls, Math.round(f.stats.dmg), f.elim | 0, f.item ? ITEM_LIST.indexOf(f.item.type) : -1, f.copy || '', Math.round((f.aim || 0) * 100), f.key];
 }
 function netSnap() {
   const F = G.fighters, P = [];
@@ -3862,6 +3997,7 @@ function netFighter(f, r, nb, k, fresh) {
     const cp = typeof r[27] === 'string' && CHARS[r[27]] ? r[27] : null;
     if (cp !== (f.copy || null)) applyCopy(f, cp);
     f.aim = clamp((r[28] | 0) / 100, -1, 1);
+    if (typeof r[29] === 'string' && CHARS[r[29]] && r[29] !== f.key) setForm(f, r[29]);
     const mk = r[4];
     f.move = st === 'attack' ? (mk === 'ctr' ? CTR_MOVE : (typeof mk === 'string' && Object.prototype.hasOwnProperty.call(f.M, mk) ? f.M[mk] : f.M.jab)) : null;
     f.mt = r[5] | 0; f.charge = r[6] | 0; f.t = r[7] | 0;

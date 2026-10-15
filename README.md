@@ -1,6 +1,6 @@
 # Klapstuk
 
-Een platformvechter voor 2 tot 4 spelers in de browser: veertien vechters, zeven podia, items en CPU-tegenstanders. Speel lokaal op één toetsenbord of gamepad, of online met vrienden.
+Een platformvechter voor 2 tot 4 spelers in de browser: vijftien vechters, zeven podia, items en CPU-tegenstanders. Speel lokaal op één toetsenbord of gamepad, of online met vrienden.
 
 De hele site is één bestand: `index.html`. De WebRTC-bibliotheek zit erin en het spel gebruikt alleen standaardlettertypen (Impact en het systeemlettertype); de pagina laadt niets van andere websites. Er is geen bouwstap en geen eigen server nodig.
 
