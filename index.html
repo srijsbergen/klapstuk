@@ -354,6 +354,7 @@ window.KlapP2P = (() => {
           <li><b>Grijpen</b> (of schild + aanval) pakt een tegenstander op de grond vast, ook door een schild heen. Druk of houd daarna een richting om te gooien; aanval of grijpen slaat. Rennend grijpen reikt verder. Rammel op knoppen om los te komen.</li>
           <li><b>Schild + richting</b> rolt weg, <b>schild + omlaag</b> ontwijkt op de plek, <b>schild in de lucht</b> is een luchtontwijking.</li>
           <li>Druk <b>schild vlak voor je neerkomt</b> na een klap om op te vangen (tech). Omlaag op een platform laat je erdoor vallen.</li>
+          <li><b>Gevorderd.</b> <b>L-cancel</b>: druk schild vlak voor je landt met een luchtaanval, en je landingsvertraging halveert. <b>Wavedash</b>: spring en ontwijk meteen schuin omlaag, dan glijd je over de grond (ook om van een rand af te glijden). <b>Perfect afweren</b>: zet je schild vlak voordat een aanval raakt: geen schildschade, de aanvaller staat even stil en projectielen kaatsen terug. <b>Smash-DI</b>: tik een richting terwijl je na een klap stilstaat om een stukje te verschuiven, handig om uit meervoudige aanvallen te ontsnappen. <b>Sweetspots</b>: het verste puntje van een aanval raakt harder; bij Sabel en Lonk is de zwaardpunt extra sterk en de rest van het zwaard iets zwakker. <b>Herhaling</b>: dezelfde aanval steeds weer gebruiken doet minder schade.</li>
           <li>Twee spelers op één toetsenbord: speler 1 gebruikt <kbd>W A S D</kbd> + <kbd>X C V B</kbd>, speler 2 de pijltjes + <kbd>M , . /</kbd>.</li>
         </ul>
       </details>
@@ -647,6 +648,15 @@ function buildMoves(ck) {
   };
   Object.assign(mv, SPECIALS[ck](M, H, s));
   if (ck === 'joep') { const f = mv.fsmash; f.bat = true; f.reflect = [f.start - 1, f.start + f.active]; f.hb = f.hb.map(h => Object.assign({}, h, { x: h.x * 1.25, d: Math.round(h.d * 1.1 * 10) / 10 })); }
+  const SW = ck === 'sable' || ck === 'lonk', mid = -c.h * 0.5 * s * 80 / c.h;
+  for (const k in mv) {
+    const m = mv[k];
+    if (m.special || m.throw || !m.hb || m.hb.length < 2 || m.hb.some(h => h.grab || h.when || h.f0 || h.f1 != null || h.sweet)) continue;
+    const dist = h => Math.hypot(h.x, h.y - mid), far = Math.max(...m.hb.map(dist));
+    if (m.hb.filter(h => Math.abs(dist(h) - far) < 1).length > 1) continue;
+    m.hb = m.hb.map(h => Math.abs(dist(h) - far) < 1 ? Object.assign({}, h, { sweet: true, d: Math.round(h.d * (SW ? 1.25 : 1.12) * 10) / 10, g: h.g * 1.05 }) : (SW ? Object.assign({}, h, { d: Math.round(h.d * 0.85 * 10) / 10 }) : h));
+    m.hb.sort((a, b) => (a.sweet ? 1 : 0) - (b.sweet ? 1 : 0)); // the sweetspot only wins when nothing closer overlaps
+  }
   for (const k in mv) mv[k].netKey = k;
   Object.defineProperty(mv, '_mk', { value: { M, H, s } });
   return mv;
@@ -1293,7 +1303,7 @@ class Fighter {
     this.ai = this.cpu ? new AI(this, lvl) : null;
     this.M = buildMoves(ck);
     this.stocks = G.stocks; this.stats = { ko: 0, falls: 0, dmg: 0, sd: 0 }; this.out = false; this.elim = 0;
-    this.bf = { atk: 0, spc: 0, jmp: 0, shd: 0, grb: 0 }; this.lastShd = -99; this.hud = 0; this.runPh = 0; this.djT = 0; this.deadT = 0; this.copy = null;
+    this.bf = { atk: 0, spc: 0, jmp: 0, shd: 0, grb: 0 }; this.lastShd = -99; this.hud = 0; this.runPh = 0; this.djT = 0; this.deadT = 0; this.copy = null; this.stale = []; this.moveUse = 0;
     this.reset(0, 0);
   }
   reset(x, y) {
@@ -1305,13 +1315,19 @@ class Fighter {
   get ix() { const h = this.ctrl.h; return (h.r ? 1 : 0) - (h.l ? 1 : 0); }
   get iy() { const h = this.ctrl.h; return (h.d ? 1 : 0) - (h.u ? 1 : 0); }
   cons(k) { if (this.bf[k] > 0) { this.bf[k] = 0; return true; } return false; }
-  setState(s) { this.state = s; this.t = 0; if (s !== 'attack') this.move = null; }
+  sdi() {
+    const P = this.ctrl.p, sx = (P.r ? 1 : 0) - (P.l ? 1 : 0), sy = (P.d ? 1 : 0) - (P.u ? 1 : 0);
+    if (!sx && !sy) return;
+    const n = Math.hypot(sx, sy); this.x += sx / n * 7; if (!this.grounded) this.y += sy / n * 7; this.px = this.x; this.py = this.y;
+    addP({ type: 'ghost', x: this.x - sx / n * 7, y: this.y, life: 8, max: 8, size: this.c.h, w: this.c.w, color: '#ffffff' });
+  }
+  setState(s) { this.state = s; this.t = 0; if (s !== 'attack') this.move = null; if (s !== 'land') this.wd = false; }
   update() {
     this.ctrl.poll(this);
     if (this.hud > 0) this.hud--;
     if (this.state === 'dead') { if (this.stocks > 0 && --this.deadT <= 0) this.respawn(); return; }
     if (this.state === 'grabbed') { this.stepGrabbed(); return; }
-    if (this.hitlag > 0) { this.hitlag--; return; }
+    if (this.hitlag > 0) { this.hitlag--; if (this.state === 'hitstun' && !this.buried) this.sdi(); return; }
     if (this.invuln > 0) this.invuln--;
     if (this.ledgeCD > 0) this.ledgeCD--;
     if (this.dropT > 0) this.dropT--;
@@ -1330,7 +1346,7 @@ class Fighter {
   step() {
     switch (this.state) {
       case 'idle': case 'walk': case 'run': case 'crouch': return this.groundAct();
-      case 'land': this.fric(); if (this.t >= this.lag) this.setState('idle'); return;
+      case 'land': if (this.wd) this.vx = approach(this.vx, 0, G.stage.def.ice ? 0.14 : 0.42); else this.fric(); if (this.t >= this.lag) this.setState('idle'); return;
       case 'jumpsquat': return this.stepJS();
       case 'air': return this.airAct();
       case 'attack': return this.doMove();
@@ -1402,7 +1418,7 @@ class Fighter {
     this.startMove(m);
   }
   startMove(m) {
-    this.setState('attack'); this.move = m; this.mt = 0; this.hitSet = new Set(); this.charge = 0; this.mv = {}; this.tumbleAnim = false; this.aim = 0;
+    this.setState('attack'); this.move = m; this.mt = 0; this.hitSet = new Set(); this.charge = 0; this.mv = {}; this.tumbleAnim = false; this.aim = 0; this.moveUse = (this.moveUse || 0) + 1;
     if (!m.aerial) this.fastfall = false;
     if (m.onStart) m.onStart(this);
   }
@@ -1451,7 +1467,7 @@ class Fighter {
   airdodge() {
     this.airdodged = true; this.setState('airdodge'); this.fastfall = false; this.tumbleAnim = false;
     const ix = this.ix, iy = this.iy;
-    if (ix || iy) { const n = Math.hypot(ix, iy); this.vx = ix / n * 10; this.vy = iy / n * 10; this.adDir = true; }
+    if (ix || iy) { const n = Math.hypot(ix, iy); this.vx = ix / n * 10; this.vy = iy / n * 10; this.adDir = true; this.adV = { x: this.vx, y: this.vy }; }
     else { this.adDir = false; this.vy = Math.min(this.vy, 2); }
   }
   stepAD() { if (this.adDir) { this.vx *= 0.88; this.vy *= 0.88; } else this.drift(0.6); if (this.t >= 30) this.setState('air'); }
@@ -1606,14 +1622,14 @@ class Fighter {
     }
     this.x += this.vx + this.lvx; this.y += this.vy + this.lvy;
   }
-  canWalkOff() { const s = this.state; return GROUNDED_ACT.includes(s) || s === 'hitstun' || (s === 'attack' && this.move && this.move.keepVel); }
+  canWalkOff() { const s = this.state; return GROUNDED_ACT.includes(s) || s === 'hitstun' || (s === 'land' && this.wd) || (s === 'attack' && this.move && this.move.keepVel); }
   collide() {
     const s = this.state; if (s === 'ledge' || s === 'respawn' || (s === 'evade' && this.ev && this.ev.lerp)) return;
     const S = G.stage, m = S.main, hw = this.c.w * 0.5, H = this.c.h;
     if (this.grounded) {
       const p = this.ground; this.x += p.dx; this.y = p.y;
       if (this.x < p.x1 || this.x > p.x2) {
-        if (this.canWalkOff()) { this.grounded = false; this.ground = null; if (GROUNDED_ACT.includes(s)) this.setState('air'); }
+        if (this.canWalkOff()) { this.grounded = false; this.ground = null; if (GROUNDED_ACT.includes(s) || s === 'land') this.setState('air'); }
         else this.x = clamp(this.x, p.x1, p.x2);
       }
       return;
@@ -1656,12 +1672,13 @@ class Fighter {
         if (m.onLand) { m.onLand(this); break; }
         if (m.aerial || m.special) {
           const ac = m.aerial && (this.mt <= 2 || this.mt > m.start + m.active + m.end * 0.5);
-          this.lag = ac ? 3 : (m.ll || 10); this.move = null; this.setState('land'); dustFx(this.x, this.y, 3);
+          this.lag = ac ? 3 : (m.ll || 10);
+          if (m.aerial && !ac && (G.frame - this.lastShd <= 7 || (this.cpu && this.lvl >= 6 && Math.random() < (this.lvl - 5) * 0.2))) { this.lag = Math.ceil(this.lag / 2); this.flash = 3; addP({ type: 'ring', x: this.x, y: this.y, life: 10, max: 10, size: 12, color: '#ffffff' }); } this.move = null; this.setState('land'); dustFx(this.x, this.y, 3);
         }
         break;
       }
       case 'helpless': this.lag = 18; this.setState('land'); dustFx(this.x, this.y, 5); SFX.land(); break;
-      case 'airdodge': this.lag = 8; this.setState('land'); break;
+      case 'airdodge': this.lag = 9; if (this.adDir && this.t < 16 && this.adV && this.adV.x) { this.vx = this.adV.x * 1.25; this.wd = true; dustFx(this.x, this.y, 4); } this.setState('land'); break;
       case 'shieldbreak': this.setState('dizzy'); break;
       case 'air': this.lag = 3; this.setState('land'); dustFx(this.x, this.y, 3); SFX.land(); break;
     }
@@ -1770,12 +1787,25 @@ function processHits() {
   }
   for (const h of hits) if (h.grab && h.a.state === 'attack' && h.v.state !== 'hitstun' && h.v.state !== 'dead' && !h.v.holder) { doGrab(h.a, h.v); if (h.hb.cmd) h.a.startMove(h.a.M[h.hb.cmd]); }
 }
+function staleInfo(a, o) {
+  if (!a || !a.stale) return null;
+  const key = o.proj ? o.mk : (a.move ? a.move.netKey || 'ctr' : null), use = o.proj ? o.use : a.moveUse;
+  if (!key) return null;
+  let sum = 0; a.stale.forEach((e, i) => { if (e.k === key && e.u !== use) sum += 0.09 - i * 0.01; });
+  return { key, use, mult: 1 - sum };
+}
 function applyHit(a, v, hb, dir, hx, hy, mult = 1, o = {}) {
   if (v.state === 'dead') return;
-  const d = hb.d * mult;
+  const st = a && a !== v ? staleInfo(a, o) : null;
+  const d = hb.d * mult * (st ? st.mult : 1);
   if (!o.throw) {
     const vm = v.move;
     if (v.state === 'attack' && vm && vm.counter && v.mt >= vm.counter[0] && v.mt <= vm.counter[1]) { triggerCounter(v, a, d); return; }
+    if (v.state === 'shield' && !hb.unblock && v.t <= 4) {
+      v.hitlag = 2; v.flash = 6; if (a && !o.proj) a.hitlag = Math.min(24, Math.floor(d * 0.3 + 3)) + 10;
+      addP({ type: 'ring', x: hx, y: hy, life: 14, max: 14, size: 22, color: '#ffffff' }); SFX.counter();
+      return;
+    }
     if (v.state === 'shield' && !hb.unblock) {
       v.shieldHP -= d * 1.25; v.shieldStun = Math.floor(d * 0.75) + 3; v.vx = dir * (1 + d * 0.22);
       const hl = Math.min(12, Math.floor(d * 0.3 + 3)); v.hitlag = hl; if (a && !o.proj) a.hitlag = hl;
@@ -1789,6 +1819,8 @@ function applyHit(a, v, hb, dir, hx, hy, mult = 1, o = {}) {
   if (v.holder && !o.throw) { const h = v.holder; h.held = null; if (h.state === 'holding') h.setState('idle'); v.holder = null; }
   if (v.held) { const w = v.held; w.holder = null; v.held = null; if (w.state === 'grabbed') { w.setState('air'); w.vy = -5; } }
   v.percent = Math.min(999, v.percent + d); v.hud = 14;
+  if (st && !a.stale.some(e => e.k === st.key && e.u === st.use)) { a.stale.unshift({ k: st.key, u: st.use }); if (a.stale.length > 9) a.stale.pop(); }
+  if (hb.sweet) { addP({ type: 'ring', x: hx, y: hy, life: 14, max: 14, size: 18, color: '#ffffff' }); addP({ type: 'flash', x: hx, y: hy, life: 8, max: 8, size: 26, color: 'rgba(255,255,255,.9)' }); }
   if (a) { a.stats.dmg += d; if (a !== v) { v.lastHit = a; v.lastHitT = G.frame; } }
   const p = v.percent;
   let kb = ((p / 10 + p * d / 20) * 200 / (v.c.weight + 100) * 1.4 + 18) * hb.g / 100 + hb.b;
@@ -1821,9 +1853,9 @@ function applyHit(a, v, hb, dir, hx, hy, mult = 1, o = {}) {
 
 /* ---------------- projectiles, items, particles ---------------- */
 let PID = 1;
-function spawnProj(o) { G.projs.push(Object.assign({ id: PID++, vx: 0, vy: 0, r: 10, life: 60, grav: 0, bounce: 0, t: 0, hitSet: new Set(), pierce: false, selfHit: false, reflect: true, dead: false, rot: 0 }, o)); }
+function spawnProj(o) { if (o.owner && o.mk === undefined) { o.mk = o.owner.move ? o.owner.move.netKey || 'ctr' : 'proj'; o.use = o.owner.moveUse; } G.projs.push(Object.assign({ id: PID++, vx: 0, vy: 0, r: 10, life: 60, grav: 0, bounce: 0, t: 0, hitSet: new Set(), pierce: false, selfHit: false, reflect: true, dead: false, rot: 0 }, o)); }
 function boom(x, y, owner, r, hb) {
-  spawnProj({ type: 'boom', x, y, owner, r, life: 7, hb, pierce: true, selfHit: true, reflect: false });
+  spawnProj({ type: 'boom', x, y, owner, r, life: 7, hb, pierce: true, selfHit: true, reflect: false, mk: 'boom', use: -1 });
   boomFx(x, y, r);
 }
 function boomFx(x, y, r) {
@@ -1867,6 +1899,10 @@ function updateProjs() {
       if (p.hitSet.has(v.id)) continue;
       if (!circleRect(p.x, p.y, p.r, v.x - v.c.w / 2, v.y - v.c.h, v.c.w, v.c.h)) continue;
       const vm = v.move;
+      if (p.reflect && v !== p.owner && v.state === 'shield' && v.t <= 4) {
+        p.vx = p.vx ? -p.vx : v.facing * 8; p.vy = -Math.abs(p.vy) * 0.5; p.owner = v; p.hitSet = new Set(); p.life = Math.max(p.life, 40);
+        v.flash = 6; addP({ type: 'ring', x: p.x, y: p.y, life: 14, max: 14, size: 20, color: '#ffffff' }); SFX.counter(); break;
+      }
       if (p.reflect && v !== p.owner && v.state === 'attack' && vm && vm.absorb && v.mt >= vm.absorb[0] && v.mt <= vm.absorb[1]) {
         p.dead = true; v.percent = Math.max(0, v.percent - p.hb.d * 1.5); v.hud = 8; SFX.heal();
         for (let i = 0; i < 4; i++) addP({ type: 'plus', x: v.x + rand(-16, 16), y: v.y - rand(20, v.c.h), vy: -rand(1, 2), life: 28, max: 28, size: 8, color: v.col.acc });
@@ -1879,7 +1915,7 @@ function updateProjs() {
       if (v.intang) continue;
       if (p.explode) { p.dead = true; p.explode(p); break; }
       p.hitSet.add(v.id);
-      applyHit(p.owner, v, p.hb, p.vx ? Math.sign(p.vx) : (v.x >= p.x ? 1 : -1), p.x, p.y, 1, { proj: true });
+      applyHit(p.owner, v, p.hb, p.vx ? Math.sign(p.vx) : (v.x >= p.x ? 1 : -1), p.x, p.y, 1, { proj: true, mk: p.mk, use: p.use });
       if (p.afterHit && !p.pierce) p.afterHit(p);
       if (!p.pierce) { p.dead = true; break; }
     }
