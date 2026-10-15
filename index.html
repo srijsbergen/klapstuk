@@ -357,6 +357,7 @@ window.KlapP2P = (() => {
         <button class="btn small" id="kbReset">Standaardtoetsen herstellen</button>
         <ul class="tips">
           <li><b>Omhoog + speciaal</b> is je herstelsprong: daarna kun je niets tot je landt of de rand pakt.</li>
+          <li><b>Korte sprong</b>: tik springen kort aan, of druk springen en aanval (vrijwel) tegelijk, voor een lage sprong met meteen een luchtaanval. Houd springen vast voor een volle sprong.</li>
           <li><b>Items</b>: pak op met aanval of grijpen, gooi met grijpen (omlaag legt neer). Knuppel: aanval slaat, smash is een homerun. Straalpistool: aanval schiet, 10 schoten. Bananenschil: wie erover loopt, valt. Ster: even onkwetsbaar. Veer: twee extra sprongen. Kist: sla open voor items.</li>
           <li><b>Grijpen</b> (of schild + aanval) pakt een tegenstander op de grond vast, ook door een schild heen. Druk of houd daarna een richting om te gooien; aanval of grijpen slaat. Rennend grijpen reikt verder. Rammel op knoppen om los te komen.</li>
           <li><b>Schild + richting</b> rolt weg, <b>schild + omlaag</b> ontwijkt op de plek, <b>schild in de lucht</b> is een luchtontwijking.</li>
@@ -1517,7 +1518,7 @@ class Fighter {
     Object.assign(this, { x, y, px: x, py: y, vx: 0, vy: 0, lvx: 0, lvy: 0, facing: x <= 0 ? 1 : -1, grounded: false, ground: null, state: 'air', t: 0,
       jumps: this.c.airJumps, move: null, mt: 0, hitSet: new Set(), charge: 0, hitlag: 0, hitstun: 0, tumble: false, tumbleAnim: false, invuln: 0, intang: false,
       star: 0, feather: 0, shieldHP: 60, shieldStun: 0, fastfall: false, ledgeSide: 0, ledgeCD: 0, dropT: 0, airdodged: false, adDir: false, upBUsed: false, sideBUsed: false,
-      held: null, holder: null, grabT: 0, pumT: 0, item: null, lastHit: null, lastHitT: -9999, frozen: 0, buried: false, punchStore: 0, flash: 0, lag: 0, ev: null, mv: {}, jabN: 0, dizzy: 0, percent: 0, jsTap: false });
+      held: null, holder: null, grabT: 0, pumT: 0, item: null, lastHit: null, lastHitT: -9999, frozen: 0, buried: false, punchStore: 0, flash: 0, lag: 0, ev: null, mv: {}, jabN: 0, dizzy: 0, percent: 0, jsTap: false, hop: null, sjWin: 0 });
   }
   get ix() { const h = this.ctrl.h; return (h.r ? 1 : 0) - (h.l ? 1 : 0); }
   get iy() { const h = this.ctrl.h; return (h.d ? 1 : 0) - (h.u ? 1 : 0); }
@@ -1547,6 +1548,7 @@ class Fighter {
     this.t++;
     this.step();
     if (this.state === 'dead') return;
+    if (this.hop) this.hopCut();
     this.physics(); this.collide(); this.checkLedge(); this.computeIntang(); this.checkBlast();
     if (this.grounded) this.runPh += Math.abs(this.vx) * 0.075;
   }
@@ -1581,7 +1583,8 @@ class Fighter {
     if (this.item && (this.bf.atk > 0 || this.bf.grb > 0)) { const thr = this.bf.grb > 0; this.cons('atk'); this.cons('grb'); return thr ? this.throwItem() : this.useItem(); }
     if (this.bf.grb > 0 && !this.item && this.tryPickup()) { this.cons('grb'); return; }
     if (this.bf.grb > 0 || (h.shd && this.bf.atk > 0)) { this.cons('grb'); this.cons('atk'); return this.startMove(this.state === 'run' && Math.abs(this.vx) > this.c.run * 0.6 ? this.M.dashGrab : this.M.grab); }
-    if (this.bf.atk > 0 || C.cp) { this.cons('atk'); if (!C.cp && this.tryPickup()) return; return this.groundAttack(); }
+    if (this.bf.jmp > 0 && h.jmp && this.bf.atk > 0 && !C.cp) { this.cons('jmp'); this.jsTap = false; return this.setState('jumpsquat'); }
+    if (this.bf.atk > 0 || C.cp) { this.cons('atk'); if (!C.cp && this.tryPickup()) return; const cp = !!C.cp; this.groundAttack(); if (this.state === 'attack' && !cp) this.sjWin = 2; return; }
     if (this.cons('spc')) return this.special();
     if (this.bf.jmp > 0) { this.cons('jmp'); this.jsTap = C.tapJ; return this.setState('jumpsquat'); }
     if (h.shd && this.shieldHP > 4) { this.bf.shd = 0; return this.setState('shield'); }
@@ -1625,13 +1628,14 @@ class Fighter {
     this.startMove(m);
   }
   startMove(m) {
-    this.setState('attack'); this.move = m; this.mt = 0; this.hitSet = new Set(); this.charge = 0; this.mv = {}; this.tumbleAnim = false; this.aim = 0; this.moveUse = (this.moveUse || 0) + 1;
+    this.setState('attack'); this.move = m; this.mt = 0; this.hitSet = new Set(); this.charge = 0; this.mv = {}; this.tumbleAnim = false; this.aim = 0; this.moveUse = (this.moveUse || 0) + 1; this.sjWin = 0;
     if (!m.aerial) this.fastfall = false;
     if (m.onStart) m.onStart(this);
   }
   chargeMult() { const m = this.move; return m && m.charge ? 1 + (m.chargeBoost || 0.4) * this.charge / m.chargeMax : 1; }
   doMove() {
     const m = this.move, C = this.ctrl;
+    if (this.sjWin > 0) { this.sjWin--; if (this.grounded && this.mt < m.start && this.bf.jmp > 0 && C.h.jmp) { this.cons('jmp'); this.bf.atk = 7; this.jsTap = false; this.sjWin = 0; return this.setState('jumpsquat'); } }
     if (m.charge && this.mt === m.chargeAt && this.charge < m.chargeMax && (m.chargeKey === 'spc' ? C.h.spc : C.h.atk)) {
       this.charge++; if (this.grounded) this.fric(); else this.drift(0.5); return;
     }
@@ -1646,13 +1650,26 @@ class Fighter {
     if (this.mt >= m.dur) this.endMove();
   }
   endMove() { const m = this.move; this.move = null; if (this.grounded) this.setState('idle'); else this.setState(m && m.helpless ? 'helpless' : 'air'); }
+  hopCut() {
+    // jump let go in the first airborne frames: still turn the full hop into a short hop of the same height
+    const h = this.hop;
+    if (this.grounded || this.vy >= 0 || !(this.state === 'air' || (this.state === 'attack' && this.move && this.move.aerial)) || ++h.n > 5) { this.hop = null; return; }
+    if (this.ctrl.jumpHeld) return;
+    this.hop = null;
+    const g = this.c.grav, rise = v => { let r = 0; while ((v += g) < 0) r -= v; return r; };
+    const want = rise(-this.c.jump * 0.66) - (h.y0 - this.y);
+    let lo = 0, hi = -this.vy;
+    for (let i = 0; i < 16; i++) { const md = (lo + hi) / 2; if (rise(-md) < want) lo = md; else hi = md; }
+    this.vy = Math.max(this.vy, -lo);
+  }
   stepJS() {
     this.fric();
     if (this.jsTap && this.bf.atk > 0) { this.cons('atk'); return this.startMove(this.M.usmash); }
     if (this.bf.spc > 0) { this.cons('spc'); return this.special(); }
     if (this.t >= 4) {
-      const full = this.ctrl.jumpHeld;
+      const C = this.ctrl, full = C.jumpHeld && !(this.bf.atk > 0);
       this.vy = -(full ? this.c.jump : this.c.jump * 0.66); this.vx = this.vx * 0.85 + this.ix * 1.2;
+      this.hop = full && C.src !== 'cpu' ? { n: 0, y0: this.y } : null;
       this.grounded = false; this.ground = null; this.setState('air'); SFX.jump(); dustFx(this.x, this.y, 4);
     }
   }
@@ -1663,7 +1680,7 @@ class Fighter {
     if (this.bf.atk > 0 || C.cp) { this.cons('atk'); return this.aerial(); }
     if (this.cons('spc')) return this.special();
     if (this.bf.jmp > 0 && this.jumps > 0) {
-      this.cons('jmp'); this.jumps--;
+      this.cons('jmp'); this.jumps--; this.hop = null;
       const decay = this.key === 'pip' || this.key === 'poef' ? 1 - 0.07 * (this.c.airJumps - 1 - this.jumps) : 1;
       this.vy = -this.c.djump * decay; this.vx = this.ix * this.c.air * 0.9; this.fastfall = false; this.tumbleAnim = false; this.djT = 14;
       SFX.jump(); addP({ type: 'ring', x: this.x, y: this.y, life: 12, max: 12, size: 14, color: '#ffffff' }); return;
