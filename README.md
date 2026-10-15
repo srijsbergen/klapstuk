@@ -35,10 +35,10 @@ Ga daarna naar http://localhost:8000.
 
 ## Online spelen
 
-1. Klik op **Online spelen**, vul je naam in en kies **Nieuw spel hosten**.
+1. Zet de schakelaar bovenaan het menu op **Online**, vul je naam in en kies **Nieuw spel hosten**.
 2. Stuur de **uitnodigingslink** (of de code van 4 tekens) naar je vrienden. Wie de link opent, doet meteen mee.
-3. Iedereen kiest een vechter en een besturing. De host kiest het podium, de levens, de items en of lege plekken met CPU's worden gevuld.
-4. De host drukt op **Start**.
+3. Iedereen kiest een vechter in hetzelfde rooster als bij lokaal spelen, en een besturing op de eigen spelerkaart. De host kiest het podium, de levens, de items en of lege plekken met CPU's worden gevuld; de anderen zien die keuzes meteen.
+4. De host drukt op **Start!**.
 
 Er spelen maximaal 4 mensen. Wie later komt, kijkt mee. Niemand heeft een account nodig.
 

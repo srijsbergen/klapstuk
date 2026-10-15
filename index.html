@@ -49,6 +49,28 @@ select{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
 .cg{position:relative;background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:4px 4px 5px;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
 .cg:hover,.cg:focus-visible{border-color:var(--mute)}
 .cg.taken{border-color:#d9d2ee}
+.modes{display:flex;gap:6px;background:var(--panel);border:2px solid var(--line);border-radius:999px;padding:4px;align-self:flex-start}
+.modes button{background:none;border:0;border-radius:999px;padding:8px 22px;font-family:var(--display);font-size:20px;color:var(--mute);cursor:pointer}
+.modes button[aria-selected="true"]{background:var(--gold);color:var(--gold-ink)}
+.netpanel{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.netpanel .msg:empty{display:none}
+.netstart{display:flex;flex-direction:column;gap:10px}
+.netlobby{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.netlobby .code{font-size:15px}
+.netlobby .code b{font-family:var(--display);font-weight:400;font-size:26px;letter-spacing:.14em;color:var(--gold);vertical-align:-3px}
+.netlobby #netInvite{flex:1;min-width:min(100%,280px)}
+.netlobby #netLeave{margin-left:auto}
+.netrow label{color:var(--mute);font-size:14px}
+.netrow .or{color:var(--mute);font-size:14px}
+.netpanel .netrow .btn{flex:none;min-width:0;padding:10px 18px}
+.hint{color:var(--mute);font-size:13.5px;margin:0;line-height:1.45}
+.pname{font-weight:700;min-width:0;overflow-wrap:anywhere;flex:1}
+.slot.me{box-shadow:0 0 0 3px var(--pc),0 0 18px color-mix(in srgb,var(--pc) 45%,transparent)}
+.slot.free{border-style:dashed;cursor:default}
+.slot.free .cn small{min-height:0}
+.slot .opt label{color:var(--mute);font-size:13px}
+.go:disabled{opacity:.55;cursor:default;transform:none;box-shadow:0 6px 0 var(--gold-deep)}
+.stage:disabled,.step button:disabled,.tog:disabled{opacity:.6;cursor:default}
 .hands{position:absolute;bottom:20px;right:3px;display:flex;flex-direction:column;align-items:flex-end;gap:2px;pointer-events:none}
 .hand{font-family:var(--display);font-size:10px;line-height:1;padding:2px 4px;border-radius:5px;background:#fff;color:#120e1d;border:2px solid var(--pc)}
 .cg.cursor{outline:3px solid var(--cc);outline-offset:1px}
@@ -325,10 +347,34 @@ window.KlapP2P = (() => {
         <p>Een platformvechter voor 2 tot 4 spelers, met zestien vechters. Elke klap telt op als <b>schade-%</b>; hoe hoger je percentage, hoe verder je vliegt. Sla je tegenstanders <b>buiten beeld</b> en hou zelf je levens.</p>
       </header>
 
+      <div class="modes" role="tablist" aria-label="Speelwijze">
+        <button role="tab" id="modeLocal" aria-selected="true">Lokaal</button>
+        <button role="tab" id="modeOnline" aria-selected="false">Online</button>
+      </div>
+      <section id="netPanel" class="netpanel" hidden aria-label="Online spelen">
+        <p class="msg" id="netMsg" role="status"></p>
+        <div id="netStart" class="netstart">
+          <p class="hint" id="netIntro">Speel met mensen die deze Klapstuk-pagina ook open hebben. Deel de pagina eerst met ze via het deelmenu.</p>
+          <div class="netrow"><label for="netName">Jouw naam</label><input id="netName" class="txt" maxlength="16" autocomplete="nickname" placeholder="Naam"></div>
+          <div class="netrow"><button class="btn main" id="netHost">Nieuw spel hosten</button><span class="or">of</span><label class="sr" for="netCode">Spelcode</label><input id="netCode" maxlength="4" autocomplete="off" spellcheck="false" placeholder="CODE"><button class="btn" id="netJoin">Meedoen</button></div>
+          <div id="netOpenWrap" class="netstart">
+            <p class="label">Open spellen</p>
+            <ul id="netOpen" class="netlist"></ul>
+          </div>
+        </div>
+        <div id="netLobby" class="netlobby" hidden>
+          <p class="code">Spelcode <b id="netCodeShow"></b></p>
+          <div class="netrow" id="netInvite" hidden><label class="sr" for="netLink">Uitnodigingslink</label><input id="netLink" class="txt" readonly><button class="btn small" id="netCopy">Kopieer link</button></div>
+          <button class="btn small" id="netLeave">Spel verlaten</button>
+        </div>
+      </section>
+
       <p class="label">Vechters</p>
-      <p class="cghint">Met toetsenbord of gamepad beweegt elke speler een eigen cursor met zijn richtingtoetsen en kiest met <b>aanval</b>. Met de muis: klik op een spelerkaart (of de puck P1–P4) en dan op een vechter. Een uitgezette speler die een vechter krijgt, doet mee als CPU.</p>
+      <p class="cghint" id="cghint">Met toetsenbord of gamepad beweegt elke speler een eigen cursor met zijn richtingtoetsen en kiest met <b>aanval</b>. Met de muis: klik op een spelerkaart (of de puck P1–P4) en dan op een vechter. Een uitgezette speler die een vechter krijgt, doet mee als CPU.</p>
       <section class="cgrid" id="cgrid" aria-label="Vechters kiezen"></section>
       <section class="slots" id="slots"></section>
+      <section class="slots" id="netSlots" hidden aria-label="Spelers"></section>
+      <p class="hint" id="netWatch" hidden></p>
 
       <div class="row">
         <section>
@@ -341,11 +387,12 @@ window.KlapP2P = (() => {
               <div class="step"><button id="stm" aria-label="Minder levens">−</button><output id="sto">3</output><button id="stp" aria-label="Meer levens">+</button></div>
             </div>
             <div class="opt"><span>Items</span><button class="tog" id="itm" aria-pressed="true">Aan</button></div>
+            <div class="opt" id="cpuOpt" hidden><span>Lege plekken vullen met CPU's</span><button class="tog" id="netCpu" aria-pressed="false">Uit</button></div>
             <div class="opt"><span>Geluid</span><button class="tog" id="snd" aria-pressed="true">Aan</button></div>
           </div>
           <button class="go" id="go">Vechten!</button>
           <button class="btn" id="train">Training: bokszak</button>
-          <button class="btn" id="online">Online spelen</button>
+          <p class="hint" id="netHint" hidden></p>
           <p class="msg" id="msg" role="status"></p>
         </section>
       </div>
@@ -384,39 +431,6 @@ window.KlapP2P = (() => {
       <h2 id="resTitle"></h2>
       <ol class="res" id="resList"></ol>
       <div class="btns"><button class="btn main" id="again">Revanche</button><button class="btn" id="toMenu">Menu</button></div>
-    </div>
-  </div>
-
-  <div id="net" class="screen" hidden>
-    <div class="card">
-      <div class="net-head"><h2>Online spelen</h2><button class="btn small" id="netClose">Terug</button></div>
-      <p class="msg" id="netMsg" role="status"></p>
-      <section id="netStart" class="netsec">
-        <p class="hint" id="netIntro">Speel met mensen die deze Klapstuk-pagina ook open hebben. Deel de pagina eerst met ze via het deelmenu.</p>
-        <div class="opt"><label for="netName">Jouw naam</label><input id="netName" class="txt" maxlength="16" autocomplete="nickname" placeholder="Naam"></div>
-        <button class="btn main" id="netHost">Nieuw spel hosten</button>
-        <div class="netrow"><label class="sr" for="netCode">Spelcode</label><input id="netCode" maxlength="4" autocomplete="off" spellcheck="false" placeholder="CODE"><button class="btn" id="netJoin">Meedoen</button></div>
-        <div id="netOpenWrap" class="netsec">
-          <p class="label">Open spellen</p>
-          <ul id="netOpen" class="netlist"></ul>
-        </div>
-      </section>
-      <section id="netLobby" class="netsec" hidden>
-        <p class="code">Spelcode <b id="netCodeShow"></b></p>
-        <div class="netrow" id="netInvite" hidden><label class="sr" for="netLink">Uitnodigingslink</label><input id="netLink" class="txt" readonly><button class="btn small" id="netCopy">Kopieer link</button></div>
-        <ul id="netPlayers" class="netlist"></ul>
-        <p class="label">Kies je vechter</p>
-        <div class="cgrid small" id="netGrid" aria-label="Vechters kiezen"></div>
-        <div class="opt"><label for="netSrc">Jouw besturing</label><select id="netSrc"><option value="kb1">Toetsenbord 1</option><option value="kb2">Toetsenbord 2</option><option value="pad1">Gamepad 1</option><option value="pad2">Gamepad 2</option><option value="touch">Aanraakscherm</option></select></div>
-        <div id="netHostOpts" class="netsec">
-          <div class="opt"><label for="netStage">Podium</label><select id="netStage"></select></div>
-          <div class="opt"><label for="netStocks">Levens</label><select id="netStocks"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
-          <div class="opt"><span>Items</span><button class="tog" id="netItems" aria-pressed="true">Aan</button></div>
-          <div class="opt"><span>Lege plekken vullen met CPU's</span><button class="tog" id="netCpu" aria-pressed="false">Uit</button></div>
-        </div>
-        <p class="hint" id="netHint"></p>
-        <div class="btns"><button class="btn main" id="netGo">Start</button><button class="btn" id="netLeave">Verlaten</button></div>
-      </section>
     </div>
   </div>
 
@@ -4017,6 +4031,7 @@ function setPucks(el, pucks) {
 }
 function refreshGrid() {
   const el = document.getElementById('cgrid'); if (!el) return;
+  if (online()) { setPucks(el, NET.pucks && NET.game ? NET.pucks : [{ ch: NET.ch, color: PCOL[0], label: 'Jij', active: true }]); return; }
   setPucks(el, settings.slots.map((s, i) => ({ s, i })).filter(({ s, i }) => s.type !== 'off' || i === activeSlot).map(({ s, i }) => ({ ch: s.ch, color: PCOL[i], label: 'P' + (i + 1), active: i === activeSlot })));
   settings.slots.forEach((s, i) => { const el2 = document.getElementById('slot' + i); if (el2) { el2.classList.toggle('active', i === activeSlot); el2.querySelector('.now').hidden = i !== activeSlot; } });
 }
@@ -4037,7 +4052,7 @@ function refreshSlot(i) {
   refreshGrid();
 }
 function buildMenu() {
-  buildCharGrid(document.getElementById('cgrid'), pickForActive);
+  buildCharGrid(document.getElementById('cgrid'), k => online() ? netSetCh(k) : pickForActive(k));
   const wrap = $('#slots'); wrap.innerHTML = '';
   settings.slots.forEach((s, i) => {
     const el = document.createElement('div'); el.id = 'slot' + i; el.style.setProperty('--pc', PCOL[i]);
@@ -4057,19 +4072,55 @@ function buildMenu() {
   for (const [k, d] of [...Object.entries(STAGES), ['random', { name: 'Willekeurig', blurb: 'Elke wedstrijd een ander podium.' }]]) {
     const b = document.createElement('button'); b.className = 'stage'; b.dataset.k = k; b.setAttribute('aria-pressed', String(settings.stage === k));
     b.innerHTML = `<canvas width="480" height="240" aria-hidden="true"></canvas><b>${d.name}</b><small>${d.blurb}</small>`;
-    b.addEventListener('click', () => { settings.stage = k; st.querySelectorAll('.stage').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.k === k))); save(); SFX.ui(); restartDemoSoon(); });
+    b.addEventListener('click', () => { setOpt('stage', k); SFX.ui(); restartDemoSoon(); });
     st.appendChild(b); drawThumb(b.querySelector('canvas'), k);
   }
-  const syncOpts = () => {
-    $('#sto').textContent = settings.stocks;
-    $('#itm').setAttribute('aria-pressed', String(settings.items)); $('#itm').textContent = settings.items ? 'Aan' : 'Uit';
-    $('#snd').setAttribute('aria-pressed', String(settings.sound)); $('#snd').textContent = settings.sound ? 'Aan' : 'Uit';
-  };
-  $('#stm').onclick = () => { settings.stocks = Math.max(1, settings.stocks - 1); syncOpts(); save(); SFX.ui(); };
-  $('#stp').onclick = () => { settings.stocks = Math.min(9, settings.stocks + 1); syncOpts(); save(); SFX.ui(); };
-  $('#itm').onclick = () => { settings.items = !settings.items; syncOpts(); save(); SFX.ui(); restartDemoSoon(); };
+  $('#stm').onclick = () => { setOpt('stocks', Math.max(1, optCfg().stocks - 1)); SFX.ui(); };
+  $('#stp').onclick = () => { setOpt('stocks', Math.min(9, optCfg().stocks + 1)); SFX.ui(); };
+  $('#itm').onclick = () => { setOpt('items', !optCfg().items); SFX.ui(); restartDemoSoon(); };
+  $('#netCpu').onclick = () => { setOpt('cpu', !optCfg().cpu); SFX.ui(); };
   $('#snd').onclick = () => { settings.sound = !settings.sound; syncOpts(); save(); SFX.init(); SFX.ui(); };
   syncOpts();
+}
+/* the stage and option cards edit local settings, or the online lobby's settings when hosting; guests only see the host's */
+const online = () => UIM === 'online';
+let UIM = 'local';
+function optCfg() {
+  if (online() && NET.game) { if (NET.role === 'host') return NET.cfg; const c = lobbyOrder().cfg; return c ? { stage: c.stage, stocks: clamp(c.stocks | 0, 1, 9), items: !!c.items, cpu: !!c.cpu } : NET.cfg; }
+  return { stage: settings.stage, stocks: settings.stocks, items: settings.items, cpu: NET.cfg.cpu };
+}
+function setOpt(k, v) {
+  if (online() && NET.game) { if (NET.role !== 'host') return; NET.cfg[k] = v; hostLobbyPresence(); }
+  if (k === 'cpu') NET.cfg.cpu = v; else settings[k] = v;
+  save(); syncOpts(); if (online()) renderLobby();
+}
+function syncOpts() {
+  const c = optCfg(), ro = online() && NET.game && NET.role !== 'host';
+  $('#sto').textContent = c.stocks;
+  $('#itm').setAttribute('aria-pressed', String(c.items)); $('#itm').textContent = c.items ? 'Aan' : 'Uit';
+  $('#netCpu').setAttribute('aria-pressed', String(!!c.cpu)); $('#netCpu').textContent = c.cpu ? 'Aan' : 'Uit';
+  $('#snd').setAttribute('aria-pressed', String(settings.sound)); $('#snd').textContent = settings.sound ? 'Aan' : 'Uit';
+  $('#stages').querySelectorAll('.stage').forEach(x => { x.setAttribute('aria-pressed', String(x.dataset.k === c.stage)); x.disabled = ro; });
+  $('#stm').disabled = $('#stp').disabled = $('#itm').disabled = $('#netCpu').disabled = ro;
+  $('#cpuOpt').hidden = !online();
+  const go = $('#go');
+  if (!online()) { go.hidden = false; go.disabled = false; go.textContent = 'Vechten!'; }
+  else if (!NET.game) go.hidden = true;
+  else if (NET.role === 'host') { go.hidden = false; go.disabled = false; go.textContent = 'Start!'; }
+  else { go.hidden = false; go.disabled = true; go.textContent = 'Wachten op host…'; }
+  $('#train').hidden = online(); $('#netHint').hidden = !online() || !NET.game;
+}
+function setMode(m) {
+  if (m === UIM && m === 'online') { if (NET.game) { showLobby(); renderLobby(); } else showNetStart(); syncOpts(); return; }
+  if (m === 'local' && NET.game) netLeave(true);
+  UIM = m; cursors.menu = {}; cursors.net = null; cursorKey = { menu: '', net: '' }; NET.lkey = '';
+  $('#modeLocal').setAttribute('aria-selected', String(m === 'local')); $('#modeOnline').setAttribute('aria-selected', String(m === 'online'));
+  $('#netPanel').hidden = m !== 'online'; $('#slots').hidden = m === 'online'; $('#netSlots').hidden = m !== 'online'; $('#netWatch').hidden = true;
+  $('#cghint').innerHTML = m === 'online' ? 'Kies je vechter in het rooster: klik erop, of beweeg je cursor met je richtingtoetsen en kies met <b>aanval</b>. De puckjes laten zien wat de anderen kiezen.'
+    : 'Met toetsenbord of gamepad beweegt elke speler een eigen cursor met zijn richtingtoetsen en kiest met <b>aanval</b>. Met de muis: klik op een spelerkaart (of de puck P1–P4) en dan op een vechter. Een uitgezette speler die een vechter krijgt, doet mee als CPU.';
+  $('#msg').textContent = '';
+  if (m === 'online') { SFX.init(); if (NET.game) { showLobby(); } else showNetStart(); renderLobby(); }
+  refreshGrid(); syncOpts();
 }
 function drawThumb(cnv, key) {
   const g = cnv.getContext('2d');
@@ -4082,26 +4133,32 @@ function drawThumb(cnv, key) {
   if (S.lava) { setLayer(g, V, 1); drawLava(g, 150, 0); }
 }
 function drawPreviews(now) {
+  if (online()) { (NET.cards || []).forEach((cd, i) => { const cnv = document.getElementById('npv' + i); if (cnv) drawPv(cnv, cd.ch, cd.alt, now, i); }); return; }
   settings.slots.forEach((s, i) => {
     const cnv = document.getElementById('pv' + i); if (!cnv) return;
-    const g = cnv.getContext('2d'), W = cnv.width, H = cnv.height, c = CHARS[s.ch], t = now / 1000 + i * 0.7;
+    const used = settings.slots.slice(0, i).filter(x => x.ch === s.ch && x.type !== 'off').length;
+    drawPv(cnv, s.ch, s.type !== 'off' && used % 2 === 1, now, i);
+  });
+}
+function drawPv(cnv, ch, alt, now, i) {
+  {
+    const g = cnv.getContext('2d'), W = cnv.width, H = cnv.height, c = CHARS[ch], t = now / 1000 + i * 0.7;
     g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H);
     if (!c) { drawRandomIcon(g, W, H); return; }
-    const used = settings.slots.slice(0, i).filter(x => x.ch === s.ch && x.type !== 'off').length;
-    const col = s.type !== 'off' && used % 2 === 1 ? c.alt : c.col;
+    const col = alt ? c.alt : c.col;
     const cyc = t % 4; let P;
     if (cyc > 3 && cyc < 3.7) { const k = (cyc - 3) / 0.7, pz = POSE.smashF; P = k < 0.4 ? mix(mk({ plant: 'both' }), pz.wind, k / 0.4) : mix(pz.wind, pz.strike, Math.min(1, (k - 0.4) / 0.15)); }
     else P = mk({ dy: Math.sin(t * 4) * 1.5, aF: [0.35 + Math.sin(t * 4) * 0.06, -0.6], plant: 'both' });
     const sc = H * 0.0072;
     g.translate(W / 2, H * 0.9); g.scale(sc, sc);
     g.fillStyle = 'rgba(10,6,20,.35)'; g.beginPath(); g.ellipse(0, 0, c.w * 0.7, 6, 0, 0, TAU); g.fill();
-    drawPuppet(g, s.ch, col, P, { grounded: true, fr: now / 16.7, sword: s.ch === 'sable' && cyc > 3 && cyc < 3.7 });
-  });
+    drawPuppet(g, ch, col, P, { grounded: true, fr: now / 16.7, sword: ch === 'sable' && cyc > 3 && cyc < 3.7 });
+  }
 }
 
 /* ---------------- screens ---------------- */
 function showMenu() {
-  menuEl.hidden = false; netEl.hidden = true; resEl.hidden = true; pauseEl.hidden = true; pbtn.hidden = true; touchEl.hidden = true; G.hudTop = false;
+  menuEl.hidden = false; resEl.hidden = true; pauseEl.hidden = true; pbtn.hidden = true; touchEl.hidden = true; G.hudTop = false;
   startMatch(true);
 }
 function goFight() {
@@ -4155,7 +4212,6 @@ function showResults() {
 }
 
 /* ---------------- online ---------------- */
-const netEl = $('#net');
 const ST_LIST = ['idle', 'walk', 'run', 'crouch', 'land', 'jumpsquat', 'air', 'attack', 'shield', 'evade', 'airdodge', 'hitstun', 'helpless', 'knockdown', 'dizzy', 'ledge', 'holding', 'grabbed', 'respawn', 'shieldbreak', 'dead'];
 const PT_LIST = ['spark', 'shuriken', 'fire', 'ice', 'pipbomb', 'bombT', 'boom', 'wave', 'laser', 'fist', 'bubble', 'spear', 'blast', 'bananaT', 'batT', 'blasterT', 'puffstar', 'pkbolt', 'pkfire', 'pkthunder', 'pkflash', 'arrow', 'boomer', 'jolt', 'thunder', 'egg', 'rocket'];
 const MODE_LIST = ['match', 'gameover', 'results'];
@@ -4183,10 +4239,10 @@ async function initNet() {
     }
   }
   NET.ready = true;
-  if (NET.room && !NET.p2p) NET.room.onPeers(() => { if (!netEl.hidden && !NET.game) renderOpenGames(); }, () => { NET.room = null; if (!netEl.hidden) showNetStart(); });
-  if (!netEl.hidden) showNetStart();
+  if (NET.room && !NET.p2p) NET.room.onPeers(() => { if (online() && !NET.game) renderOpenGames(); }, () => { NET.room = null; if (online()) showNetStart(); });
+  if (online() && !NET.game) showNetStart();
   const m = /^#spel-([A-Za-z0-9]{4})$/.exec(location.hash || '');
-  if (m && NET.room && !NET.game) { menuEl.hidden = false; openNet(); netJoin(m[1]); }
+  if (m && NET.room && !NET.game) { menuEl.hidden = false; setMode('online'); netJoin(m[1]); }
 }
 const cleanName = x => String(x || '').replace(/[\u0000-\u001f\u007f-\u009f­​-‏‪-‮⁠-⁤﻿]/g, '').trim().slice(0, 16);
 function inviteLink() { return location.origin + location.pathname + '#spel-' + NET.code; }
@@ -4194,12 +4250,8 @@ async function names(ids) {
   ids = ids.filter(Boolean); if (!ids.length || !NET.user || typeof NET.user.profiles !== 'function') return {};
   try { return (await NET.user.profiles(ids)) || {}; } catch (e) { return {}; }
 }
-function openNet() {
-  SFX.init(); netEl.hidden = false;
-  if (NET.game) { showLobby(); renderLobby(); } else showNetStart();
-}
 function showNetStart() {
-  $('#netStart').hidden = false; $('#netLobby').hidden = true;
+  $('#netStart').hidden = false; $('#netLobby').hidden = true; if (online()) { renderLobby(); syncOpts(); }
   const ok = !!NET.room;
   $('#netHost').disabled = !ok; $('#netJoin').disabled = !ok; $('#netCode').disabled = !ok;
   if (!NET.ready) netMsg('Verbinden…');
@@ -4207,7 +4259,7 @@ function showNetStart() {
   else if ($('#netMsg').textContent === 'Verbinden…') netMsg('');
   renderOpenGames();
 }
-function showLobby() { $('#netStart').hidden = true; $('#netLobby').hidden = false; }
+function showLobby() { $('#netStart').hidden = true; $('#netLobby').hidden = false; syncOpts(); }
 function renderOpenGames() {
   const ul = $('#netOpen'); ul.innerHTML = '';
   const games = NET.room ? NET.room.peers().filter(p => !p.sameTab && p.presence && p.presence.open && typeof p.presence.open.code === 'string') : [];
@@ -4283,7 +4335,7 @@ async function netLeave(keepScreen) {
   if (g) { try { await g.leave(); } catch (e) {} }
   if (keepScreen) return;
   resEl.hidden = true; pauseEl.hidden = true; pbtn.hidden = true; touchEl.hidden = true; G.hudTop = false;
-  menuEl.hidden = false; netEl.hidden = false; showNetStart();
+  menuEl.hidden = false; UIM = ''; setMode('online');
   if (wasPlaying || G.mode !== 'demo') startMatch(true);
 }
 function netLost(msg) { netLeave().then(() => netMsg(msg)); }
@@ -4304,31 +4356,55 @@ function lobbyOrder() {
   }
   return { pm, ord: ord.filter(x => pm.has(x)), cfg };
 }
+function netCards(list, cfg) {
+  // list: [{ name, ch, me, host, i }]; rebuilt only when something visible changes so the controls select keeps focus
+  const key = JSON.stringify([list, !!(cfg && cfg.cpu), NET.code, NET.src]);
+  if (key === NET.lkey) return; NET.lkey = key;
+  const wrap = $('#netSlots'); wrap.innerHTML = ''; NET.cards = [];
+  for (let i = 0; i < 4; i++) {
+    const p = list[i], el = document.createElement('div'); el.style.setProperty('--pc', PCOL[i]);
+    if (!p) {
+      el.className = 'slot off free';
+      el.innerHTML = `<div class="slot-head"><span class="tag">P${i + 1}</span><span class="pname"></span></div><div class="cn"><b></b><small></small></div>`;
+      el.querySelector('.pname').textContent = cfg && cfg.cpu ? 'CPU' : 'Vrij';
+      el.querySelector('.cn b').textContent = cfg && cfg.cpu ? 'Willekeurige CPU' : 'Nog niemand';
+      el.querySelector('.cn small').textContent = !NET.game ? (i === list.length ? 'Host hierboven een spel of doe mee met een code.' : '') : cfg && cfg.cpu ? 'Vult deze plek als de wedstrijd start.' : 'Deel de code ' + NET.code + ' om iemand uit te nodigen.';
+      wrap.appendChild(el); continue;
+    }
+    el.className = 'slot on' + (p.me ? ' me' : '');
+    el.innerHTML = `<div class="slot-head"><span class="tag">P${i + 1}</span><span class="pname"></span></div>
+      <canvas class="pv" id="npv${i}" width="360" height="320" aria-hidden="true"></canvas>
+      <div class="cn"><b></b><small></small></div>` + (p.me ? `<div class="opt"><label for="netSrc">Jouw besturing</label><select id="netSrc">${TYPES.filter(([v]) => v !== 'cpu' && v !== 'off').map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></div>` : '');
+    el.querySelector('.pname').textContent = (p.me ? (p.name ? p.name + ' (jij)' : 'Jij') : p.name || 'Speler') + (p.host ? ' · host' : '');
+    el.querySelector('.cn b').textContent = charName(p.ch); el.querySelector('.cn small').textContent = charBlurb(p.ch);
+    const sel = el.querySelector('select');
+    if (sel) { sel.value = NET.src; sel.addEventListener('change', e => { NET.src = e.target.value; settings.netSrc = NET.src; save(); cursors.net = null; NET.lkey = ''; renderLobby(); }); }
+    NET.cards[i] = { ch: p.ch, alt: list.slice(0, i).some(q => q.ch === p.ch) };
+    wrap.appendChild(el);
+  }
+}
 async function renderLobby() {
-  if (!NET.game || netEl.hidden || $('#netLobby').hidden) return;
+  if (!online()) return;
+  if (!NET.game) { netCards([{ name: NET.nm, ch: NET.ch, me: true, host: false }], null); NET.pucks = null; refreshGrid(); return; }
   const tok = ++NET.rtok, { pm, ord, cfg } = lobbyOrder();
   $('#netCodeShow').textContent = NET.code;
   $('#netInvite').hidden = !NET.p2p; if (NET.p2p) $('#netLink').value = inviteLink();
   const ps = await names(ord.map(x => pm.get(x).by));
-  if (tok !== NET.rtok) return;
-  const ul = $('#netPlayers'); ul.innerHTML = ''; const pucks = [];
+  if (tok !== NET.rtok || !NET.game) return;
+  const pucks = [], list = [], watch = [];
   ord.forEach((peer, i) => {
-    const p = pm.get(peer), pr = p.presence || {}, li = document.createElement('li'), b = document.createElement('b'), sp = document.createElement('span'), em = document.createElement('em');
+    const p = pm.get(peer), pr = p.presence || {};
     const ck = pr.ch === 'random' || (CHARS[pr.ch] && !CHARS[pr.ch].hidden) ? pr.ch : 'volt';
-    if (i < 4) pucks.push({ ch: ck, color: PCOL[i], label: 'P' + (i + 1), active: !!p.sameTab });
-    li.style.setProperty('--pc', i < 4 ? PCOL[i] : '#8f88a8');
-    b.textContent = i < 4 ? 'P' + (i + 1) : 'Kijkt';
-    sp.textContent = ((p.by && ps[p.by] && ps[p.by].name) || cleanName(pr.nm) || (pr.role === 'host' ? 'Host' : 'Speler')) + (p.sameTab ? ' (jij)' : '') + (pr.role === 'host' ? ' · host' : '');
-    em.textContent = charName(ck);
-    li.append(b, sp, em); ul.appendChild(li);
+    const name = (p.by && ps[p.by] && ps[p.by].name) || cleanName(pr.nm) || (pr.role === 'host' ? 'Host' : 'Speler');
+    if (i < 4) { pucks.push({ ch: ck, color: PCOL[i], label: 'P' + (i + 1), active: !!p.sameTab }); list.push({ name, ch: ck, me: !!p.sameTab, host: pr.role === 'host' }); }
+    else watch.push(name + (p.sameTab ? ' (jij)' : ''));
   });
-  setPucks($('#netGrid'), pucks);
+  NET.pucks = pucks; refreshGrid();
+  netCards(list, NET.role === 'host' ? NET.cfg : cfg);
+  $('#netWatch').hidden = !watch.length; $('#netWatch').textContent = watch.length ? 'Kijkt mee: ' + watch.join(', ') + '.' : '';
+  syncOpts();
   const host = NET.role === 'host';
-  $('#netHostOpts').hidden = !host; $('#netGo').hidden = !host;
   if (host) {
-    $('#netStage').value = NET.cfg.stage; $('#netStocks').value = String(NET.cfg.stocks);
-    $('#netItems').setAttribute('aria-pressed', String(NET.cfg.items)); $('#netItems').textContent = NET.cfg.items ? 'Aan' : 'Uit';
-    $('#netCpu').setAttribute('aria-pressed', String(NET.cfg.cpu)); $('#netCpu').textContent = NET.cfg.cpu ? 'Aan' : 'Uit';
     const n = Math.min(4, ord.length);
     $('#netHint').textContent = n < 2 && !NET.cfg.cpu ? 'Deel de code ' + NET.code + '. Je kunt starten zodra er iemand is, of zet CPU\'s aan.' : n + ' speler' + (n > 1 ? 's' : '') + ' klaar. Meer dan 4 mensen? De rest kijkt mee.';
   } else if (cfg) {
@@ -4339,7 +4415,7 @@ async function renderLobby() {
 function netSetCh(ck) {
   NET.ch = ck; settings.netCh = ck; save();
   if (NET.role === 'host') hostLobbyPresence(); else if (NET.game) NET.game.presence({ ch: ck }).catch(() => {});
-  renderLobby();
+  if (!NET.game) { NET.lkey = ''; } renderLobby();
 }
 function netStartMatch() {
   if (NET.role !== 'host' || !NET.game) return;
@@ -4353,7 +4429,7 @@ function netStartMatch() {
   G.net = { role: 'host' };
   NET.ro = G.fighters.map((f, i) => [f.slot, f.key, f.col === f.c.alt ? 1 : 0, f.cpu ? 1 : 0, f.lvl, list[i].peer || '']);
   if (NET.room) NET.room.presence({ open: null }).catch(() => {});
-  menuEl.hidden = true; netEl.hidden = true; resEl.hidden = true; pauseEl.hidden = true; pbtn.hidden = false;
+  menuEl.hidden = true; resEl.hidden = true; pauseEl.hidden = true; pbtn.hidden = false;
   touchEl.hidden = NET.src !== 'touch'; G.hudTop = NET.src === 'touch';
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   netHostSend();
@@ -4361,7 +4437,7 @@ function netStartMatch() {
 function netBackToLobby() {
   G.net = null; G.netClient = false;
   resEl.hidden = true; pauseEl.hidden = true; pbtn.hidden = true; touchEl.hidden = true; G.hudTop = false;
-  menuEl.hidden = false; netEl.hidden = false; showLobby();
+  menuEl.hidden = false; NET.lkey = ''; setMode('online');
   startMatch(true); hostLobbyPresence(); renderLobby();
 }
 function netDropPlayer(peer) {
@@ -4411,7 +4487,7 @@ function guestFromHost(hp) {
   } else if (hp.ph === 'lobby' && G.netClient) {
     G.netClient = false; G.net = null; NET.snaps = [];
     resEl.hidden = true; pauseEl.hidden = true; pbtn.hidden = true; touchEl.hidden = true; G.hudTop = false;
-    menuEl.hidden = false; netEl.hidden = false; showLobby(); startMatch(true); renderLobby();
+    menuEl.hidden = false; NET.lkey = ''; setMode('online'); startMatch(true); renderLobby();
   }
 }
 function netClientStart(hp) {
@@ -4423,7 +4499,7 @@ function netClientStart(hp) {
     f.cpu = !!(r && r[3]); f.state = 'idle'; f.grounded = true; f.ground = S.main; return f;
   });
   G.netClient = true; G.net = { role: 'guest' };
-  menuEl.hidden = true; netEl.hidden = true; resEl.hidden = true; pauseEl.hidden = true; pbtn.hidden = false;
+  menuEl.hidden = true; resEl.hidden = true; pauseEl.hidden = true; pbtn.hidden = false;
   touchEl.hidden = NET.src !== 'touch'; G.hudTop = NET.src === 'touch';
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   SFX.init();
@@ -4513,14 +4589,12 @@ function netFighter(f, r, nb, k, fresh) {
   if (f.hud > 0) f.hud--;
 }
 function initNetUI() {
-  const ns = $('#netStage'); ns.innerHTML = [...Object.entries(STAGES).map(([k, d]) => `<option value="${k}">${d.name}</option>`), '<option value="random">Willekeurig</option>'].join('');
-  buildCharGrid($('#netGrid'), k => netSetCh(k));
   if (settings.netCh === 'random' || (CHARS[settings.netCh] && !CHARS[settings.netCh].hidden)) NET.ch = settings.netCh;
   if (['kb1', 'kb2', 'pad1', 'pad2', 'touch'].includes(settings.netSrc)) NET.src = settings.netSrc;
-  $('#netSrc').value = NET.src;
-  $('#online').addEventListener('click', openNet);
+  $('#modeLocal').addEventListener('click', () => setMode('local'));
+  $('#modeOnline').addEventListener('click', () => setMode('online'));
   NET.nm = cleanName(settings.netName); $('#netName').value = NET.nm;
-  $('#netName').addEventListener('change', e => { NET.nm = cleanName(e.target.value); e.target.value = NET.nm; settings.netName = NET.nm; save(); if (NET.game) NET.game.presence({ nm: NET.nm }).catch(() => {}); renderLobby(); });
+  $('#netName').addEventListener('change', e => { NET.nm = cleanName(e.target.value); e.target.value = NET.nm; settings.netName = NET.nm; save(); if (NET.game) NET.game.presence({ nm: NET.nm }).catch(() => {}); NET.lkey = ''; renderLobby(); });
   $('#netCopy').addEventListener('click', () => {
     const inp = $('#netLink'), b = $('#netCopy'), done = () => { b.textContent = 'Gekopieerd'; setTimeout(() => { b.textContent = 'Kopieer link'; }, 1600); };
     try { navigator.clipboard.writeText(inp.value).then(done, () => { inp.focus(); inp.select(); }); } catch (e) { inp.focus(); inp.select(); }
@@ -4529,18 +4603,11 @@ function initNetUI() {
     $('#netIntro').textContent = 'Host een spel en stuur de uitnodigingslink of de code naar je vrienden. Jullie browsers verbinden rechtstreeks met elkaar (WebRTC); er is geen account nodig.';
     $('#netOpenWrap').hidden = true;
   }
-  $('#netClose').addEventListener('click', () => { if (NET.game) netLeave(true).then(() => { showNetStart(); }); netEl.hidden = true; netMsg(''); });
   $('#netHost').addEventListener('click', netHost);
   $('#netJoin').addEventListener('click', () => netJoin($('#netCode').value));
   $('#netCode').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); netJoin($('#netCode').value); } });
   $('#netCode').addEventListener('input', e => { const v = cleanCode(e.target.value); if (v !== e.target.value) e.target.value = v; });
   $('#netLeave').addEventListener('click', () => netLeave());
-  $('#netGo').addEventListener('click', netStartMatch);
-  $('#netSrc').addEventListener('change', e => { NET.src = e.target.value; settings.netSrc = NET.src; save(); });
-  ns.addEventListener('change', e => { NET.cfg.stage = e.target.value; hostLobbyPresence(); renderLobby(); });
-  $('#netStocks').addEventListener('change', e => { NET.cfg.stocks = clamp(+e.target.value | 0, 1, 5); hostLobbyPresence(); renderLobby(); });
-  $('#netItems').addEventListener('click', () => { NET.cfg.items = !NET.cfg.items; hostLobbyPresence(); renderLobby(); });
-  $('#netCpu').addEventListener('click', () => { NET.cfg.cpu = !NET.cfg.cpu; hostLobbyPresence(); renderLobby(); });
   setInterval(() => {
     if (NET.role !== 'guest' || !NET.game || !NET.joinedOk) return;
     const has = NET.game.peers().some(p => !p.sameTab && p.presence && p.presence.role === 'host');
@@ -4556,13 +4623,13 @@ addEventListener('keydown', e => {
   else if (!menuEl.hidden && GAMEKEYS.has(e.code) && !typing() && !kbWait) e.preventDefault();
   if (e.code === 'Escape' || (e.code === 'KeyP' && G.mode === 'match' && !GAMEKEYS.has('KeyP'))) { if (G.mode === 'match' || G.mode === 'gameover') { setPause(pauseEl.hidden); e.preventDefault(); return; } if (G.mode === 'results' && !G.net) { showMenu(); return; } }
   if (G.training && G.mode === 'match' && !e.repeat && !GAMEKEYS.has(e.code)) { if (e.code === 'KeyR') { resetBag(); return; } if (e.code === 'KeyH') { G.showBoxes = !G.showBoxes; return; } }
-  if (e.code === 'Enter' && !menuEl.hidden && netEl.hidden) { const a = document.activeElement; if (!a || a === document.body || a === cv) { goFight(); e.preventDefault(); } }
+  if (e.code === 'Enter' && !menuEl.hidden && !online()) { const a = document.activeElement; if (!a || a === document.body || a === cv) { goFight(); e.preventDefault(); } }
   keys.add(e.code); if (!e.repeat) tapped.add(e.code);
 });
 addEventListener('keyup', e => keys.delete(e.code));
 addEventListener('blur', () => keys.clear());
 addEventListener('pointerdown', () => SFX.init(), { passive: true });
-$('#go').addEventListener('click', goFight);
+$('#go').addEventListener('click', () => { if (online()) netStartMatch(); else goFight(); });
 $('#train').addEventListener('click', goTraining);
 $('#trReset').addEventListener('click', () => { resetBag(); setPause(false); });
 $('#trBoxes').addEventListener('click', () => { G.showBoxes = !G.showBoxes; setPause(false); });
@@ -4630,7 +4697,7 @@ function renderCursors(el, list, which) {
 }
 function pollCursors(now) {
   if (menuEl.hidden) return;
-  if (netEl.hidden) {
+  if (!online()) {
     const el = document.getElementById('cgrid'), cells = [...el.querySelectorAll('.cg')];
     settings.slots.forEach((s, i) => {
       const raw = s.type === 'off' || s.type === 'cpu' || s.type === 'touch' ? null : srcRaw(s.type);
@@ -4641,8 +4708,8 @@ function pollCursors(now) {
       pollCursor(cur, raw, cells, now, k => { activeSlot = i; pickForActive(k); });
     });
     renderCursors(el, Object.entries(cursors.menu).map(([i, c]) => ({ idx: c.idx, color: PCOL[i], label: 'P' + (+i + 1) })), 'menu');
-  } else if (NET.game && !$('#netLobby').hidden) {
-    const el = document.getElementById('netGrid'), cells = [...el.querySelectorAll('.cg')], raw = srcRaw(NET.src);
+  } else {
+    const el = document.getElementById('cgrid'), cells = [...el.querySelectorAll('.cg')], raw = srcRaw(NET.src);
     if (!raw) { cursors.net = null; renderCursors(el, [], 'net'); return; }
     let cur = cursors.net;
     if (!cur) cur = cursors.net = { idx: Math.max(0, cells.findIndex(c => c.dataset.c === NET.ch)), prev: raw };
@@ -4656,7 +4723,7 @@ function pollPadStart() {
   const pads = getPads();
   for (let i = 0; i < 2; i++) {
     const gp = pads && pads[i], s = !!(gp && gp.buttons[9] && gp.buttons[9].pressed);
-    if (s && !padStart[i]) { if (G.mode === 'match' || G.mode === 'gameover') setPause(pauseEl.hidden); else if (!G.net && !menuEl.hidden && netEl.hidden) goFight(); else if (G.mode === 'results' && !G.net) goFight(); }
+    if (s && !padStart[i]) { if (G.mode === 'match' || G.mode === 'gameover') setPause(pauseEl.hidden); else if (!G.net && !menuEl.hidden && !online()) goFight(); else if (G.mode === 'results' && !G.net) goFight(); }
     padStart[i] = s;
   }
 }
