@@ -49,6 +49,9 @@ select{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
 .cg{position:relative;background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:4px 4px 5px;display:flex;flex-direction:column;align-items:center;gap:1px;min-width:0}
 .cg:hover,.cg:focus-visible{border-color:var(--mute)}
 .cg.taken{border-color:#d9d2ee}
+.hands{position:absolute;bottom:20px;right:3px;display:flex;flex-direction:column;align-items:flex-end;gap:2px;pointer-events:none}
+.hand{font-family:var(--display);font-size:10px;line-height:1;padding:2px 4px;border-radius:5px;background:#fff;color:#120e1d;border:2px solid var(--pc)}
+.cg.cursor{outline:3px solid var(--cc);outline-offset:1px}
 .cg canvas{width:100%;max-width:100%;aspect-ratio:1;height:auto;display:block}
 .cg span{font-size:11.5px;font-weight:700;line-height:1.15;text-align:center;overflow-wrap:anywhere}
 .cgrid.small .cg span{font-size:10.5px}
@@ -323,7 +326,7 @@ window.KlapP2P = (() => {
       </header>
 
       <p class="label">Vechters</p>
-      <p class="cghint">Klik op een spelerkaart (of de puck P1–P4) en kies dan een vechter in het rooster. Een uitgezette speler die je een vechter geeft, doet mee als CPU.</p>
+      <p class="cghint">Met toetsenbord of gamepad beweegt elke speler een eigen cursor met zijn richtingtoetsen en kiest met <b>aanval</b>. Met de muis: klik op een spelerkaart (of de puck P1–P4) en dan op een vechter. Een uitgezette speler die een vechter krijgt, doet mee als CPU.</p>
       <section class="cgrid" id="cgrid" aria-label="Vechters kiezen"></section>
       <section class="slots" id="slots"></section>
 
@@ -4301,6 +4304,7 @@ function initNetUI() {
 addEventListener('keydown', e => {
   SFX.init();
   if ((G.mode === 'match' || G.mode === 'gameover') && GAMEKEYS.has(e.code)) e.preventDefault();
+  else if (!menuEl.hidden && GAMEKEYS.has(e.code) && !typing() && !kbWait) e.preventDefault();
   if (e.code === 'Escape' || (e.code === 'KeyP' && G.mode === 'match' && !GAMEKEYS.has('KeyP'))) { if (G.mode === 'match' || G.mode === 'gameover') { setPause(pauseEl.hidden); e.preventDefault(); return; } if (G.mode === 'results' && !G.net) { showMenu(); return; } }
   if (G.training && G.mode === 'match' && !e.repeat && !GAMEKEYS.has(e.code)) { if (e.code === 'KeyR') { resetBag(); return; } if (e.code === 'KeyH') { G.showBoxes = !G.showBoxes; return; } }
   if (e.code === 'Enter' && !menuEl.hidden && netEl.hidden) { const a = document.activeElement; if (!a || a === document.body || a === cv) { goFight(); e.preventDefault(); } }
@@ -4339,6 +4343,66 @@ pbtn.addEventListener('click', () => setPause(pauseEl.hidden));
   });
 })();
 let padStart = [false, false];
+/* ---------------- keyboard / gamepad cursors on the grid ---------------- */
+const cursors = { menu: {}, net: null }; let cursorKey = { menu: '', net: '' };
+const typing = () => { const t = document.activeElement; return !!(t && /^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName)); };
+function srcRaw(type) { if (KEYMAPS[type]) return readKeys(KEYMAPS[type]); if (type === 'pad1') return readPad(0); if (type === 'pad2') return readPad(1); return null; }
+function moveCell(cells, idx, dx, dy) {
+  const r0 = cells[idx].getBoundingClientRect(), cx = r0.left + r0.width / 2, cy = r0.top + r0.height / 2;
+  let best = idx, bs = Infinity;
+  cells.forEach((c, j) => {
+    if (j === idx) return;
+    const r = c.getBoundingClientRect(), x = r.left + r.width / 2 - cx, y = r.top + r.height / 2 - cy, along = dx ? x * dx : y * dy, across = dx ? Math.abs(y) : Math.abs(x);
+    if (along < 4) return; const sc = along + across * 3; if (sc < bs) { bs = sc; best = j; }
+  });
+  return best;
+}
+function pollCursor(cur, raw, cells, now, onPick) {
+  const P = cur.prev || {}, dirs = [['l', -1, 0], ['r', 1, 0], ['u', 0, -1], ['d', 0, 1]];
+  const held = dirs.find(([d]) => raw[d]);
+  if (held) {
+    const [d, dx, dy] = held;
+    if (!P[d]) { cur.idx = moveCell(cells, cur.idx, dx, dy); cur.rep = now + 320; SFX.ui(); }
+    else if (now >= cur.rep) { cur.idx = moveCell(cells, cur.idx, dx, dy); cur.rep = now + 130; }
+  }
+  if (raw.atk && !P.atk) onPick(cells[cur.idx].dataset.c);
+  cur.prev = Object.assign({}, raw);
+}
+function renderCursors(el, list, which) {
+  const key = list.map(c => c.idx + c.label + c.color).join('|'); if (key === cursorKey[which]) return; cursorKey[which] = key;
+  const cells = [...el.querySelectorAll('.cg')];
+  cells.forEach(c => { c.classList.remove('cursor'); const h = c.querySelector('.hands'); if (h) h.innerHTML = ''; });
+  for (const cu of list) {
+    const c = cells[cu.idx]; if (!c) continue;
+    if (!c.classList.contains('cursor')) { c.classList.add('cursor'); c.style.setProperty('--cc', cu.color); }
+    let h = c.querySelector('.hands'); if (!h) { h = document.createElement('i'); h.className = 'hands'; c.appendChild(h); }
+    const b = document.createElement('b'); b.className = 'hand'; b.style.setProperty('--pc', cu.color); b.textContent = cu.label; h.appendChild(b);
+  }
+}
+function pollCursors(now) {
+  if (menuEl.hidden) return;
+  if (netEl.hidden) {
+    const el = document.getElementById('cgrid'), cells = [...el.querySelectorAll('.cg')];
+    settings.slots.forEach((s, i) => {
+      const raw = s.type === 'off' || s.type === 'cpu' || s.type === 'touch' ? null : srcRaw(s.type);
+      if (!raw) { delete cursors.menu[i]; return; }
+      let cur = cursors.menu[i];
+      if (!cur) cur = cursors.menu[i] = { idx: Math.max(0, cells.findIndex(c => c.dataset.c === s.ch)), prev: raw };
+      if (typing()) { cur.prev = Object.assign({}, raw); return; }
+      pollCursor(cur, raw, cells, now, k => { activeSlot = i; pickForActive(k); });
+    });
+    renderCursors(el, Object.entries(cursors.menu).map(([i, c]) => ({ idx: c.idx, color: PCOL[i], label: 'P' + (+i + 1) })), 'menu');
+  } else if (NET.game && !$('#netLobby').hidden) {
+    const el = document.getElementById('netGrid'), cells = [...el.querySelectorAll('.cg')], raw = srcRaw(NET.src);
+    if (!raw) { cursors.net = null; renderCursors(el, [], 'net'); return; }
+    let cur = cursors.net;
+    if (!cur) cur = cursors.net = { idx: Math.max(0, cells.findIndex(c => c.dataset.c === NET.ch)), prev: raw };
+    if (typing()) { cur.prev = Object.assign({}, raw); return; }
+    pollCursor(cur, raw, cells, now, k => netSetCh(k));
+    const ord = lobbyOrder().ord, me = ord.indexOf(NET.me);
+    renderCursors(el, [{ idx: cur.idx, color: me >= 0 && me < 4 ? PCOL[me] : '#ffc933', label: me >= 0 && me < 4 ? 'P' + (me + 1) : 'Jij' }], 'net');
+  }
+}
 function pollPadStart() {
   const pads = getPads();
   for (let i = 0; i < 2; i++) {
@@ -4358,7 +4422,7 @@ let last = performance.now(), acc = 0;
 function loop(now) {
   requestAnimationFrame(loop);
   let dt = now - last; last = now; if (dt > 100) dt = 100;
-  pollPadStart();
+  pollPadStart(); pollCursors(now);
   if (!G.paused && G.stage) { acc += dt; const step = 1000 / 60; let n = 0; while (acc >= step && n < 5) { acc -= step; n++; tick(); } if (n >= 5) acc = 0; }
   if (G.stage) render();
   if (!menuEl.hidden) drawPreviews(now);
