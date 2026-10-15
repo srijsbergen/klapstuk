@@ -793,9 +793,18 @@ const SPECIALS = {
     downB: M({ special: true, start: 4, active: 40, end: 14, pose: 'absorb', absorb: [4, 44], tick: f => { if (!f.grounded && f.vy > 1) f.vy = 1; } }),
   }),
   klauw: (M, H, s) => ({
-    neutralB: M({ special: true, start: 10, active: 70, end: 16, pose: 'breath', ll: 10,
+    neutralB: M({ special: true, start: 10, active: 70, end: 16, pose: 'kbreath', ll: 10, kflame: true,
       hb: Array.from({ length: 14 }, (_, i) => H(70, -66, 30, 1.6, 40, 14, 0, { f0: i * 5, f1: i * 5 + 5, grp: i + 1 })),
-      tick: (f, t) => { if (!f.grounded && f.vy > 1) f.vy = 1; if (t === 10 || t === 40) SFX.fire(); if (t > 16 && t < 80 && !f.ctrl.h.spc) f.mt = 80; } }),
+      tick: (f, t) => {
+        if (!f.grounded && f.vy > 1) f.vy = 1;
+        if (t === 10 || t === 40) SFX.fire();
+        if (t > 16 && t < 80 && !f.ctrl.h.spc) f.mt = 80;
+        let want = f.iy;
+        if (f.cpu) { const o = G.fighters.filter(v => v !== f && v.state !== 'dead').sort((a, b) => Math.abs(a.x - f.x) - Math.abs(b.x - f.x))[0]; if (o) { const want2 = clamp(Math.atan2((o.y - o.c.h / 2) - (f.y - 66 * s), Math.max(30, (o.x - f.x) * f.facing)), -0.75, 0.6); want = Math.abs(want2 - f.aim) < 0.04 ? 0 : Math.sign(want2 - f.aim); } }
+        f.aim = clamp(f.aim + want * 0.035, -0.75, 0.6);
+        const L = 70 * s * f.c.reach - f.c.w * 0.5;
+        for (const h of f.move.hb) { h.x = f.c.w * 0.5 + Math.cos(f.aim) * L; h.y = -66 * s + Math.sin(f.aim) * L; }
+      } }),
     sideB: M({ special: true, start: 8, active: 10, end: 22, pose: 'grab', keepVel: true, noDrift: true,
       hb: [H(40, -50, 32, 0, 0, 0, 0, { nr: 1, grab: true, cmd: 'slam' })],
       tick: (f, t) => { if (t === 8 && f.grounded) { f.vy = -7; f.grounded = false; f.ground = null; } if (t >= 8 && t < 18) f.vx = f.facing * 6; } }),
@@ -872,12 +881,12 @@ const SPECIALS = {
       } }),
   }),
   lonk: (M, H, s) => ({
-    neutralB: M({ special: true, start: 14, active: 1, end: 16, pose: 'bow', charge: true, chargeKey: 'spc', chargeAt: 10, chargeMax: 60, chargeBoost: 0.0001,
+    neutralB: M({ special: true, start: 14, active: 1, end: 16, pose: 'bow', charge: true, chargeKey: 'spc', chargeAt: 10, chargeMax: 75, chargeBoost: 0.0001,
       tick: (f, t) => {
         if (!f.grounded && f.vy > 1.5) f.vy = 1.5;
         if (t !== 14) return;
-        const c = f.charge / 60;
-        spawnProj({ type: 'arrow', owner: f, x: f.x + f.facing * 30 * s, y: f.y - 46 * s, vx: f.facing * (10 + c * 10), vy: -0.5, grav: 0.12 - c * 0.07, r: 7, life: 70, hb: { d: 4 + c * 8, a: 30, b: 15 + c * 15, g: 30 + c * 30 } });
+        const c = f.charge / 75;
+        spawnProj({ type: 'arrow', owner: f, x: f.x + f.facing * 30 * s, y: f.y - 46 * s, vx: f.facing * (4.5 + c * 18), vy: -1.2 + c * 0.9, grav: 0.3 - c * 0.27, r: 7, life: 50 + c * 60, hb: { d: Math.round((2 + c * 11) * 10) / 10, a: 30 + c * 10, b: 4 + c * 36, g: 10 + c * 75 } });
         SFX.shoot();
       } }),
     sideB: M({ special: true, start: 10, active: 1, end: 18, pose: 'cast',
@@ -1328,7 +1337,7 @@ class Fighter {
     this.startMove(m);
   }
   startMove(m) {
-    this.setState('attack'); this.move = m; this.mt = 0; this.hitSet = new Set(); this.charge = 0; this.mv = {}; this.tumbleAnim = false;
+    this.setState('attack'); this.move = m; this.mt = 0; this.hitSet = new Set(); this.charge = 0; this.mv = {}; this.tumbleAnim = false; this.aim = 0;
     if (!m.aerial) this.fastfall = false;
     if (m.onStart) m.onStart(this);
   }
@@ -2133,6 +2142,7 @@ const POSE = {
   spinball: { strike: mk({ lF: [1.4, -2.3], lB: [1.1, -2.2], aF: [1.4, -2.0], aB: [1.0, -2.0], crouch: 0.3 }), spin: 4 },
   shell: { strike: mk({ lF: [1.4, -2.3], lB: [1.1, -2.2], aF: [1.4, -2.0], aB: [1.0, -2.0], crouch: 0.35, lean: 0.4 }) },
   bomb: { wind: mk({ crouch: 0.4, aF: [2.6, 0], aB: [2.4, 0], plant: 'both' }), strike: mk({ crouch: 0.5, lean: -0.35, lF: [1.3, -1.5], lB: [1.0, -1.4], aF: [2.6, 0], aB: [2.4, 0] }) },
+  kbreath: { wind: mk({ lean: -0.15, aF: [0.4, -1.2], plant: 'both' }), strike: mk({ lean: 0.3, aF: [1.3, -0.5], aB: [-0.8, -0.5], plant: 'both' }), fn: (f, t, P) => { P.lean += (f.aim || 0) * 0.45; return P; } },
   dkwind: { strike: mk({ crouch: 0.15, lean: -0.15, aB: [0.4, -0.6], plant: 'both' }), fn: (f, t, P) => { P.aF = [0.5 - (t * 0.45) % TAU, -0.3]; return P; } },
   headbutt: { wind: mk({ lean: -0.45, aF: [-0.5, -0.4], aB: [-0.7, -0.4], plant: 'both' }), strike: mk({ lean: 0.95, aF: [-0.4, -0.4], aB: [-0.6, -0.4], lF: [0.5, -0.3], lB: [-0.6, -0.2], plant: 'both' }) },
   kongspin: { strike: mk({ aF: [1.57, 0], aB: [-1.57, 0], lF: [0.2, -0.2], lB: [-0.2, -0.2] }) },
@@ -3031,10 +3041,10 @@ function drawFighter(g, f, fr, z) {
     }
   }
   if (f.buried && f.frozen > 0) { g.fillStyle = '#6b4a2e'; g.strokeStyle = INK; g.lineWidth = 2.5; g.beginPath(); g.ellipse(f.x, f.y, c.w * 0.75, 9, 0, Math.PI, TAU); g.closePath(); g.fill(); g.stroke(); }
-  if (f.key === 'klauw' && f.state === 'attack' && f.move === f.M.neutralB && f.mt > 10 && f.mt <= 80) {
-    const s = c.h / 80, mx = f.x + f.facing * c.w * 0.5, my = f.y - 66 * s, L = 80 * s * c.reach;
+  if (f.state === 'attack' && f.move && f.move.kflame && f.mt > 10 && f.mt <= 80) {
+    const s = c.h / 80, mx = f.x + f.facing * c.w * 0.5, my = f.y - 66 * s, L = 80 * s * c.reach, ca = Math.cos(f.aim || 0), sa = Math.sin(f.aim || 0);
     g.save(); g.globalCompositeOperation = 'lighter';
-    for (let i = 0; i < 10; i++) { const k = (fr * 0.12 + i / 10) % 1; g.fillStyle = hexA(i % 2 ? f.col.fx : '#ffd34d', 0.55 * (1 - k * 0.6)); g.beginPath(); g.arc(mx + f.facing * k * L, my + Math.sin(fr * 0.4 + i) * 4 * k, 8 + k * 22 * s, 0, TAU); g.fill(); }
+    for (let i = 0; i < 10; i++) { const k = (fr * 0.12 + i / 10) % 1; g.fillStyle = hexA(i % 2 ? f.col.fx : '#ffd34d', 0.55 * (1 - k * 0.6)); g.beginPath(); g.arc(mx + f.facing * k * L * ca, my + k * L * sa + Math.sin(fr * 0.4 + i) * 4 * k, 8 + k * 22 * s, 0, TAU); g.fill(); }
     g.restore();
   }
   if (f.key === 'bongo' && f.state === 'attack' && f.move === f.M.neutralB && f.charge > 0) { g.save(); g.globalCompositeOperation = 'lighter'; g.strokeStyle = hexA(f.col.fx, 0.25 + f.charge / 200); g.lineWidth = 3; g.beginPath(); g.arc(f.x, f.y - c.h * 0.5, c.h * (0.3 + f.charge / 300), 0, TAU); g.stroke(); g.restore(); }
@@ -3527,7 +3537,7 @@ function snapF(f) {
   const fl = (f.grounded ? 1 : 0) | (f.tumble ? 2 : 0) | (f.tumbleAnim ? 4 : 0) | (f.adDir ? 8 : 0) | (f.intang ? 16 : 0) | (f.item ? 32 : 0) | (f.out ? 64 : 0) | (f.star > 0 ? 128 : 0) | (f.feather > 0 ? 256 : 0) | (f.buried ? 512 : 0) | (f.punchStore >= 100 ? 1024 : 0);
   const mk = f.move ? (f.move.netKey || 'ctr') : '';
   return [ST_LIST.indexOf(f.state), Math.round(f.x), Math.round(f.y), f.facing, mk, f.mt | 0, f.charge | 0, f.t | 0, fl, Math.round(f.percent * 10), f.stocks, Math.round(f.shieldHP), f.invuln | 0, f.hitlag | 0, f.frozen | 0, f.flash | 0, f.djT | 0,
-    Math.round(f.runPh * 100) % 100000, Math.round(f.vx * 10), evk, evd, ev ? ev.dur : 0, f.stats.ko, f.stats.falls, Math.round(f.stats.dmg), f.elim | 0, f.item ? ITEM_LIST.indexOf(f.item.type) : -1, f.copy || ''];
+    Math.round(f.runPh * 100) % 100000, Math.round(f.vx * 10), evk, evd, ev ? ev.dur : 0, f.stats.ko, f.stats.falls, Math.round(f.stats.dmg), f.elim | 0, f.item ? ITEM_LIST.indexOf(f.item.type) : -1, f.copy || '', Math.round((f.aim || 0) * 100)];
 }
 function netSnap() {
   const F = G.fighters, P = [];
@@ -3630,6 +3640,7 @@ function netFighter(f, r, nb, k, fresh) {
     f.state = st; f.facing = r[3] < 0 ? -1 : 1;
     const cp = typeof r[27] === 'string' && CHARS[r[27]] ? r[27] : null;
     if (cp !== (f.copy || null)) applyCopy(f, cp);
+    f.aim = clamp((r[28] | 0) / 100, -1, 1);
     const mk = r[4];
     f.move = st === 'attack' ? (mk === 'ctr' ? CTR_MOVE : (typeof mk === 'string' && Object.prototype.hasOwnProperty.call(f.M, mk) ? f.M[mk] : f.M.jab)) : null;
     f.mt = r[5] | 0; f.charge = r[6] | 0; f.t = r[7] | 0;
