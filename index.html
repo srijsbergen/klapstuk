@@ -305,7 +305,7 @@ window.KlapP2P = (() => {
     <div class="wrap">
       <header class="brand">
         <h1>Klapstuk</h1>
-        <p>Een platformvechter voor 2 tot 4 spelers, met twaalf vechters. Elke klap telt op als <b>schade-%</b>; hoe hoger je percentage, hoe verder je vliegt. Sla je tegenstanders <b>buiten beeld</b> en hou zelf je levens.</p>
+        <p>Een platformvechter voor 2 tot 4 spelers, met dertien vechters. Elke klap telt op als <b>schade-%</b>; hoe hoger je percentage, hoe verder je vliegt. Sla je tegenstanders <b>buiten beeld</b> en hou zelf je levens.</p>
       </header>
 
       <p class="label">Vechters</p>
@@ -583,6 +583,8 @@ Object.assign(CHARS, {
     col: { body: '#e5a93a', dark: '#3f8a3a', acc: '#e0452f', skin: '#f2dfa4', fx: '#ff9b3d' }, alt: { body: '#8a8fa3', dark: '#3a4a9a', acc: '#f0d84a', skin: '#d9dbe6', fx: '#9fd6ff' } },
   bongo: { name: 'Bongo', blurb: 'Sterke gorilla met lange armen. Een reuzenstoot die je kunt opsparen, een kopstoot die je de grond in slaat, een draaiende armzwaai en klappen op de grond.', weight: 128, run: 6.6, acc: 1, jump: 15, djump: 14, grav: 0.84, fall: 12.5, ffall: 17.5, air: 4.6, airAcc: 0.42, airJumps: 1, w: 60, h: 92, pow: 1.2, reach: 1.15, lag: 1, limb: 17, hr: 0.16, arm: 0.24,
     col: { body: '#7a4a2a', dark: '#4f2d17', acc: '#d8262f', skin: '#e8b98a', fx: '#ffd36b' }, alt: { body: '#45454f', dark: '#2a2a31', acc: '#3d8bff', skin: '#c9a98a', fx: '#9fd6ff' } },
+  lonk: { name: 'Lonk', blurb: 'Zwaardvechter met schild en puntmuts. Een boog met oplaadbare pijlen, een boemerang die terugkomt, een draaiaanval en bommen die je vasthoudt en gooit.', weight: 104, run: 5.6, acc: 0.95, jump: 14.5, djump: 13.5, grav: 0.86, fall: 12.8, ffall: 17.5, air: 4.1, airAcc: 0.4, airJumps: 1, w: 42, h: 80, pow: 1.08, reach: 1.25, lag: 1, limb: 10, zoner: 'side', hr: 0.16,
+    col: { body: '#3f9a3a', dark: '#2b6b28', acc: '#e8c547', skin: '#f6cfa8', fx: '#9ff0ff' }, alt: { body: '#c8402f', dark: '#8a2a1f', acc: '#e8c547', skin: '#f6cfa8', fx: '#ffb36b' } },
   schim: { name: 'Schim', blurb: 'Pikzwarte snelheidsduivel. Schimsperen, spindash, teleport en een rode schokgolf.', weight: 90, run: 8.4, acc: 1.25, jump: 15.5, djump: 14.5, grav: 0.85, fall: 12.5, ffall: 18, air: 5.3, airAcc: 0.5, airJumps: 1, w: 40, h: 74, pow: 1, reach: 1, lag: -1, limb: 9, zoner: true, sideRec: true, hr: 0.165,
     col: { body: '#26252e', dark: '#121117', acc: '#e2283c', skin: '#f1c9a5', fx: '#ffd23f' }, alt: { body: '#62677a', dark: '#363a46', acc: '#3fa9ff', skin: '#f1c9a5', fx: '#9fe3ff' } },
 });
@@ -869,6 +871,41 @@ const SPECIALS = {
         }
       } }),
   }),
+  lonk: (M, H, s) => ({
+    neutralB: M({ special: true, start: 14, active: 1, end: 16, pose: 'bow', charge: true, chargeKey: 'spc', chargeAt: 10, chargeMax: 60, chargeBoost: 0.0001,
+      tick: (f, t) => {
+        if (!f.grounded && f.vy > 1.5) f.vy = 1.5;
+        if (t !== 14) return;
+        const c = f.charge / 60;
+        spawnProj({ type: 'arrow', owner: f, x: f.x + f.facing * 30 * s, y: f.y - 46 * s, vx: f.facing * (10 + c * 10), vy: -0.5, grav: 0.12 - c * 0.07, r: 7, life: 70, hb: { d: 4 + c * 8, a: 30, b: 15 + c * 15, g: 30 + c * 30 } });
+        SFX.shoot();
+      } }),
+    sideB: M({ special: true, start: 10, active: 1, end: 18, pose: 'cast',
+      tick: (f, t) => {
+        if (!f.grounded && f.vy > 1.5) f.vy = 1.5;
+        if (t !== 10 || G.projs.some(p => p.type === 'boomer' && p.owner === f)) return;
+        spawnProj({ type: 'boomer', owner: f, x: f.x + f.facing * 28 * s, y: f.y - 44 * s, vx: f.facing * 12, vy: f.iy * 3, r: 12, life: 110, spin: 0.5, pierce: true, hb: { d: 6, a: 45, b: 22, g: 40 },
+          onGround: (p, s2) => { p.y = s2.y - 2; p.vy = -Math.abs(p.vy) * 0.3; }, tick: boomerTick });
+        SFX.swing();
+      } }),
+    upB: M({ special: true, start: 6, active: 30, end: 18, pose: 'lonkspin', helpless: true, ledgeOK: 10, noDrift: true, keepVel: true, spinX: true, ll: 16,
+      onStart: f => { f.mv.air = !f.grounded; },
+      hb: [H(50, -40, 34, 13, 40, 50, 85, { nr: 1, when: (f, t) => !f.mv.air && t > 6 && t <= 12 }), H(-50, -40, 34, 13, 140, 50, 85, { nr: 1, grp: 1, when: (f, t) => !f.mv.air && t > 6 && t <= 12 })]
+        .concat(Array.from({ length: 6 }, (_, i) => H(0, -44, 46, 2.5, 80, 22, 0, { nr: 1, grp: i + 2, when: (f, t) => f.mv.air && t > 6 + i * 4 && t <= 10 + i * 4 })))
+        .concat([H(0, -44, 50, 6, 60, 50, 80, { nr: 1, grp: 9, when: (f, t) => f.mv.air && t > 30 && t <= 34 })]),
+      noGrav: (f, t) => f.mv.air && t >= 6 && t < 34,
+      tick: (f, t) => {
+        if (t < 6) { f.vx *= 0.8; if (f.vy > 0) f.vy *= 0.5; return; }
+        if (t === 6) { SFX.swing(); if (f.mv.air) f.vy = -11; }
+        if (f.mv.air) { f.vy = Math.min(f.vy + 0.42, 2.5); f.vx = approach(f.vx, f.ix * 3, 0.3); }
+        else { f.vx = approach(f.vx, f.ix * 2.5, 0.4); if (t > 14) f.mt = Math.max(f.mt, 36); }
+      } }),
+    downB: M({ special: true, start: 8, active: 1, end: 12, pose: 'lonkpull',
+      tick: (f, t) => {
+        if (!f.grounded && f.vy > 1.5) f.vy = 1.5;
+        if (t === 8 && !f.item) { const P = handPos(f); f.item = spawnItem('bomb', P.x, P.y, { holder: f, t: 1020, fuse: true, owner: f }); SFX.ui(); }
+      } }),
+  }),
   joep: (M, H, s) => ({
     neutralB: M({ special: true, start: 10, active: 200, end: 0, dur: 230, pose: 'pkflash',
       tick: (f, t) => {
@@ -1038,6 +1075,23 @@ function slamHit(f, v) {
   f.move = null; f.lag = 20; f.setState(f.grounded ? 'land' : 'air');
 }
 function shade(hex, k) { const n = parseInt(hex.slice(1), 16); return `rgb(${(n >> 16 & 255) * k | 0},${(n >> 8 & 255) * k | 0},${(n & 255) * k | 0})`; }
+function boomerTick(p) {
+  const f = p.owner;
+  if (p.t === 26) p.hitSet = new Set();
+  if (p.t < 26) { p.vx *= 0.955; p.vy *= 0.95; return; }
+  if (!f || f.state === 'dead') { p.vy += 0.3; return; }
+  const dx = f.x - p.x, dy = f.y - f.c.h * 0.5 - p.y, d = Math.hypot(dx, dy) || 1, sp = Math.min(13, 4 + (p.t - 26) * 0.3);
+  p.vx = approach(p.vx, dx / d * sp, 1.2); p.vy = approach(p.vy, dy / d * sp, 1.2);
+  if (d < 26) p.dead = true;
+}
+function drawShieldL(g, x, y, h) {
+  const k = h / 80; g.save(); g.translate(x, y);
+  const path = m => { g.beginPath(); g.moveTo(-10 * k * m, -13 * k * m); g.lineTo(10 * k * m, -13 * k * m); g.lineTo(10 * k * m, 2 * k * m); g.quadraticCurveTo(10 * k * m, 13 * k * m, 0, 17 * k * m); g.quadraticCurveTo(-10 * k * m, 13 * k * m, -10 * k * m, 2 * k * m); g.closePath(); };
+  path(1); g.fillStyle = '#3f5fbf'; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke();
+  path(0.78); g.lineWidth = 2; g.strokeStyle = '#cfd6e6'; g.stroke();
+  g.fillStyle = '#d8262f'; g.beginPath(); g.moveTo(0, -6 * k); g.lineTo(5 * k, 3 * k); g.lineTo(-5 * k, 3 * k); g.closePath(); g.fill();
+  g.restore();
+}
 function pkBoom(owner, x, y, r, hb) {
   spawnProj({ type: 'boom', x, y, owner, r, life: 7, hb, pierce: true, selfHit: false, reflect: false });
   boomFx(x, y, r); addP({ type: 'ring', x, y, life: 16, max: 16, size: r * 0.5, color: '#9dffb0' });
@@ -1446,8 +1500,8 @@ class Fighter {
     const base = { x: it.x, y: it.y, vx, vy, owner: this, life: 200 };
     const back = (p, s2, extra) => { p.dead = true; spawnItem(it.type, p.x, s2 ? s2.y : p.y, Object.assign({ grounded: s2 || null, vy: s2 ? 0 : -5, ammo: it.ammo }, extra || {})); };
     if (it.type === 'bomb') {
-      const ex = p => boom(p.x, p.y - 4, p.owner, 72, BOMB_HB);
-      spawnProj(Object.assign(base, { type: 'bombT', grav: 0.35, r: 14, hb: BOMB_HB, explode: ex, onDie: ex, onGround: p => { p.dead = true; ex(p); } }));
+      const bh = it.fuse ? LBOMB_HB : BOMB_HB, br = it.fuse ? 56 : 72, ex = p => boom(p.x, p.y - 4, p.owner, br, bh);
+      spawnProj(Object.assign(base, { type: 'bombT', grav: 0.35, r: 14, hb: bh, explode: ex, onDie: ex, onGround: p => { p.dead = true; ex(p); } }));
     } else if (it.type === 'banana') {
       spawnProj(Object.assign(base, { type: 'bananaT', grav: 0.45, r: 12, spin: 0.3, hb: { d: 3, a: 80, b: 25, g: 10 }, onGround: (p, s2) => back(p, s2, { armed: true, safe: me.id, t: 0 }), afterHit: p => back(p, null) }));
     } else if (it.type === 'bat' || it.type === 'blaster') {
@@ -1597,7 +1651,7 @@ function doGrab(a, v) {
 }
 
 /* ---------------- hits ---------------- */
-const BOMB_HB = { d: 16, a: 65, b: 50, g: 92 };
+const BOMB_HB = { d: 16, a: 65, b: 50, g: 92 }, LBOMB_HB = { d: 10, a: 60, b: 40, g: 70 };
 function circleRect(cx, cy, r, x, y, w, h) { const nx = clamp(cx, x, x + w), ny = clamp(cy, y, y + h), dx = cx - nx, dy = cy - ny; return dx * dx + dy * dy <= r * r; }
 function activeHB(f) {
   const m = f.move, t = f.mt, out = [];
@@ -1795,7 +1849,7 @@ function updateItems() {
     if (it.holder) {
       const f = it.holder;
       if (f.state === 'dead' || f.item !== it) it.holder = null;
-      else { const P = handPos(f); it.x = P.x; it.y = P.y; continue; }
+      else { const P = handPos(f); it.x = P.x; it.y = P.y; if (it.fuse && it.t > 1200) { it.dead = true; f.item = null; boom(P.x, P.y, f, 56, LBOMB_HB); } continue; }
     }
     if (it.grounded) { it.x += it.grounded.dx; it.y = it.grounded.y; if (it.x < it.grounded.x1 || it.x > it.grounded.x2) it.grounded = null; }
     if (it.type === 'star') { it.vx = it.dir * 2.6; if (it.grounded) { it.grounded = null; it.vy = -8.5; } }
@@ -1813,7 +1867,7 @@ function updateItems() {
       if (it.safe === f.id && it.t < 40) continue;
       if (Math.abs(f.x - it.x) < f.c.w / 2 + 8) { trip(f); it.dead = true; break; }
     }
-    if (it.type === 'bomb' && it.t > 1200 && !it.holder) { it.dead = true; boom(it.x, it.y - 12, null, 70, BOMB_HB); }
+    if (it.type === 'bomb' && it.t > 1200 && !it.holder) { it.dead = true; boom(it.x, it.y - 12, it.owner || null, it.fuse ? 56 : 70, it.fuse ? LBOMB_HB : BOMB_HB); }
     if (it.type !== 'bomb' && it.t > (it.type === 'star' ? 600 : it.type === 'crate' ? 2400 : 1500)) it.dead = true;
     if (it.y > S.blast.b || it.x < S.blast.l || it.x > S.blast.r) it.dead = true;
   }
@@ -2083,6 +2137,9 @@ const POSE = {
   headbutt: { wind: mk({ lean: -0.45, aF: [-0.5, -0.4], aB: [-0.7, -0.4], plant: 'both' }), strike: mk({ lean: 0.95, aF: [-0.4, -0.4], aB: [-0.6, -0.4], lF: [0.5, -0.3], lB: [-0.6, -0.2], plant: 'both' }) },
   kongspin: { strike: mk({ aF: [1.57, 0], aB: [-1.57, 0], lF: [0.2, -0.2], lB: [-0.2, -0.2] }) },
   slap: { strike: mk({ crouch: 0.45, lean: 0.3, plant: 'both' }), fn: (f, t, P) => { const up = Math.max(0, Math.sin(((t - 8) % 9) / 9 * Math.PI)); P.aF = [0.9 + up * 1.6, -0.2]; P.aB = [-0.9 - up * 1.6, -0.2]; return P; } },
+  bow: { wind: mk({ aF: [1.0, -0.6], plant: 'both' }), strike: mk({ aF: [1.57, -0.05], aB: [1.2, -1.9], plant: 'both' }) },
+  lonkspin: { strike: mk({ aF: [1.57, 0], aB: [-1.2, -0.6], lean: 0.05, lF: [0.3, -0.4], lB: [-0.3, -0.4] }) },
+  lonkpull: { wind: mk({ aF: [-2.4, -0.4], plant: 'both' }), strike: mk({ aF: [1.1, -0.9], plant: 'both' }) },
   pkflash: { wind: mk({ aF: [0.6, -1.0], plant: 'both' }), strike: mk({ aF: [2.5, -2.1], aB: [2.3, -2.1], crouch: 0.1, plant: 'both' }) },
   pkthunder: { strike: mk({ aF: [2.5, -2.1], aB: [2.3, -2.1], lF: [0.35, -0.7], lB: [-0.2, -0.5] }) },
   pkt2: { strike: mk({ lF: [1.4, -2.3], lB: [1.1, -2.2], aF: [1.4, -2.0], aB: [1.0, -2.0], crouch: 0.3 }), spin: 3 },
@@ -2193,11 +2250,13 @@ function drawPuppet(g, ck, col, P, o = {}) {
   };
   const lB = leg('lB'), lF = leg('lF');
   const aB = limbPts(sh.x, sh.y + 3, P.aB[0] + lean, P.aB[1], AL, AL), aF = limbPts(sh.x, sh.y + 3, P.aF[0] + lean, P.aF[1], AL, AL);
-  const handCol = { klauw: col.body, bongo: col.skin, brick: col.dark, sable: col.dark, volt: col.body, gloei: col.acc, kwak: col.body, bliep: col.dark, schim: '#f4f4f4' }[ck] || col.skin;
+  const handCol = { lonk: '#8a5a2b', klauw: col.body, bongo: col.skin, brick: col.dark, sable: col.dark, volt: col.body, gloei: col.acc, kwak: col.body, bliep: col.dark, schim: '#f4f4f4' }[ck] || col.skin;
   // back limbs
-  const backCol = ck === 'klauw' ? shade(col.body, 0.78) : col.dark;
+  const backCol = ck === 'klauw' ? shade(col.body, 0.78) : ck === 'lonk' ? '#cdc3aa' : col.dark;
   strokeLimb(g, lB, backCol, lw); foot(g, ck, lB, lw, col);
   strokeLimb(g, aB, backCol, lw * 0.9); dot(g, aB[4], aB[5], lw * (ck === 'gloei' ? 0.95 : ck === 'bongo' ? 0.8 : ck === 'klauw' ? 0.7 : 0.6), handCol);
+  if (ck === 'lonk') drawShieldL(g, aB[4], aB[5], h);
+  if (ck === 'lonk' && !o.sword) { g.lineCap = 'round'; g.strokeStyle = INK; g.lineWidth = 9; g.beginPath(); g.moveTo(sh.x - 18, sh.y - 12); g.lineTo(hip.x + 12, hip.y + 6); g.stroke(); g.strokeStyle = '#6b4423'; g.lineWidth = 5; g.stroke(); g.strokeStyle = '#4f6bd8'; g.lineWidth = 5; g.beginPath(); g.moveTo(sh.x - 18, sh.y - 12); g.lineTo(sh.x - 24, sh.y - 20); g.stroke(); }
   if (ck === 'sable' && !o.sword) { g.strokeStyle = INK; g.lineWidth = 8; g.beginPath(); g.moveTo(sh.x - 22, sh.y - 10); g.lineTo(hip.x + 14, hip.y + 10); g.stroke(); g.strokeStyle = '#3b2a20'; g.lineWidth = 4; g.stroke(); }
   if (ck === 'volt') { // scarf tails
     const w = Math.sin(fr * 0.3) * 6;
@@ -2257,6 +2316,7 @@ function drawPuppet(g, ck, col, P, o = {}) {
     const tw = c.w * (ck === 'sable' ? 0.56 : ck === 'bongo' ? 0.82 : ck === 'klauw' ? 0.72 : 0.62);
     rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.fillStyle = col.body; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke();
     if (ck === 'volt') { g.fillStyle = col.acc; g.beginPath(); g.moveTo(2, -tl + 6); g.lineTo(-5, -tl * 0.5); g.lineTo(1, -tl * 0.5); g.lineTo(-3, -4); g.lineTo(7, -tl * 0.58); g.lineTo(1, -tl * 0.58); g.closePath(); g.fill(); }
+    else if (ck === 'lonk') { g.beginPath(); g.moveTo(-tw * 0.5, 2); g.lineTo(tw * 0.5, 2); g.lineTo(tw * 0.64, hipH * 0.32); g.lineTo(-tw * 0.64, hipH * 0.32); g.closePath(); g.fillStyle = col.body; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke(); g.fillStyle = '#6b4423'; g.fillRect(-tw / 2, -tl * 0.26, tw, tl * 0.14); g.fillStyle = col.acc; g.fillRect(tw * 0.1, -tl * 0.27, tw * 0.2, tl * 0.16); }
     else if (ck === 'klauw') { g.beginPath(); g.ellipse(tw * 0.14, -tl * 0.45, tw * 0.34, tl * 0.5, 0, 0, TAU); g.fillStyle = col.skin; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke(); g.strokeStyle = 'rgba(21,17,31,.35)'; for (const q of [-0.72, -0.47, -0.22]) { g.beginPath(); g.moveTo(-tw * 0.12, tl * q); g.lineTo(tw * 0.42, tl * q); g.stroke(); } }
     else if (ck === 'bongo') { g.beginPath(); g.ellipse(tw * 0.14, -tl * 0.52, tw * 0.36, tl * 0.32, 0, 0, TAU); g.fillStyle = col.skin; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke();
       g.beginPath(); g.moveTo(tw * 0.0, -tl + 2); g.lineTo(tw * 0.34, -tl + 2); g.lineTo(tw * 0.3, -tl * 0.28); g.lineTo(tw * 0.17, -tl * 0.12); g.lineTo(tw * 0.04, -tl * 0.28); g.closePath(); g.fillStyle = col.acc; g.fill(); g.stroke(); g.fillStyle = '#ffd34d'; g.font = `bold ${Math.round(tl * 0.22)}px Impact, sans-serif`; g.textAlign = 'center'; g.fillText('B', tw * 0.17, -tl * 0.45); }
@@ -2308,6 +2368,16 @@ function drawPuppet(g, ck, col, P, o = {}) {
       g.beginPath(); g.arc(hr * 0.5, -hr * 0.12, hr * 0.15, 0, TAU); g.fillStyle = col.acc; g.fill();
       g.beginPath(); g.moveTo(hr * 0.08, -hr * 0.56); g.lineTo(hr * 0.78, -hr * 0.36); g.lineWidth = 3; g.strokeStyle = INK; g.stroke();
     }
+  } else if (ck === 'lonk') {
+    g.lineWidth = 3; g.strokeStyle = INK;
+    const w = Math.sin(fr * 0.2) * hr * 0.15;
+    g.beginPath(); g.moveTo(-hr * 0.4, -hr * 0.85); g.quadraticCurveTo(-hr * 1.5, -hr * 0.9, -hr * 2.1, hr * 0.35 + w); g.quadraticCurveTo(-hr * 1.4, hr * 0.0, -hr * 0.85, -hr * 0.05); g.closePath(); g.fillStyle = col.body; g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(-hr * 0.55, -hr * 0.15); g.lineTo(-hr * 1.5, -hr * 0.55); g.lineTo(-hr * 0.6, hr * 0.28); g.closePath(); g.fillStyle = col.skin; g.fill(); g.stroke();
+    g.beginPath(); g.arc(0, 0, hr, 0, TAU); g.fillStyle = col.skin; g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(-hr * 0.95, -hr * 0.15); g.quadraticCurveTo(-hr * 0.7, -hr * 1.15, hr * 0.5, -hr * 0.95); g.lineTo(hr * 1.0, -hr * 0.2); g.lineTo(hr * 0.62, -hr * 0.42); g.lineTo(hr * 0.45, -hr * 0.12); g.lineTo(hr * 0.15, -hr * 0.48); g.lineTo(-hr * 0.25, -hr * 0.2); g.closePath(); g.fillStyle = '#f2d06b'; g.fill(); g.stroke();
+    g.beginPath(); g.arc(-hr * 0.08, -hr * 0.4, hr * 0.92, Math.PI * 1.05, Math.PI * 1.92); g.closePath(); g.fillStyle = col.body; g.fill(); g.stroke();
+    eye(g, hr * 0.45, hr * 0.02, hr * 0.26, hurt);
+    g.beginPath(); g.moveTo(hr * 0.42, hr * 0.55); g.lineTo(hr * 0.7, hr * 0.5); g.lineWidth = 2; g.stroke();
   } else if (ck === 'klauw') {
     g.lineWidth = 3; g.strokeStyle = INK;
     g.beginPath(); g.moveTo(-hr * 0.2, -hr * 0.9); g.lineTo(-hr * 1.15, -hr * 1.25); g.lineTo(-hr * 0.9, -hr * 0.55); g.lineTo(-hr * 1.55, -hr * 0.45); g.lineTo(-hr * 0.95, -hr * 0.05); g.lineTo(-hr * 1.4, hr * 0.35); g.lineTo(-hr * 0.6, hr * 0.3); g.closePath(); g.fillStyle = col.acc; g.fill(); g.stroke();
@@ -2362,7 +2432,7 @@ function drawPuppet(g, ck, col, P, o = {}) {
   }
   g.restore();
   // front leg & arm
-  strokeLimb(g, lF, ck === 'pip' || ck === 'joep' ? col.dark : col.body, lw); foot(g, ck, lF, lw, col);
+  strokeLimb(g, lF, ck === 'pip' || ck === 'joep' ? col.dark : ck === 'lonk' ? '#ece3cc' : col.body, lw); foot(g, ck, lF, lw, col);
   if (ck === 'pip') { // robe overlaps front leg top
     g.save(); g.translate(hip.x, hip.y); g.rotate(lean);
     g.beginPath(); g.moveTo(-c.w * 0.24, -tl); g.lineTo(c.w * 0.24, -tl); g.lineTo(c.w * 0.56, hipH * 0.62); g.lineTo(-c.w * 0.1, hipH * 0.62); g.closePath();
@@ -2370,16 +2440,22 @@ function drawPuppet(g, ck, col, P, o = {}) {
   }
   strokeLimb(g, aF, col.body, lw);
   const fa = Math.atan2(aF[4] - aF[2], aF[5] - aF[3]);
-  if (ck === 'sable' && o.sword) {
-    const L = h * 0.62, ex = aF[4] + Math.sin(fa) * L, ey = aF[5] + Math.cos(fa) * L;
+  if ((ck === 'sable' || ck === 'lonk') && o.sword) {
+    const L = h * (ck === 'lonk' ? 0.6 : 0.62), ex = aF[4] + Math.sin(fa) * L, ey = aF[5] + Math.cos(fa) * L;
     g.strokeStyle = INK; g.lineWidth = 9; g.beginPath(); g.moveTo(aF[4], aF[5]); g.lineTo(ex, ey); g.stroke();
     g.strokeStyle = '#e9eef8'; g.lineWidth = 4.5; g.stroke();
-    g.strokeStyle = col.acc; g.lineWidth = 5; g.beginPath(); g.moveTo(aF[4] + Math.cos(fa) * 7, aF[5] - Math.sin(fa) * 7); g.lineTo(aF[4] - Math.cos(fa) * 7, aF[5] + Math.sin(fa) * 7); g.stroke();
+    g.strokeStyle = ck === 'lonk' ? '#4f6bd8' : col.acc; g.lineWidth = 5; g.beginPath(); g.moveTo(aF[4] + Math.cos(fa) * 7, aF[5] - Math.sin(fa) * 7); g.lineTo(aF[4] - Math.cos(fa) * 7, aF[5] + Math.sin(fa) * 7); g.stroke();
   }
   if (ck === 'pip') {
     const L = h * 0.34, ex = aF[4] + Math.sin(fa) * L, ey = aF[5] + Math.cos(fa) * L;
     g.strokeStyle = INK; g.lineWidth = 7; g.beginPath(); g.moveTo(aF[4], aF[5]); g.lineTo(ex, ey); g.stroke(); g.strokeStyle = '#a0703f'; g.lineWidth = 3.5; g.stroke();
     g.fillStyle = col.acc; star(g, ex, ey, 7); g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke();
+  }
+  if (o.bow) {
+    const k = h / 80, x0 = aF[4], y0 = aF[5], cx0 = x0 - 14 * k, R2 = 20 * k, ax = cx0 + Math.cos(1.15) * R2, ay = Math.sin(1.15) * R2, sx2 = x0 - 6 - (o.pull || 0) * 0.3 * k;
+    g.lineCap = 'round'; g.strokeStyle = '#f4f4f4'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(ax, y0 - ay); g.lineTo(sx2, y0); g.lineTo(ax, y0 + ay); g.stroke();
+    g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.arc(cx0, y0, R2, -1.15, 1.15); g.stroke(); g.strokeStyle = '#a0703f'; g.lineWidth = 2.5; g.stroke();
+    g.strokeStyle = '#c9a36b'; g.lineWidth = 2; g.beginPath(); g.moveTo(sx2, y0); g.lineTo(x0 + 12 * k, y0); g.stroke();
   }
   if (o.held) drawHeld(g, o.held, aF[4], aF[5], fa, h);
   dot(g, aF[4], aF[5], lw * (ck === 'brick' || ck === 'bongo' ? 0.85 : ck === 'gloei' ? 1.0 : ck === 'klauw' ? 0.72 : 0.62), handCol);
@@ -2503,7 +2579,7 @@ function drawPoef(g, col, P, o) {
   arm(aF, col.body);
 }
 function foot(g, ck, p, lw, col) {
-  if (ck !== 'schim') { dot(g, p[4], p[5], lw * 0.62, ck === 'brick' ? INK : ck === 'joep' ? col.acc : ck === 'klauw' ? col.body : ck === 'bongo' ? col.skin : col.dark); return; }
+  if (ck !== 'schim') { dot(g, p[4], p[5], lw * 0.62, ck === 'brick' ? INK : ck === 'joep' ? col.acc : ck === 'klauw' ? col.body : ck === 'bongo' ? col.skin : ck === 'lonk' ? '#6b4423' : col.dark); return; }
   g.save(); g.translate(p[4], p[5]); rr(g, -7, -6, 20, 10, 4); g.fillStyle = '#f4f4f4'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
   g.fillStyle = col.acc; g.fillRect(-1, -5, 5, 8); g.fillStyle = col.fx; g.globalAlpha *= 0.7; g.fillRect(-5, 4, 16, 3); g.restore();
 }
@@ -2779,6 +2855,15 @@ function drawProj(g, p, fr) {
     const col = p.owner ? p.owner.col.fx : '#ffd23f';
     g.fillStyle = hexA(col, 0.45); g.beginPath(); g.ellipse(-6, 0, 22, 9, 0, 0, TAU); g.fill();
     g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(16, 0); g.lineTo(-4, -4); g.lineTo(-18, 0); g.lineTo(-4, 4); g.closePath(); g.fill();
+  } else if (p.type === 'arrow') {
+    g.rotate(Math.atan2(p.vy, p.vx)); g.lineCap = 'round';
+    g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(-18, 0); g.lineTo(10, 0); g.stroke(); g.strokeStyle = '#c9a36b'; g.lineWidth = 2.5; g.stroke();
+    g.fillStyle = '#d9dde6'; g.beginPath(); g.moveTo(16, 0); g.lineTo(8, -5); g.lineTo(8, 5); g.closePath(); g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke();
+    g.fillStyle = '#d8262f'; g.beginPath(); g.moveTo(-18, 0); g.lineTo(-24, -5); g.lineTo(-14, 0); g.lineTo(-24, 5); g.closePath(); g.fill();
+  } else if (p.type === 'boomer') {
+    g.rotate(p.rot); g.lineCap = 'round'; g.lineJoin = 'round';
+    g.beginPath(); g.moveTo(-12, 7); g.lineTo(0, -5); g.lineTo(12, 7); g.strokeStyle = INK; g.lineWidth = 8; g.stroke(); g.strokeStyle = '#c98d4f'; g.lineWidth = 4.5; g.stroke();
+    g.fillStyle = '#d8262f'; g.beginPath(); g.arc(0, -4, 2.5, 0, TAU); g.fill();
   } else if (p.type === 'pkbolt') {
     g.rotate(Math.atan2(p.vy, p.vx)); g.lineCap = 'round'; g.lineJoin = 'round';
     g.beginPath(); g.moveTo(-16, -4); g.lineTo(-4, 4); g.lineTo(2, -4); g.lineTo(14, 3);
@@ -2924,8 +3009,8 @@ function drawFighter(g, f, fr, z) {
   else if (f.state === 'helpless') filt = 'brightness(0.62)';
   else if (f.frozen > 0 && !f.buried) filt = 'saturate(0.3) brightness(1.2) hue-rotate(160deg)';
   if (filt !== 'none' && 'filter' in g) g.filter = filt;
-  const sword = f.key === 'sable' && f.state === 'attack' && f.move && !f.move.throw && !['cast', 'counter', 'throwItem', 'pick'].includes(f.move.pose);
-  drawPuppet(g, f.key, f.col, P, { grounded: f.grounded || f.state === 'land', fr: fr + f.id * 30, sword, held: f.item ? f.item.type : f.state === 'attack' && f.move && f.move.bat ? 'bat' : null, wings: f.feather > 0, jet: f.key === 'bliep' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 4, hurt: f.state === 'hitstun' || f.state === 'knockdown' || f.state === 'dizzy' || f.state === 'shieldbreak' || f.state === 'grabbed', ...(f.key === 'poef' ? poefFlags(f) : {}) });
+  const sword = (f.key === 'sable' || f.key === 'lonk') && f.state === 'attack' && f.move && !f.move.throw && !['cast', 'counter', 'throwItem', 'pick', 'bow', 'lonkpull'].includes(f.move.pose);
+  drawPuppet(g, f.key, f.col, P, { grounded: f.grounded || f.state === 'land', fr: fr + f.id * 30, sword, held: f.item ? f.item.type : f.state === 'attack' && f.move && f.move.bat ? 'bat' : null, wings: f.feather > 0, bow: f.key === 'lonk' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, pull: f.charge, jet: f.key === 'bliep' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 4, hurt: f.state === 'hitstun' || f.state === 'knockdown' || f.state === 'dizzy' || f.state === 'shieldbreak' || f.state === 'grabbed', ...(f.key === 'poef' ? poefFlags(f) : {}) });
   if ('filter' in g) g.filter = 'none';
   g.globalAlpha = 1; g.restore();
   if (f.key === 'kwak' && f.state === 'attack' && f.move === f.M.sideB) {
@@ -3203,7 +3288,7 @@ function showResults() {
 /* ---------------- online ---------------- */
 const netEl = $('#net');
 const ST_LIST = ['idle', 'walk', 'run', 'crouch', 'land', 'jumpsquat', 'air', 'attack', 'shield', 'evade', 'airdodge', 'hitstun', 'helpless', 'knockdown', 'dizzy', 'ledge', 'holding', 'grabbed', 'respawn', 'shieldbreak', 'dead'];
-const PT_LIST = ['spark', 'shuriken', 'fire', 'ice', 'pipbomb', 'bombT', 'boom', 'wave', 'laser', 'fist', 'bubble', 'spear', 'blast', 'bananaT', 'batT', 'blasterT', 'puffstar', 'pkbolt', 'pkfire', 'pkthunder', 'pkflash'];
+const PT_LIST = ['spark', 'shuriken', 'fire', 'ice', 'pipbomb', 'bombT', 'boom', 'wave', 'laser', 'fist', 'bubble', 'spear', 'blast', 'bananaT', 'batT', 'blasterT', 'puffstar', 'pkbolt', 'pkfire', 'pkthunder', 'pkflash', 'arrow', 'boomer'];
 const MODE_LIST = ['match', 'gameover', 'results'];
 const LAVA_ST = ['idle', 'warn', 'rise', 'hold', 'fall'];
 const CTR_MOVE = { pose: 'smashF', start: 3, active: 4, end: 20, dur: 27, hb: [] };
