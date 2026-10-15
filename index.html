@@ -357,7 +357,7 @@ window.KlapP2P = (() => {
         <button class="btn small" id="kbReset">Standaardtoetsen herstellen</button>
         <ul class="tips">
           <li><b>Omhoog + speciaal</b> is je herstelsprong: daarna kun je niets tot je landt of de rand pakt.</li>
-          <li><b>Korte sprong</b>: tik springen kort aan, of druk springen en aanval (vrijwel) tegelijk, voor een lage sprong met meteen een luchtaanval. Houd springen vast voor een volle sprong.</li>
+          <li><b>Korte sprong</b>: tik springen kort aan, of druk springen en aanval (vrijwel) tegelijk, voor een lage sprong met meteen een luchtaanval. Houd springen vast voor een volle sprong. Land je tijdens of vlak na een luchtaanval, dan sta je bijna meteen weer klaar voor de volgende aanval.</li>
           <li><b>Items</b>: pak op met aanval of grijpen, gooi met grijpen (omlaag legt neer). Knuppel: aanval slaat, smash is een homerun. Straalpistool: aanval schiet, 10 schoten. Bananenschil: wie erover loopt, valt. Ster: even onkwetsbaar. Veer: twee extra sprongen. Kist: sla open voor items.</li>
           <li><b>Grijpen</b> (of schild + aanval) pakt een tegenstander op de grond vast, ook door een schild heen. Druk of houd daarna een richting om te gooien; aanval of grijpen slaat. Rennend grijpen reikt verder. Rammel op knoppen om los te komen.</li>
           <li><b>Schild + richting</b> rolt weg, <b>schild + omlaag</b> ontwijkt op de plek, <b>schild in de lucht</b> is een luchtontwijking.</li>
@@ -718,6 +718,132 @@ function throwTick(f, t) {
     if (m.fx) throwFx(f, v, m.fx);
   }
 }
+/* ---------------- per-character aerials ---------------- */
+// mh: n small linking hits, one every `step` frames, each `len` frames long
+const mh = (H, n, step, len, x, y, r, d, a, b, g, o) => Array.from({ length: n }, (_, i) => H(x, y, r, d, a, b, g, Object.assign({ f0: i * step, f1: i * step + len, grp: i + 1, link: true }, o || {})));
+const AIRS = {
+  volt: (M, H) => ({
+    nair: M({ start: 3, active: 14, end: 8, pose: 'nair', aerial: true, ll: 6, hb: [H(0, -40, 36, 9, 45, 28, 84, { nr: 1, f1: 4 }), H(0, -40, 32, 5, 45, 20, 70, { nr: 1, f0: 4 })] }),
+    fair: M({ start: 6, active: 14, end: 12, pose: 'divekick', aerial: true, afx: 'drill', ll: 10, hb: mh(H, 4, 3, 2, 36, -38, 24, 2, 75, 12, 0).concat([H(40, -38, 26, 5, 40, 40, 72, { f0: 11, f1: 14, grp: 9 })]) }),
+    bair: M({ start: 4, active: 3, end: 14, pose: 'bair', aerial: true, ll: 9, hb: [H(-52, -40, 24, 13, 145, 36, 102), H(-28, -40, 18, 9, 145, 28, 90)] }),
+    uair: M({ start: 5, active: 8, end: 12, pose: 'uair', aerial: true, ll: 7, hb: [H(6, -96, 24, 4, 92, 30, 20, { nr: 1, f1: 3, grp: 1, link: true }), H(6, -102, 28, 9, 88, 32, 100, { nr: 1, f0: 4, grp: 2 })] }),
+    dair: M({ start: 5, active: 16, end: 14, pose: 'drillK', aerial: true, afx: 'drill', ll: 12, hb: mh(H, 5, 3, 2, 10, 6, 26, 2.2, 285, 10, 0, { nr: 1 }).concat([H(10, 8, 28, 4, 280, 30, 40, { nr: 1, f0: 15, f1: 16, grp: 9 })]) }),
+  }),
+  brick: (M, H) => ({
+    nair: M({ start: 7, active: 10, end: 14, pose: 'heli', aerial: true, afx: 'spin', ll: 10, hb: [H(0, -46, 46, 10, 50, 34, 84, { nr: 1 })] }),
+    fair: M({ start: 12, active: 4, end: 20, pose: 'axe', aerial: true, ll: 14, hb: [H(46, -30, 28, 15, 290, 32, 90, { sweet: true }), H(28, -64, 22, 11, 50, 30, 90)] }),
+    bair: M({ start: 8, active: 4, end: 16, pose: 'elbowB', aerial: true, ll: 11, hb: [H(-48, -50, 28, 15, 140, 38, 100)] }),
+    uair: M({ start: 8, active: 5, end: 16, pose: 'headUp', aerial: true, ll: 10, hb: [H(0, -104, 30, 14, 88, 36, 98, { nr: 1 }), H(0, -80, 24, 11, 85, 32, 92, { nr: 1 })] }),
+    dair: M({ start: 13, active: 5, end: 22, pose: 'stompD', aerial: true, ll: 18, hb: [H(0, 22, 32, 15, 270, 42, 90, { nr: 1 })] }),
+  }),
+  sable: (M, H) => ({
+    nair: M({ start: 5, active: 10, end: 10, pose: 'nair', aerial: true, afx: 'slash', ll: 7, hb: [H(0, -44, 42, 5, 70, 30, 40, { nr: 1, f1: 4, grp: 1, link: true }), H(0, -44, 46, 8, 45, 34, 86, { nr: 1, f0: 6, grp: 2 })] }),
+    fair: M({ start: 5, active: 4, end: 16, pose: 'axe', aerial: true, afx: 'slash', ll: 9, hb: [H(58, -48, 22, 13, 40, 38, 100), H(30, -60, 22, 8, 50, 30, 80)] }),
+    bair: M({ start: 6, active: 4, end: 16, pose: 'elbowB', aerial: true, afx: 'slash', ll: 10, hb: [H(-60, -46, 22, 13, 140, 38, 98), H(-30, -52, 20, 8, 140, 30, 80)] }),
+    uair: M({ start: 5, active: 5, end: 13, pose: 'upswing', aerial: true, afx: 'slash', ll: 8, hb: [H(0, -112, 26, 12, 88, 34, 98, { nr: 1 }), H(26, -88, 22, 8, 80, 30, 80)] }),
+    dair: M({ start: 9, active: 5, end: 18, pose: 'swingDown', aerial: true, afx: 'slash', ll: 15, hb: [H(0, 30, 26, 14, 275, 38, 90, { nr: 1 })] }),
+  }),
+  pip: (M, H) => ({
+    nair: M({ start: 6, active: 15, end: 10, pose: 'flap', aerial: true, afx: 'star', ll: 6, hb: mh(H, 3, 4, 3, 0, -34, 36, 2, 80, 10, 0, { nr: 1 }).concat([H(0, -34, 40, 6, 50, 34, 80, { nr: 1, f0: 12, f1: 15, grp: 9 })]) }),
+    fair: M({ start: 8, active: 4, end: 16, pose: 'cast', aerial: true, afx: 'fire', ll: 10, hb: [H(46, -38, 28, 11, 40, 30, 95)] }),
+    bair: M({ start: 8, active: 4, end: 16, pose: 'elbowB', aerial: true, afx: 'ice', ll: 10, hb: [H(-46, -38, 28, 9, 145, 30, 85, { freeze: 14 })] }),
+    uair: M({ start: 7, active: 6, end: 12, pose: 'clapUp', aerial: true, afx: 'elec', ll: 8, hb: [H(0, -96, 30, 10, 90, 32, 95, { nr: 1 })] }),
+    dair: M({ start: 12, active: 4, end: 18, pose: 'swingDown', aerial: true, afx: 'star', ll: 14, hb: [H(0, 18, 26, 12, 272, 36, 84, { nr: 1 })] }),
+  }),
+  gloei: (M, H) => ({
+    nair: M({ start: 5, active: 8, end: 12, pose: 'nair', aerial: true, afx: 'fire', ll: 8, hb: [H(0, -40, 38, 11, 45, 32, 90, { nr: 1 })] }),
+    fair: M({ start: 7, active: 3, end: 15, pose: 'punchC', aerial: true, afx: 'fire', ll: 10, hb: [H(50, -50, 23, 13, 38, 34, 100), H(26, -50, 18, 9, 40, 30, 90)] }),
+    bair: M({ start: 6, active: 4, end: 14, pose: 'bair', aerial: true, afx: 'fire', ll: 9, hb: [H(-52, -30, 24, 14, 150, 34, 102), H(-26, -34, 18, 9, 145, 28, 90)] }),
+    uair: M({ start: 5, active: 5, end: 14, pose: 'upswing', aerial: true, afx: 'fire', ll: 8, hb: [H(10, -102, 27, 12, 85, 34, 98, { nr: 1 })] }),
+    dair: M({ start: 10, active: 4, end: 18, pose: 'stompD', aerial: true, afx: 'fire', ll: 15, hb: [H(0, 20, 27, 15, 275, 40, 88, { nr: 1 })] }),
+  }),
+  kwak: (M, H) => ({
+    nair: M({ start: 4, active: 12, end: 10, pose: 'nair', aerial: true, afx: 'water', ll: 6, hb: [H(0, -34, 38, 9, 45, 28, 82, { nr: 1, f1: 4 }), H(0, -34, 34, 5, 45, 20, 70, { nr: 1, f0: 4 })] }),
+    fair: M({ start: 9, active: 3, end: 16, pose: 'tongue', aerial: true, afx: 'tongue', ll: 10, hb: [H(80, -68, 17, 10, 40, 30, 92), H(46, -68, 15, 6, 40, 20, 70)] }),
+    bair: M({ start: 6, active: 4, end: 14, pose: 'bair', aerial: true, ll: 9, hb: [H(-54, -20, 24, 13, 140, 36, 100), H(-28, -24, 18, 9, 145, 28, 90)] }),
+    uair: M({ start: 6, active: 6, end: 12, pose: 'clapUp', aerial: true, afx: 'water', ll: 8, hb: [H(0, -96, 31, 10, 88, 30, 95, { nr: 1 })] }),
+    dair: M({ start: 8, active: 5, end: 16, pose: 'stompD', aerial: true, ll: 12, hb: [H(0, 18, 27, 13, 275, 38, 86, { nr: 1 })] }),
+  }),
+  bliep: (M, H) => ({
+    nair: M({ start: 6, active: 13, end: 12, pose: 'kongspin', aerial: true, afx: 'elec', ll: 8, hb: mh(H, 3, 4, 3, 0, -44, 40, 2, 80, 10, 0, { nr: 1 }).concat([H(0, -44, 44, 6, 45, 34, 80, { nr: 1, f0: 10, f1: 13, grp: 9 })]) }),
+    fair: M({ start: 9, active: 4, end: 16, pose: 'punchC', aerial: true, afx: 'fire', ll: 11, hb: [H(64, -50, 22, 12, 38, 34, 98), H(32, -50, 18, 8, 40, 28, 85)] }),
+    bair: M({ start: 7, active: 6, end: 14, pose: 'jet', aerial: true, afx: 'fire', ll: 10, hb: [H(-46, -30, 29, 11, 150, 34, 95)] }),
+    uair: M({ start: 5, active: 12, end: 12, pose: 'clapUp', aerial: true, afx: 'spin', ll: 8, hb: mh(H, 3, 3, 2, 0, -98, 30, 2, 90, 12, 0, { nr: 1 }).concat([H(0, -102, 32, 7, 88, 36, 90, { nr: 1, f0: 9, f1: 12, grp: 9 })]) }),
+    dair: M({ start: 11, active: 5, end: 18, pose: 'stompD', aerial: true, afx: 'drill', ll: 15, hb: [H(0, 26, 24, 14, 270, 40, 90, { nr: 1 })] }),
+  }),
+  joep: (M, H) => ({
+    nair: M({ start: 4, active: 14, end: 9, pose: 'nair', aerial: true, afx: 'psi', ll: 6, hb: [H(0, -40, 38, 10, 45, 30, 86, { nr: 1, f1: 4 }), H(0, -40, 34, 6, 45, 22, 72, { nr: 1, f0: 4 })] }),
+    // fair: a PSI burst in front, strong base knockback that hardly grows with damage
+    fair: M({ start: 7, active: 4, end: 16, pose: 'jpsi', aerial: true, psi: true, keepKB: true, ll: 11, hb: [H(48, -44, 28, 10, 40, 76, 40)] }),
+    // bair: two horizontal kicks backwards, the second one weak at low damage but scaling hard
+    bair: M({ start: 6, active: 10, end: 13, pose: 'dkick', aerial: true, ll: 10, hb: [H(-46, -38, 22, 4, 165, 18, 15, { f1: 3, grp: 1, link: true }), H(-52, -38, 25, 11, 160, 12, 130, { f0: 6, grp: 2 })] }),
+    uair: M({ start: 6, active: 4, end: 14, pose: 'headUp', aerial: true, ll: 8, hb: [H(0, -98, 27, 12, 88, 30, 104, { nr: 1 })] }),
+    dair: M({ start: 10, active: 4, end: 18, pose: 'stompD', aerial: true, ll: 15, hb: [H(0, 18, 25, 13, 275, 40, 88, { nr: 1 })] }),
+  }),
+  poef: (M, H) => ({
+    nair: M({ start: 4, active: 14, end: 10, pose: 'spinball', aerial: true, afx: 'star', ll: 6, hb: [H(0, -30, 36, 9, 45, 28, 82, { nr: 1, f1: 4 }), H(0, -30, 32, 5, 45, 20, 70, { nr: 1, f0: 4 })] }),
+    fair: M({ start: 6, active: 14, end: 14, pose: 'kick', aerial: true, ll: 10, hb: [H(40, -30, 22, 3, 60, 22, 25, { f1: 3, grp: 1, link: true }), H(40, -30, 22, 3, 60, 22, 25, { f0: 5, f1: 8, grp: 2, link: true }), H(44, -30, 25, 6, 40, 34, 85, { f0: 10, grp: 3 })] }),
+    bair: M({ start: 6, active: 4, end: 14, pose: 'bair', aerial: true, ll: 9, hb: [H(-48, -26, 25, 13, 145, 36, 102), H(-24, -28, 18, 9, 145, 30, 90)] }),
+    uair: M({ start: 5, active: 5, end: 12, pose: 'uair', aerial: true, afx: 'slash', ll: 7, hb: [H(0, -82, 29, 9, 85, 30, 95, { nr: 1 })] }),
+    dair: M({ start: 9, active: 17, end: 14, pose: 'drillK', aerial: true, afx: 'drill', ll: 12, hb: mh(H, 5, 3, 2, 0, 12, 25, 2, 280, 12, 0, { nr: 1 }).concat([H(0, 14, 27, 4, 275, 32, 40, { nr: 1, f0: 15, f1: 17, grp: 9 })]) }),
+  }),
+  klauw: (M, H) => ({
+    nair: M({ start: 6, active: 14, end: 12, pose: 'shell', aerial: true, afx: 'spin', ll: 10, hb: [H(0, -46, 46, 11, 45, 34, 86, { nr: 1, f1: 6 }), H(0, -46, 42, 7, 45, 26, 74, { nr: 1, f0: 6 })] }),
+    fair: M({ start: 9, active: 4, end: 18, pose: 'axe', aerial: true, afx: 'slash', ll: 12, hb: [H(56, -56, 28, 15, 40, 36, 98), H(30, -50, 22, 10, 50, 30, 88)] }),
+    bair: M({ start: 8, active: 4, end: 16, pose: 'bair', aerial: true, ll: 11, hb: [H(-58, -36, 28, 16, 145, 38, 100), H(-30, -38, 22, 11, 140, 30, 90)] }),
+    uair: M({ start: 8, active: 6, end: 16, pose: 'headUp', aerial: true, ll: 10, hb: [H(0, -112, 32, 13, 88, 36, 100, { nr: 1 })] }),
+    dair: M({ start: 12, active: 15, end: 18, pose: 'shell', aerial: true, afx: 'drill', ll: 18, hb: mh(H, 4, 3, 2, 0, 10, 31, 2.5, 280, 12, 0, { nr: 1 }).concat([H(0, 14, 33, 7, 275, 38, 70, { nr: 1, f0: 12, f1: 15, grp: 9 })]) }),
+  }),
+  bongo: (M, H) => ({
+    nair: M({ start: 7, active: 14, end: 12, pose: 'heli', aerial: true, afx: 'spin', ll: 10, hb: [H(0, -50, 48, 11, 45, 34, 86, { nr: 1, f1: 6 }), H(0, -50, 44, 7, 45, 26, 74, { nr: 1, f0: 6 })] }),
+    fair: M({ start: 15, active: 4, end: 20, pose: 'axe', aerial: true, ll: 16, hb: [H(52, -30, 30, 16, 280, 36, 90, { sweet: true }), H(32, -64, 24, 12, 60, 34, 90)] }),
+    bair: M({ start: 6, active: 5, end: 14, pose: 'bair', aerial: true, ll: 9, hb: [H(-60, -36, 24, 13, 150, 34, 98), H(-30, -38, 20, 9, 145, 28, 88)] }),
+    uair: M({ start: 6, active: 5, end: 14, pose: 'headUp', aerial: true, ll: 9, hb: [H(0, -110, 30, 13, 88, 32, 96, { nr: 1 })] }),
+    dair: M({ start: 11, active: 5, end: 20, pose: 'stompD', aerial: true, ll: 16, hb: [H(0, 22, 31, 14, 270, 42, 90, { nr: 1 })] }),
+  }),
+  lonk: (M, H) => ({
+    nair: M({ start: 5, active: 14, end: 10, pose: 'kick', aerial: true, ll: 7, hb: [H(18, -30, 27, 10, 45, 28, 84, { f1: 4 }), H(18, -30, 24, 6, 45, 20, 72, { f0: 4 })] }),
+    fair: M({ start: 8, active: 12, end: 16, pose: 'axe', aerial: true, afx: 'slash', ll: 11, hb: [H(52, -50, 26, 7, 70, 28, 40, { f1: 3, grp: 1, link: true }), H(56, -44, 28, 12, 40, 36, 96, { f0: 7, grp: 2 })] }),
+    bair: M({ start: 6, active: 10, end: 12, pose: 'dkick', aerial: true, ll: 9, hb: [H(-44, -34, 22, 5, 150, 24, 30, { f1: 3, grp: 1, link: true }), H(-48, -34, 24, 8, 145, 30, 90, { f0: 6, grp: 2 })] }),
+    uair: M({ start: 9, active: 20, end: 14, pose: 'stabUp', aerial: true, ll: 10, hb: [H(0, -122, 22, 14, 88, 34, 98, { nr: 1, f1: 5 }), H(0, -118, 20, 9, 88, 26, 85, { nr: 1, f0: 5 })] }),
+    dair: M({ start: 12, active: 24, end: 20, pose: 'stabDown', aerial: true, ll: 18, hb: [H(0, 36, 20, 16, 270, 44, 90, { nr: 1, f1: 4 }), H(0, 32, 18, 10, 80, 30, 70, { nr: 1, f0: 4 })] }),
+  }),
+  rat: (M, H) => ({
+    nair: M({ start: 4, active: 10, end: 10, pose: 'spinball', aerial: true, afx: 'elec', ll: 6, hb: [H(0, -30, 33, 8, 50, 26, 80, { nr: 1, f1: 4 }), H(0, -30, 30, 5, 50, 20, 68, { nr: 1, f0: 4 })] }),
+    fair: M({ start: 8, active: 14, end: 14, pose: 'divekick', aerial: true, afx: 'elec', ll: 10, hb: mh(H, 4, 3, 2, 30, -26, 24, 2, 60, 10, 0).concat([H(32, -26, 26, 5, 40, 32, 70, { f0: 12, f1: 14, grp: 9 })]) }),
+    bair: M({ start: 5, active: 12, end: 12, pose: 'bair', aerial: true, afx: 'elec', ll: 8, hb: mh(H, 3, 4, 3, -34, -26, 26, 3, 140, 14, 0).concat([H(-36, -26, 28, 5, 140, 30, 80, { f0: 10, f1: 12, grp: 9 })]) }),
+    uair: M({ start: 3, active: 4, end: 10, pose: 'uair', aerial: true, afx: 'slash', ll: 5, hb: [H(0, -72, 30, 6, 95, 34, 40, { nr: 1 })] }),
+    dair: M({ start: 10, active: 5, end: 16, pose: 'stompD', aerial: true, afx: 'elec', ll: 14, hb: [H(0, 14, 30, 12, 275, 34, 85, { nr: 1 })] }),
+  }),
+  kakel: (M, H) => ({
+    nair: M({ start: 5, active: 12, end: 10, pose: 'flap', aerial: true, afx: 'feather', ll: 6, hb: mh(H, 3, 4, 3, 0, -30, 34, 2.5, 80, 12, 0, { nr: 1 }).concat([H(0, -30, 36, 5, 50, 30, 78, { nr: 1, f0: 10, f1: 12, grp: 9 })]) }),
+    fair: M({ start: 6, active: 3, end: 14, pose: 'peck', aerial: true, ll: 9, hb: [H(44, -36, 22, 11, 40, 32, 94), H(24, -36, 16, 7, 40, 26, 85)] }),
+    bair: M({ start: 6, active: 4, end: 13, pose: 'flap', aerial: true, afx: 'feather', ll: 8, hb: [H(-44, -34, 26, 11, 145, 32, 95)] }),
+    uair: M({ start: 5, active: 6, end: 12, pose: 'flap', aerial: true, afx: 'feather', ll: 7, hb: [H(0, -74, 32, 8, 88, 30, 92, { nr: 1 })] }),
+    dair: M({ start: 9, active: 5, end: 16, pose: 'stompD', aerial: true, ll: 13, hb: [H(0, 16, 23, 12, 275, 36, 84, { nr: 1 })] }),
+  }),
+  ninja: (M, H) => ({
+    nair: M({ start: 4, active: 10, end: 10, pose: 'nair', aerial: true, afx: 'slash', ll: 6, hb: [H(0, -40, 40, 9, 45, 30, 84, { nr: 1 })] }),
+    fair: M({ start: 5, active: 4, end: 13, pose: 'axe', aerial: true, afx: 'slash', ll: 8, hb: [H(52, -46, 22, 11, 40, 32, 94), H(28, -46, 18, 8, 45, 28, 85)] }),
+    bair: M({ start: 4, active: 4, end: 12, pose: 'bair', aerial: true, ll: 8, hb: [H(-50, -34, 22, 12, 145, 32, 98), H(-26, -36, 18, 8, 145, 28, 88)] }),
+    uair: M({ start: 4, active: 5, end: 11, pose: 'uair', aerial: true, ll: 6, hb: [H(0, -98, 27, 9, 85, 30, 92, { nr: 1 })] }),
+    dair: M({ start: 8, active: 5, end: 15, pose: 'drillK', aerial: true, afx: 'slash', ll: 12, hb: [H(18, 16, 23, 12, 290, 36, 86)] }),
+  }),
+  techno: (M, H) => ({
+    nair: M({ start: 6, active: 8, end: 12, pose: 'nair', aerial: true, afx: 'slash', ll: 8, hb: [H(0, -44, 48, 11, 45, 34, 88, { nr: 1 })] }),
+    fair: M({ start: 7, active: 4, end: 16, pose: 'axe', aerial: true, afx: 'slash', ll: 10, hb: [H(58, -50, 26, 13, 40, 36, 100), H(30, -58, 22, 9, 50, 30, 88)] }),
+    bair: M({ start: 7, active: 4, end: 16, pose: 'elbowB', aerial: true, afx: 'slash', ll: 10, hb: [H(-58, -46, 24, 14, 140, 36, 100), H(-30, -50, 20, 9, 140, 30, 88)] }),
+    uair: M({ start: 6, active: 5, end: 14, pose: 'upswing', aerial: true, afx: 'slash', ll: 8, hb: [H(0, -116, 26, 12, 88, 34, 98, { nr: 1 }), H(26, -90, 22, 8, 80, 30, 85)] }),
+    dair: M({ start: 10, active: 5, end: 18, pose: 'stabDown', aerial: true, afx: 'slash', ll: 15, hb: [H(0, 34, 25, 15, 270, 40, 90, { nr: 1 })] }),
+  }),
+  schim: (M, H) => ({
+    nair: M({ start: 3, active: 12, end: 9, pose: 'spinball', aerial: true, afx: 'dark', ll: 5, hb: [H(0, -32, 34, 9, 45, 28, 82, { nr: 1, f1: 4 }), H(0, -32, 30, 5, 45, 20, 70, { nr: 1, f0: 4 })] }),
+    fair: M({ start: 6, active: 8, end: 13, pose: 'kick', aerial: true, afx: 'dark', ll: 9, hb: [H(42, -34, 22, 5, 60, 24, 30, { f1: 3, grp: 1, link: true }), H(46, -34, 24, 9, 40, 32, 92, { f0: 5, grp: 2 })] }),
+    bair: M({ start: 6, active: 3, end: 13, pose: 'bair', aerial: true, ll: 9, hb: [H(-52, -36, 23, 13, 145, 34, 100), H(-26, -36, 18, 9, 145, 28, 88)] }),
+    uair: M({ start: 4, active: 8, end: 11, pose: 'uair', aerial: true, afx: 'dark', ll: 6, hb: [H(0, -92, 26, 3, 90, 24, 20, { nr: 1, f1: 3, grp: 1, link: true }), H(0, -98, 28, 8, 88, 32, 96, { nr: 1, f0: 4, grp: 2 })] }),
+    dair: M({ start: 9, active: 6, end: 15, pose: 'stompD', aerial: true, afx: 'dark', ll: 12, hb: [H(10, 18, 25, 12, 280, 38, 86, { nr: 1 })] }),
+  }),
+};
 function buildMoves(ck) {
   const c = CHARS[ck], s = c.h / 80, R = c.reach, P = c.pow, LG = c.lag;
   const H = (x, y, r, d, a, b, g, o) => Object.assign({ x: x * s * (o && o.nr ? 1 : R), y: y * s, r: r * s, d: Math.round(d * P * 10) / 10, a, b, g }, o || {});
@@ -737,11 +863,11 @@ function buildMoves(ck) {
     fsmash: M({ start: 11, active: 3, end: 26, pose: 'smashF', charge: true, hb: [H(52, -42, 24, 15, 38, 40, 104), H(28, -42, 18, 13, 38, 40, 100)] }),
     usmash: M({ start: 8, active: 6, end: 26, pose: 'smashU', charge: true, hb: [H(0, -100, 28, 14, 88, 40, 100, { nr: 1 }), H(16, -74, 22, 13, 85, 40, 100)] }),
     dsmash: M({ start: 7, active: 4, end: 26, pose: 'smashD', charge: true, hb: [H(44, -10, 20, 13, 28, 36, 98), H(-44, -10, 20, 13, 152, 36, 98)] }),
-    nair: M({ start: 4, active: 14, end: 10, pose: 'nair', aerial: true, ll: 7, hb: [H(0, -40, 34, 8, 45, 28, 82, { nr: 1, f1: 4 }), H(0, -40, 30, 5, 45, 20, 70, { nr: 1, f0: 4 })] }),
-    fair: M({ start: 7, active: 4, end: 18, pose: 'fair', aerial: true, ll: 12, hb: [H(42, -40, 21, 11, 42, 32, 94), H(24, -58, 17, 10, 50, 30, 90)] }),
-    bair: M({ start: 6, active: 4, end: 16, pose: 'bair', aerial: true, ll: 10, hb: [H(-44, -38, 21, 12, 145, 32, 98)] }),
-    uair: M({ start: 5, active: 4, end: 14, pose: 'uair', aerial: true, ll: 8, hb: [H(4, -96, 23, 9, 85, 30, 95, { nr: 1 })] }),
-    dair: M({ start: 10, active: 4, end: 20, pose: 'dair', aerial: true, ll: 16, hb: [H(0, 6, 22, 13, 280, 25, 82, { nr: 1 })] }),
+    nair: M({ start: 4, active: 14, end: 9, pose: 'nair', aerial: true, ll: 6, hb: [H(0, -40, 39, 10, 45, 30, 86, { nr: 1, f1: 4 }), H(0, -40, 34, 6, 45, 22, 72, { nr: 1, f0: 4 })] }),
+    fair: M({ start: 6, active: 4, end: 15, pose: 'fair', aerial: true, ll: 10, hb: [H(50, -40, 25, 12, 42, 34, 96), H(28, -56, 20, 10, 50, 30, 90)] }),
+    bair: M({ start: 6, active: 4, end: 14, pose: 'bair', aerial: true, ll: 9, hb: [H(-52, -38, 25, 13, 145, 34, 100), H(-28, -40, 19, 10, 145, 28, 92)] }),
+    uair: M({ start: 5, active: 5, end: 12, pose: 'uair', aerial: true, ll: 7, hb: [H(4, -102, 27, 10, 85, 32, 96, { nr: 1 }), H(14, -78, 21, 8, 80, 28, 90, { nr: 1 })] }),
+    dair: M({ start: 9, active: 5, end: 18, pose: 'dair', aerial: true, ll: 14, hb: [H(0, 20, 27, 14, 275, 44, 88, { nr: 1 })] }),
     grab: M({ start: 6, active: 3, end: 22, pose: 'grab', hb: [H(34, -42, 24, 0, 0, 0, 0, { grab: true, nr: 1 })] }),
     dashGrab: M({ start: 8, active: 3, end: 26, pose: 'grab', keepVel: true, slide: 0.9, hb: [H(42, -42, 26, 0, 0, 0, 0, { grab: true, nr: 1 })] }),
     fthrow: M({ start: 8, active: 1, end: 14, pose: 'throwF', throw: true, thb: { d: 8 * P, a: 42, b: 62, g: 58 }, tick: throwTick }),
@@ -756,6 +882,9 @@ function buildMoves(ck) {
     batAir: M({ start: 5, active: 5, end: 14, pose: 'fair', aerial: true, ll: 10, hb: [H(54, -46, 26, 8, 45, 30, 86, { nr: 1 })] }),
     shoot: M({ start: 4, active: 1, end: 10, pose: 'cast', tick: (f, t) => { if (!f.grounded && f.vy > 1.5) f.vy = 1.5; if (t === f.move.start && f.item && f.item.type === 'blaster' && f.item.ammo > 0) { f.item.ammo--; spawnProj({ type: 'blast', owner: f, x: f.x + f.facing * 42 * s, y: f.y - 46 * s, vx: f.facing * 16, r: 8, life: 40, hb: { d: 4, a: 30, b: 12, g: 10 } }); SFX.shoot(); } } }),
   };
+  if (AIRS[ck]) Object.assign(mv, AIRS[ck](M, H));
+  // nair, fair and uair launch less so they combo; spikes, linking hits and moves marked keepKB stay as they are
+  for (const k of ['nair', 'fair', 'uair']) { const m = mv[k]; if (m && !m.keepKB) m.hb = m.hb.map(h => (h.a >= 240 && h.a <= 300) || !h.g ? h : Object.assign({}, h, { b: Math.round(h.b * 0.8), g: Math.round(h.g * 0.8) })); }
   Object.assign(mv, SPECIALS[ck](M, H, s));
   const TT = THROWS[ck] || {};
   for (const dir of ['f', 'b', 'u', 'd']) {
@@ -1649,7 +1778,7 @@ class Fighter {
     if (m.jab && this.mt > m.start + m.active && this.bf.atk > 0) { this.cons('atk'); this.jabN++; return this.startMove(this.jabN >= 2 ? this.M.jab3 : this.M.jab); }
     if (this.mt >= m.dur) this.endMove();
   }
-  endMove() { const m = this.move; this.move = null; if (this.grounded) this.setState('idle'); else this.setState(m && m.helpless ? 'helpless' : 'air'); }
+  endMove() { const m = this.move; this.move = null; if (m && m.aerial) this.airEnd = G.frame; if (this.grounded) this.setState('idle'); else this.setState(m && m.helpless ? 'helpless' : 'air'); }
   hopCut() {
     // jump let go in the first airborne frames: still turn the full hop into a short hop of the same height
     const h = this.hop;
@@ -1896,7 +2025,8 @@ class Fighter {
         if (m.onLand) { m.onLand(this); break; }
         if (m.aerial || m.special) {
           const ac = m.aerial && (this.mt <= 2 || this.mt > m.start + m.active + m.end * 0.5);
-          this.lag = ac ? 3 : (m.ll || 10);
+          // aerials land fast so they can combo: 40% of their landing lag, 1 frame when auto-cancelled
+          this.lag = ac ? 1 : m.aerial ? Math.max(2, Math.round((m.ll || 10) * 0.4)) : (m.ll || 10);
           if (m.aerial && !ac && (G.frame - this.lastShd <= 7 || (this.cpu && this.lvl >= 6 && Math.random() < (this.lvl - 5) * 0.2))) { this.lag = Math.ceil(this.lag / 2); this.flash = 3; addP({ type: 'ring', x: this.x, y: this.y, life: 10, max: 10, size: 12, color: '#ffffff' }); } this.move = null; this.setState('land'); dustFx(this.x, this.y, 3);
         }
         break;
@@ -1904,7 +2034,7 @@ class Fighter {
       case 'helpless': this.lag = 18; this.setState('land'); dustFx(this.x, this.y, 5); SFX.land(); break;
       case 'airdodge': this.lag = 9; if (this.adDir && this.t < 16 && this.adV && this.adV.x) { this.vx = this.adV.x * 1.25; this.wd = true; dustFx(this.x, this.y, 4); } this.setState('land'); break;
       case 'shieldbreak': this.setState('dizzy'); break;
-      case 'air': this.lag = 3; this.setState('land'); dustFx(this.x, this.y, 3); SFX.land(); break;
+      case 'air': this.lag = G.frame - (this.airEnd ?? -99) <= 10 ? 1 : 3; this.setState('land'); dustFx(this.x, this.y, 3); SFX.land(); break;
     }
   }
   checkLedge() {
@@ -2064,6 +2194,7 @@ function applyHit(a, v, hb, dir, hx, hy, mult = 1, o = {}) {
   const sp = kb * 0.15;
   if (trWas !== null) trainHit(trWas, d, kb);
   v.lvx = lx * sp; v.lvy = ly * sp; v.vx = 0; v.vy = 0;
+  if (hb.link && a && !o.proj) { v.lvx = a.vx + (hx - v.x) * 0.2; v.lvy = a.vy + (hy - (v.y - v.c.h / 2)) * 0.2; }
   if (v.lvy < -0.5 && v.grounded) { v.grounded = false; v.ground = null; }
   if (v.grounded) v.lvy = 0;
   v.move = null; v.ev = null; v.hitstun = Math.floor(kb * 0.4); v.tumble = kb > 80; v.fastfall = false;
@@ -2451,6 +2582,19 @@ const POSE = {
   throwB: { wind: mk({ aF: [1.5, 0], aB: [1.3, 0], plant: 'both' }), strike: mk({ aF: [-1.9, 0], aB: [-1.6, 0], lean: -0.35, plant: 'both' }) },
   throwU: { strike: mk({ aF: [3.1, 0], aB: [2.9, 0], plant: 'both' }) },
   throwD: { strike: mk({ aF: [0.5, 0], aB: [0.3, 0], crouch: 0.45, lean: 0.3, plant: 'both' }) },
+  jpsi: { wind: mk({ aF: [-0.7, -1.2], aB: [-1.0, -1.0], lF: [0.5, -1.2], lB: [-0.3, -0.9], lean: -0.15 }), strike: mk({ aF: [1.55, -0.05], aB: [1.4, 0.12], lF: [0.4, -0.9], lB: [-0.4, -0.7], lean: 0.22 }) },
+  dkick: { strike: mk({ lB: [-1.7, 0], lF: [0.6, -1.5], aF: [1.2, -1.1], aB: [0.5, -1.2], lean: 0.35 }),
+    fn: (f, t, P) => { const st = f.move.start; if (t > st + 3 && t <= st + 6) { P.lB = [-0.6, -1.3]; P.lF = [0.4, -1.4]; P.lean = 0.2; } else if (t > st + 6 && t <= st + 10) { P.lB = [-1.8, 0.05]; P.lF = [-1.45, -0.15]; P.lean = 0.45; } return P; } },
+  axe: { wind: mk({ aF: [2.9, -0.3], aB: [2.7, -0.3], lean: -0.25, lF: [0.8, -1.4], lB: [-0.2, -1.0] }), strike: mk({ aF: [1.1, 0], aB: [1.0, 0.05], lean: 0.35, lF: [0.5, -1.0], lB: [-0.5, -0.6] }) },
+  stompD: { wind: mk({ lF: [1.3, -2.1], lB: [1.0, -2.0], aF: [1.4, -0.6], aB: [-1.2, -0.6], crouch: 0.2 }), strike: mk({ lF: [0.1, 0], lB: [-0.1, 0], aF: [2.3, -0.3], aB: [-2.2, -0.3], dy: 8 }) },
+  drillK: { wind: mk({ lF: [1.2, -1.8], lB: [0.8, -1.6] }), strike: mk({ lF: [0.75, 0], lB: [-0.3, -1.4], aF: [-0.6, -0.8], aB: [-1.0, -0.6], lean: -0.25 }), fn: (f, t, P) => { if (t > f.move.start) P.dy = (P.dy || 0) + Math.sin(t * 1.4) * 1.5; return P; } },
+  elbowB: { wind: mk({ aF: [1.2, -1.4], aB: [0.6, -1.4], lean: 0.1 }), strike: mk({ aF: [-1.6, -0.1], aB: [-1.8, -0.4], lean: -0.3, lF: [0.6, -1.2], lB: [-0.4, -0.8] }) },
+  clapUp: { wind: mk({ aF: [1.5, 0], aB: [-1.5, 0], lF: [0.4, -1.0], lB: [-0.3, -0.8] }), strike: mk({ aF: [3.0, 0], aB: [2.9, 0], lF: [0.3, -0.6], lB: [-0.3, -0.5], lean: -0.1 }) },
+  swingDown: { wind: mk({ aF: [2.6, -0.2], aB: [-0.6, -0.8], lF: [1.0, -1.8], lB: [0.6, -1.6], lean: -0.15 }), strike: mk({ aF: [0.05, 0], aB: [-0.8, -0.6], lF: [1.0, -1.8], lB: [0.6, -1.6], lean: 0.2 }) },
+  headUp: { wind: mk({ lean: 0.3, aF: [0.6, -1.0], aB: [0.3, -1.0], crouch: 0.2 }), strike: mk({ lean: -0.45, aF: [-0.5, -0.4], aB: [-0.8, -0.3], lF: [-0.3, -0.6], lB: [-0.6, -0.4], dy: -6 }) },
+  stabUp: { wind: mk({ aF: [1.2, -1.6], aB: [-0.6, -0.6] }), strike: mk({ aF: [3.1, 0], aB: [-0.7, -0.5], lF: [0.9, -1.6], lB: [0.5, -1.4], lean: -0.05 }) },
+  stabDown: { wind: mk({ aF: [2.2, -0.8], aB: [-0.6, -0.8], lF: [1.2, -2.0], lB: [0.9, -2.0] }), strike: mk({ aF: [0.0, 0], aB: [0.25, -0.4], lF: [1.2, -2.0], lB: [0.9, -2.0], crouch: 0.2 }) },
+  heli: { strike: mk({ aF: [1.57, 0], aB: [-1.57, 0], lF: [0.2, -0.2], lB: [-0.2, -0.2] }), spin: 2 },
   cast: { wind: mk({ aF: [0.2, -1.5], aB: [-0.4, -1.2], plant: 'both' }), strike: mk({ aF: [1.55, -0.05], aB: [-0.5, -0.7], lean: 0.15, plant: 'both' }) },
   dashB: { strike: mk({ lean: 0.65, aF: [1.5, 0], aB: [-1.7, 0], lF: [1.2, -0.7], lB: [-1.1, -0.8] }) },
   upB: { strike: mk({ aF: [3.1, 0], aB: [2.7, -0.2], lF: [0.15, -0.1], lB: [-0.3, -0.6] }) },
@@ -3585,6 +3729,20 @@ function drawFighter(g, f, fr, z) {
     g.strokeStyle = '#ffffff'; g.lineWidth = 2.5; g.beginPath(); for (let i = 0; i < 9; i++) { const a = i / 9 * TAU + rand(-0.2, 0.2); let x = f.x, y = cy; g.moveTo(x, y); for (let j = 1; j <= 3; j++) { x = f.x + Math.cos(a) * R2 * j / 3 + rand(-6, 6); y = cy + Math.sin(a) * R2 * j / 3 + rand(-6, 6); g.lineTo(x, y); } } g.stroke(); g.restore();
   }
   if (f.buried && f.frozen > 0) { g.fillStyle = '#6b4a2e'; g.strokeStyle = INK; g.lineWidth = 2.5; g.beginPath(); g.ellipse(f.x, f.y, c.w * 0.75, 9, 0, Math.PI, TAU); g.closePath(); g.fill(); g.stroke(); }
+  drawAirFx(g, f);
+  if (f.state === 'attack' && f.move && f.move.psi && f.move.hb[0] && f.mt > f.move.start - 3 && f.mt <= f.move.start + f.move.active + 5) {
+    // PSI burst drawn from the move state so online guests see it too
+    const hb = f.move.hb[0], k = (f.mt - f.move.start + 3) / (f.move.active + 8), hx = f.x + hb.x * f.facing, hy = f.y + hb.y, R = hb.r * (0.45 + k * 0.75);
+    g.save(); g.globalAlpha = Math.max(0, 1 - k * 0.85);
+    const gr = g.createRadialGradient(hx, hy, 2, hx, hy, R); gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.45, f.col.fx); gr.addColorStop(1, 'rgba(255,140,230,0)');
+    g.fillStyle = gr; g.beginPath(); g.arc(hx, hy, R, 0, TAU); g.fill();
+    g.lineWidth = 3; g.strokeStyle = '#ff9ff0'; g.beginPath(); g.arc(hx, hy, R * 0.85, 0, TAU); g.stroke();
+    for (let i = 0; i < 6; i++) {
+      const a = i * TAU / 6 + f.mt * 0.35, d = R * (0.7 + 0.3 * Math.sin(f.mt + i)), x = hx + Math.cos(a) * d, y = hy + Math.sin(a) * d, r = 5;
+      g.fillStyle = i % 2 ? '#ffffff' : '#ffe36b'; g.beginPath(); for (let j = 0; j < 8; j++) { const q = j * Math.PI / 4, rr = j % 2 ? r * 0.4 : r; g.lineTo(x + Math.cos(q) * rr, y + Math.sin(q) * rr); } g.fill();
+    }
+    g.restore();
+  }
   if (f.state === 'attack' && f.move && f.move.riptide && f.mt > 10 && f.mt < 30) {
     const a = f.aim || 0, dx = Math.cos(a) * f.facing, dy = Math.sin(a), cx = f.x, cy = f.y - c.h / 2, ph = f.mt * 0.9, ang = Math.atan2(dy, dx);
     g.save(); g.lineWidth = 2.5;
@@ -3656,6 +3814,63 @@ function drawHitboxes(g, fr) {
     }
   }
   g.globalCompositeOperation = 'source-over';
+}
+function drawAirFx(g, f) {
+  // aerial effects at the active hitboxes, drawn from the move state so online guests see them too
+  const m = f.move; if (f.state !== 'attack' || !m || !m.afx || !m.hb) return;
+  const t = f.mt, c = f.c, cx = f.x, cy = f.y - c.h * 0.5, fr = G.frame, s = c.h / 80;
+  for (const hb of m.hb) {
+    if (hb.when) continue;
+    const a0 = m.start + (hb.f0 || 0), a1 = m.start + (hb.f1 != null ? hb.f1 : m.active);
+    if (t < a0 || t > a1 + 3) continue;
+    const k = t <= a1 ? 1 : 1 - (t - a1) / 4, hx = f.x + hb.x * f.facing, hy = f.y + hb.y, r = hb.r, q = fr * 0.6 + hb.x * 0.1;
+    g.save(); g.globalAlpha = Math.max(0, k); g.lineCap = 'round';
+    switch (m.afx) {
+      case 'slash': {
+        const ang = Math.atan2(hy - cy, hx - cx), R = Math.hypot(hx - cx, hy - cy) + r * 0.2;
+        g.strokeStyle = hexA(f.col.fx, 0.5); g.lineWidth = r * 0.9; g.beginPath(); g.arc(cx, cy, R, ang - 0.7, ang + 0.7); g.stroke();
+        g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = r * 0.28; g.beginPath(); g.arc(cx, cy, R + r * 0.25, ang - 0.55, ang + 0.55); g.stroke();
+        break;
+      }
+      case 'fire': g.globalCompositeOperation = 'lighter';
+        for (let i = 0; i < 6; i++) { const a = i * TAU / 6 + q * 0.3, d = r * 0.45 * (0.5 + 0.5 * Math.sin(q + i)); g.fillStyle = i % 2 ? 'rgba(255,140,40,.55)' : 'rgba(255,220,80,.55)'; g.beginPath(); g.arc(hx + Math.cos(a) * d, hy + Math.sin(a) * d, r * 0.5, 0, TAU); g.fill(); }
+        break;
+      case 'elec': g.globalCompositeOperation = 'lighter'; g.fillStyle = 'rgba(255,250,170,.45)'; g.beginPath(); g.arc(hx, hy, r * 0.55, 0, TAU); g.fill();
+        g.strokeStyle = '#fff36b'; g.lineWidth = 2.5;
+        for (let i = 0; i < 4; i++) { const a = i * TAU / 4 + Math.floor(fr / 2) * 1.7; let x = hx, y = hy; g.beginPath(); g.moveTo(x, y); for (let j = 1; j <= 3; j++) { const rr = r * 0.4 * j, w = (j % 2 ? 0.45 : -0.45); x = hx + Math.cos(a + w) * rr; y = hy + Math.sin(a + w) * rr; g.lineTo(x, y); } g.stroke(); }
+        break;
+      case 'ice': g.fillStyle = 'rgba(190,240,255,.8)'; g.strokeStyle = '#ffffff'; g.lineWidth = 1.5;
+        for (let i = 0; i < 5; i++) { const a = i * TAU / 5 + q * 0.2, x = hx + Math.cos(a) * r * 0.6, y = hy + Math.sin(a) * r * 0.6; g.beginPath(); g.moveTo(x + Math.cos(a) * r * 0.45, y + Math.sin(a) * r * 0.45); g.lineTo(x + Math.cos(a + 1.9) * r * 0.18, y + Math.sin(a + 1.9) * r * 0.18); g.lineTo(x + Math.cos(a - 1.9) * r * 0.18, y + Math.sin(a - 1.9) * r * 0.18); g.closePath(); g.fill(); g.stroke(); }
+        break;
+      case 'star': g.strokeStyle = '#ffffff'; g.lineWidth = 1.5;
+        for (let i = 0; i < 5; i++) { const a = i * TAU / 5 + q * 0.25; g.fillStyle = i % 2 ? '#ffe36b' : '#ffffff'; star(g, hx + Math.cos(a) * r * 0.75, hy + Math.sin(a) * r * 0.75, 6 * s); g.fill(); g.stroke(); }
+        break;
+      case 'drill': g.strokeStyle = hexA(f.col.fx, 0.75); g.lineWidth = 2.5;
+        for (let i = 0; i < 3; i++) { g.beginPath(); g.ellipse(hx, hy, r, r * 0.32, q * 0.7 + i * Math.PI / 3, 0, TAU); g.stroke(); }
+        break;
+      case 'spin': g.strokeStyle = 'rgba(255,255,255,.75)'; g.lineWidth = 3;
+        for (let i = 0; i < 3; i++) { const a = q + i * 2.1; g.beginPath(); g.arc(hx, hy, r * (0.65 + i * 0.15), a, a + 1.5); g.stroke(); }
+        break;
+      case 'water': g.strokeStyle = 'rgba(170,225,255,.9)'; g.lineWidth = 2; g.fillStyle = 'rgba(200,240,255,.25)';
+        for (let i = 0; i < 6; i++) { const a = i * TAU / 6 + q * 0.2, d = r * (0.55 + 0.25 * Math.sin(q + i)); g.beginPath(); g.arc(hx + Math.cos(a) * d, hy + Math.sin(a) * d, (3 + (i % 3) * 2) * s, 0, TAU); g.fill(); g.stroke(); }
+        break;
+      case 'feather': g.fillStyle = '#fff6c8'; g.strokeStyle = 'rgba(60,40,20,.75)'; g.lineWidth = 1.5;
+        for (let i = 0; i < 7; i++) { const a = i * TAU / 7 + q * 0.3, x = hx + Math.cos(a) * r * 0.85, y = hy + Math.sin(a) * r * 0.85; g.beginPath(); g.ellipse(x, y, 9, 3.5, a + q, 0, TAU); g.fill(); g.stroke(); g.beginPath(); g.moveTo(x - Math.cos(a + q) * 9, y - Math.sin(a + q) * 9); g.lineTo(x + Math.cos(a + q) * 9, y + Math.sin(a + q) * 9); g.stroke(); }
+        break;
+      case 'dark': g.fillStyle = 'rgba(20,0,12,.35)'; g.beginPath(); g.arc(hx, hy, r * 0.8, 0, TAU); g.fill();
+        g.strokeStyle = '#ff2a3d'; g.lineWidth = 3; g.beginPath(); g.arc(hx, hy, r * (0.6 + 0.3 * ((fr % 6) / 6)), 0, TAU); g.stroke();
+        break;
+      case 'psi': { const gr = g.createRadialGradient(hx, hy, 2, hx, hy, r); gr.addColorStop(0, 'rgba(255,255,255,.8)'); gr.addColorStop(0.5, hexA(f.col.fx, 0.45)); gr.addColorStop(1, 'rgba(255,140,230,0)'); g.fillStyle = gr; g.beginPath(); g.arc(hx, hy, r, 0, TAU); g.fill(); break; }
+      case 'tongue': {
+        const tip = m.hb.reduce((p, h) => Math.abs(h.x) > Math.abs(p.x) ? h : p);
+        if (hb !== tip) break;
+        const mx = f.x + f.facing * c.w * 0.45, my = f.y - 70 * s, ext = hx + f.facing * r * 0.5;
+        g.strokeStyle = INK; g.lineWidth = 9; g.beginPath(); g.moveTo(mx, my); g.lineTo(ext, my); g.stroke(); g.strokeStyle = f.col.acc; g.lineWidth = 5; g.stroke(); dot(g, ext, my, 7, f.col.acc);
+        break;
+      }
+    }
+    g.restore();
+  }
 }
 function hexA(hex, a) { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; }
 function pctColor(p) {
