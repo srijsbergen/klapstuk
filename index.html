@@ -42,6 +42,11 @@ select{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
 .pv{width:100%;max-width:100%;aspect-ratio:18/16;height:auto;display:block;border-radius:10px;cursor:pointer;
   background:radial-gradient(circle at 50% 78%,color-mix(in srgb,var(--pc) 34%,transparent),transparent 68%)}
 .cn{text-align:center;flex:1;min-width:0}
+.skins{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+.sw{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);padding:0;cursor:pointer;box-shadow:inset 0 0 0 2px rgba(0,0,0,.25)}
+.sw[aria-pressed="true"]{border-color:#fff;outline:2px solid var(--pc);outline-offset:1px}
+.sw:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.slot.off .skins{opacity:.35}
 .cn b{font-family:var(--display);font-weight:400;font-size:21px;display:block;line-height:1.1}
 .cn small{color:var(--mute);font-size:12.5px;display:block;min-height:4em;line-height:1.35}
 .cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:6px}
@@ -691,6 +696,49 @@ Object.assign(CHARS, {
     col: { body: '#3f6fd8', dark: '#1d1c24', acc: '#ff8fb8', skin: '#f4f4f0', fx: '#5fd3ff' }, alt: { body: '#2b2b33', dark: '#3f6fd8', acc: '#ffd23f', skin: '#f4f4f0', fx: '#ffd23f' } },
 });
 const CHAR_KEYS = Object.keys(CHARS).filter(k => !CHARS[k].hidden);
+
+/* ---------------- skins: six colourways per fighter ---------------- */
+// 0 and 1 are the hand-made palettes; 2-5 are derived from the first: two turns round the colour wheel, a night
+// version and a gilded one. Human skin tones stay put, so faces don't turn green.
+const SKINS = 6, SKIN_NAMES = ['Standaard', 'Tweede', 'Omgedraaid', 'Andersom', 'Nacht', 'Goud'];
+function hexHsl(v) {
+  const n = parseInt(v.slice(1), 16), r = (n >> 16) / 255, g = (n >> 8 & 255) / 255, b = (n & 255) / 255;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn;
+  if (!d) return [0, 0, l];
+  const s2 = d / (1 - Math.abs(2 * l - 1)), h = mx === r ? ((g - b) / d + 6) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return [h * 60, s2, l];
+}
+function hslHex(h, s2, l) {
+  s2 = clamp(s2, 0, 1); l = clamp(l, 0, 1); h = ((h % 360) + 360) % 360;
+  const c = (1 - Math.abs(2 * l - 1)) * s2, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2;
+  const [r, g, b] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+  return '#' + [r, g, b].map(v => Math.round((v + m) * 255).toString(16).padStart(2, '0')).join('');
+}
+const isFlesh = ([h, s2, l]) => h >= 8 && h <= 50 && s2 >= 0.15 && l >= 0.55;
+function skinFx(col, fn) {
+  const o = {};
+  for (const k in col) { const v = col[k]; if (typeof v !== 'string' || !/^#[0-9a-f]{6}$/i.test(v)) { o[k] = v; continue; } const hsl = hexHsl(v); o[k] = k === 'skin' && isFlesh(hsl) ? v : hslHex(...fn(hsl, k)); }
+  return o;
+}
+// a turn of the wheel does nothing to grey or black, so those get some colour first (white stays white)
+const turn = d => ([h, s2, l]) => s2 < 0.25 && l < 0.9 ? [(h + d) % 360 || d, 0.5, l < 0.2 ? 0.28 : l] : [h + d, s2, l];
+const SKIN_FX = [
+  c => skinFx(c, turn(110)),
+  c => skinFx(c, turn(220)),
+  c => skinFx(c, ([h, s2, l], k) => k === 'fx' ? [h, s2, Math.max(l, 0.62)] : k === 'skin' ? [h, s2 * 0.8, l * 0.85] : [h + 10, s2 * 0.7, Math.max(0.1, l * 0.58)]),
+  c => skinFx(c, ([h, s2, l], k) => k === 'fx' ? [50, 1, Math.max(l, 0.7)] : [40 + (h % 24) - 12, Math.min(1, s2 * 0.5 + 0.45), clamp(l * 1.05, 0.18, 0.86)]),
+];
+const skinCache = {};
+function skinCol(ck, i) {
+  const c = CHARS[ck]; i = ((i | 0) % SKINS + SKINS) % SKINS;
+  if (i === 0) return c.col; if (i === 1) return c.alt || c.col;
+  return skinCache[ck + i] || (skinCache[ck + i] = SKIN_FX[i - 2](c.col));
+}
+// players on the same fighter never share a colourway: a clash moves on to the next free one
+function spreadSkins(list) {
+  const taken = {};
+  return list.map(q => { let sk = ((q.sk | 0) % SKINS + SKINS) % SKINS; const t = taken[q.ch] || (taken[q.ch] = new Set()); for (let n = 0; n < SKINS && t.has(sk); n++) sk = (sk + 1) % SKINS; t.add(sk); return sk; });
+}
 
 let NEXT_ID = 1;
 /* Per-character throws. d = damage, a = angle, b = base knockback, g = growth (how strongly the
@@ -1800,7 +1848,7 @@ function transformMove(M, to) {
 }
 function setForm(f, nk) {
   if (!CHARS[nk] || f.key === nk) return;
-  f.key = nk; f.c = CHARS[nk]; f.col = f.altCol ? f.c.alt : f.c.col; f.M = buildMoves(nk);
+  f.key = nk; f.c = CHARS[nk]; f.col = skinCol(nk, f.skin); f.M = buildMoves(nk);
   f.jumps = Math.min(f.jumps, f.c.airJumps);
 }
 function eggBreak(p) {
@@ -1941,8 +1989,8 @@ const G = { mode: 'none', fighters: [], projs: [], items: [], parts: [], kos: []
 /* ---------------- fighter ---------------- */
 const GROUNDED_ACT = ['idle', 'walk', 'run', 'crouch'];
 class Fighter {
-  constructor(slot, ck, src, lvl, alt) {
-    this.id = NEXT_ID++; this.slot = slot; this.key = ck; this.c = CHARS[ck]; this.col = alt ? this.c.alt : this.c.col; this.altCol = !!alt; this.baseKey = ck; this.pc = PCOL[slot];
+  constructor(slot, ck, src, lvl, skin) {
+    this.id = NEXT_ID++; this.slot = slot; this.key = ck; this.c = CHARS[ck]; this.skin = skin === true ? 1 : skin | 0; this.col = skinCol(ck, this.skin); this.baseKey = ck; this.pc = PCOL[slot];
     this.src = src; this.cpu = src === 'cpu'; this.ctrl = new Ctrl(src); this.lvl = lvl;
     this.ai = this.cpu ? new AI(this, lvl) : null;
     this.M = buildMoves(ck);
@@ -3107,12 +3155,12 @@ function startMatch(demo, custom, cfg) {
   const c = cfg || settings, sk = c.stage, sks = Object.keys(STAGES), S = makeStage(sk === 'random' || !STAGES[sk] ? sks[Math.random() * sks.length | 0] : sk);
   Object.assign(G, { stage: S, projs: [], items: [], parts: [], kos: [], frame: 0, shake: 0, flash: 0, paused: false, endT: 0, useItems: c.items, itemT: 480,
     training: false, mode: demo ? 'demo' : 'match', countdown: demo ? 0 : 200, stocks: demo ? 99 : c.stocks, net: null, netClient: false });
-  const list = custom || (demo ? demoRoster() : activeSlots()), used = {}, n = list.length;
+  const list = custom || (demo ? demoRoster() : activeSlots()), n = list.length;
+  // pickChar turns hidden characters into a random one; the training bag is hidden but asked for on purpose
+  const cks = list.map(q => custom && q.ch === 'bag' ? 'bag' : pickChar(q.ch)), skins = spreadSkins(list.map((q, k) => ({ ch: cks[k], sk: q.sk })));
   const xs = n === 2 ? [-0.55, 0.55] : n === 3 ? [-0.6, 0, 0.6] : [-0.65, 0.65, -0.22, 0.22];
   G.fighters = list.map((s, k) => {
-    // pickChar turns hidden characters into a random one; the training bag is hidden but asked for on purpose
-    const ck = custom && s.ch === 'bag' ? 'bag' : pickChar(s.ch), alt = (used[ck] || 0) % 2 === 1; used[ck] = (used[ck] || 0) + 1;
-    const f = new Fighter(s.i, ck, demo ? 'cpu' : s.type, demo ? 6 : s.lvl, alt);
+    const ck = cks[k], f = new Fighter(s.i, ck, demo ? 'cpu' : s.type, demo ? 6 : s.lvl, skins[k]);
     if (s.peer) f.ctrl.peer = s.peer;
     const x = S.main.x2 * xs[k];
     f.reset(x, S.main.y); f.grounded = true; f.ground = S.main; f.state = 'idle'; f.facing = x <= 0 ? 1 : -1;
@@ -4902,7 +4950,23 @@ function refreshSlot(i) {
   document.getElementById('cb' + i).textContent = charBlurb(s.ch);
   document.getElementById('lvw' + i).hidden = s.type !== 'cpu';
   document.getElementById('lv' + i).value = s.lvl; document.getElementById('lo' + i).textContent = s.lvl;
+  renderSwatches(document.getElementById('sw' + i), s.ch, s.sk | 0, k => setSkin(i, k));
   refreshGrid();
+}
+function setSkin(i, k) { settings.slots[i].sk = ((k % SKINS) + SKINS) % SKINS; refreshSlot(i); save(); SFX.ui(); }
+// one dot per colourway, filled with that skin's body colour; hidden for 'random', which has no colours to show
+function renderSwatches(el, ch, cur, pick) {
+  if (!el) return; el.hidden = !CHARS[ch];
+  if (!CHARS[ch]) { el.innerHTML = ''; return; }
+  if (el.dataset.ch !== ch) {
+    el.dataset.ch = ch; el.innerHTML = '';
+    for (let k = 0; k < SKINS; k++) {
+      const b = document.createElement('button'), cl = skinCol(ch, k); b.type = 'button'; b.className = 'sw';
+      b.style.background = `linear-gradient(135deg, ${cl.body} 0 55%, ${cl.acc} 55%)`; b.title = SKIN_NAMES[k]; b.setAttribute('aria-label', 'Kleur ' + (k + 1) + ': ' + SKIN_NAMES[k]);
+      b.addEventListener('click', () => pick(k)); el.appendChild(b);
+    }
+  }
+  [...el.children].forEach((b, k) => b.setAttribute('aria-pressed', String(k === cur)));
 }
 function buildMenu() {
   buildCharGrid(document.getElementById('cgrid'), k => online() ? netSetCh(k) : pickForActive(k));
@@ -4912,10 +4976,11 @@ function buildMenu() {
     el.innerHTML = `<div class="slot-head"><button class="tagbtn" aria-label="Kies voor speler ${i + 1}"><span class="tag">P${i + 1}</span></button><label class="sr" for="ty${i}">Besturing speler ${i + 1}</label><select id="ty${i}">${TYPES.map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></div>
       <span class="now" hidden>kiest nu</span>
       <canvas class="pv" id="pv${i}" width="360" height="320" aria-label="Speler ${i + 1}: klik om voor deze speler te kiezen" tabindex="0"></canvas>
+      <div class="skins" id="sw${i}" role="group" aria-label="Kleur van speler ${i + 1}"></div>
       <div class="cn"><b id="cn${i}"></b><small id="cb${i}"></small></div>
       <div class="lvl" id="lvw${i}"><label for="lv${i}">CPU-niveau</label><input type="range" id="lv${i}" min="1" max="12"><output id="lo${i}"></output></div>`;
     wrap.appendChild(el);
-    el.addEventListener('click', e => { if (e.target.closest('select,input,label')) return; setActiveSlot(i); });
+    el.addEventListener('click', e => { if (e.target.closest('select,input,label,.skins')) return; setActiveSlot(i); });
     el.querySelector('.pv').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveSlot(i); document.querySelector('#cgrid .cg').focus(); } });
     el.querySelector('select').addEventListener('change', e => { settings.slots[i].type = e.target.value; refreshSlot(i); save(); $('#msg').textContent = ''; restartDemoSoon(); });
     el.querySelector('input').addEventListener('input', e => { settings.slots[i].lvl = +e.target.value; refreshSlot(i); save(); });
@@ -4969,8 +5034,8 @@ function setMode(m) {
   UIM = m; cursors.menu = {}; cursors.net = null; cursorKey = { menu: '', net: '' }; NET.lkey = '';
   $('#modeLocal').setAttribute('aria-selected', String(m === 'local')); $('#modeOnline').setAttribute('aria-selected', String(m === 'online'));
   $('#netPanel').hidden = m !== 'online'; $('#slots').hidden = m === 'online'; $('#netSlots').hidden = m !== 'online'; $('#netWatch').hidden = true;
-  $('#cghint').innerHTML = m === 'online' ? 'Kies je vechter in het rooster: klik erop, of beweeg je cursor met je richtingtoetsen en kies met <b>aanval</b>. De puckjes laten zien wat de anderen kiezen.'
-    : 'Met toetsenbord of gamepad beweegt elke speler een eigen cursor met zijn richtingtoetsen en kiest met <b>aanval</b>. Met de muis: klik op een spelerkaart (of de puck P1–P4) en dan op een vechter. Een uitgezette speler die een vechter krijgt, doet mee als CPU.';
+  $('#cghint').innerHTML = m === 'online' ? 'Kies je vechter in het rooster: klik erop, of beweeg je cursor met je richtingtoetsen en kies met <b>aanval</b>; <b>speciaal</b> of de bolletjes op je kaart wisselen van kleur. De puckjes laten zien wat de anderen kiezen.'
+    : 'Met toetsenbord of gamepad beweegt elke speler een eigen cursor met zijn richtingtoetsen en kiest met <b>aanval</b>; <b>speciaal</b> wisselt van kleur. Met de muis: klik op een spelerkaart (of de puck P1–P4) en dan op een vechter, en op een gekleurd bolletje voor een andere kleur. Een uitgezette speler die een vechter krijgt, doet mee als CPU.';
   $('#msg').textContent = '';
   if (m === 'online') { SFX.init(); if (NET.game) { showLobby(); } else showNetStart(); renderLobby(); }
   refreshGrid(); syncOpts();
@@ -4986,19 +5051,19 @@ function drawThumb(cnv, key) {
   if (S.lava) { setLayer(g, V, 1); drawLava(g, 150, 0); }
 }
 function drawPreviews(now) {
-  if (online()) { (NET.cards || []).forEach((cd, i) => { const cnv = document.getElementById('npv' + i); if (cnv) drawPv(cnv, cd.ch, cd.alt, now, i); }); return; }
+  if (online()) { (NET.cards || []).forEach((cd, i) => { const cnv = document.getElementById('npv' + i); if (cnv) drawPv(cnv, cd.ch, cd.sk, now, i); }); return; }
+  const on = settings.slots.filter(x => x.type !== 'off'), spread = spreadSkins(on);
   settings.slots.forEach((s, i) => {
     const cnv = document.getElementById('pv' + i); if (!cnv) return;
-    const used = settings.slots.slice(0, i).filter(x => x.ch === s.ch && x.type !== 'off').length;
-    drawPv(cnv, s.ch, s.type !== 'off' && used % 2 === 1, now, i);
+    drawPv(cnv, s.ch, s.type === 'off' ? s.sk : spread[on.indexOf(s)], now, i);
   });
 }
-function drawPv(cnv, ch, alt, now, i) {
+function drawPv(cnv, ch, sk, now, i) {
   {
     const g = cnv.getContext('2d'), W = cnv.width, H = cnv.height, c = CHARS[ch], t = now / 1000 + i * 0.7;
     g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H);
     if (!c) { drawRandomIcon(g, W, H); return; }
-    const col = alt ? c.alt : c.col;
+    const col = skinCol(ch, sk);
     const cyc = t % 4; let P;
     if (cyc > 3 && cyc < 3.7) { const k = (cyc - 3) / 0.7, pz = POSE.smashF; P = k < 0.4 ? mix(mk({ plant: 'both' }), pz.wind, k / 0.4) : mix(pz.wind, pz.strike, Math.min(1, (k - 0.4) / 0.15)); }
     else P = mk({ dy: Math.sin(t * 4) * 1.5, aF: [0.35 + Math.sin(t * 4) * 0.06, -0.6], plant: 'both' });
@@ -5071,7 +5136,7 @@ const MODE_LIST = ['match', 'gameover', 'results'];
 const LAVA_ST = ['idle', 'warn', 'rise', 'hold', 'fall'];
 const CTR_MOVE = { pose: 'smashF', start: 3, active: 4, end: 20, dur: 27, hb: [] };
 const CODE_CH = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const NET = { ready: false, room: null, user: null, game: null, role: null, code: '', me: null, mid: 0, ord: [], ro: null, unsubs: [],
+const NET = { ready: false, sk: 0, room: null, user: null, game: null, role: null, code: '', me: null, mid: 0, ord: [], ro: null, unsubs: [],
   cfg: { stage: 'ruins', stocks: 3, items: true, cpu: false }, ch: 'volt', src: isTouch ? 'touch' : 'kb1',
   snaps: [], disp: -1, prevSnap: null, inCnt: {}, inPrev: blank(), lastIn: '', peerMap: new Map(), misses: 0, joinedOk: false, sentResults: false, rtok: 0, seq: 0, p2p: false, nm: '' };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -5168,7 +5233,7 @@ async function netJoin(code) {
   netMsg('Verbinden met ' + code + '…');
   let g; try { g = NET.p2p ? await NET.room.join('klap-' + code.toLowerCase(), { host: false }) : await NET.room.join('klap-' + code.toLowerCase()); } catch (e) { return netMsg(e && e.code === 'not_found' ? 'Geen spel gevonden met code ' + code + '.' : joinErr(e)); }
   Object.assign(NET, { game: g, role: 'guest', code, mid: 0, misses: 0, joinedOk: false, snaps: [], lastIn: '' });
-  attachGame(g); g.presence({ role: 'guest', ch: NET.ch, nm: NET.nm }).catch(() => {});
+  attachGame(g); g.presence({ role: 'guest', ch: NET.ch, sk: NET.sk, nm: NET.nm }).catch(() => {});
   showLobby(); renderLobby();
   const t0 = performance.now();
   while (performance.now() - t0 < 6000) {
@@ -5194,7 +5259,7 @@ async function netLeave(keepScreen) {
 function netLost(msg) { netLeave().then(() => netMsg(msg)); }
 function hostLobbyPresence() {
   if (NET.role !== 'host' || !NET.game) return;
-  NET.game.presence({ role: 'host', ph: 'lobby', code: NET.code, ch: NET.ch, nm: NET.nm, cfg: NET.cfg, ord: NET.ord, mid: NET.mid, ro: null, st: null, s: null }).catch(() => {});
+  NET.game.presence({ role: 'host', ph: 'lobby', code: NET.code, ch: NET.ch, sk: NET.sk, nm: NET.nm, cfg: NET.cfg, ord: NET.ord, mid: NET.mid, ro: null, st: null, s: null }).catch(() => {});
   if (NET.room) NET.room.presence({ open: { code: NET.code, n: Math.max(1, NET.ord.length) } }).catch(() => {});
 }
 function lobbyOrder() {
@@ -5227,18 +5292,19 @@ function netCards(list, cfg) {
     el.className = 'slot on' + (p.me ? ' me' : '');
     el.innerHTML = `<div class="slot-head"><span class="tag">P${i + 1}</span><span class="pname"></span></div>
       <canvas class="pv" id="npv${i}" width="360" height="320" aria-hidden="true"></canvas>
-      <div class="cn"><b></b><small></small></div>` + (p.me ? `<div class="opt"><label for="netSrc">Jouw besturing</label><select id="netSrc">${TYPES.filter(([v]) => v !== 'cpu' && v !== 'off').map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></div>` : '');
+      ` + (p.me ? `<div class="skins" role="group" aria-label="Jouw kleur"></div>` : '') + `<div class="cn"><b></b><small></small></div>` + (p.me ? `<div class="opt"><label for="netSrc">Jouw besturing</label><select id="netSrc">${TYPES.filter(([v]) => v !== 'cpu' && v !== 'off').map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></div>` : '');
     el.querySelector('.pname').textContent = (p.me ? (p.name ? p.name + ' (jij)' : 'Jij') : p.name || 'Speler') + (p.host ? ' · host' : '');
     el.querySelector('.cn b').textContent = charName(p.ch); el.querySelector('.cn small').textContent = charBlurb(p.ch);
     const sel = el.querySelector('select');
     if (sel) { sel.value = NET.src; sel.addEventListener('change', e => { NET.src = e.target.value; settings.netSrc = NET.src; save(); cursors.net = null; NET.lkey = ''; renderLobby(); }); }
-    NET.cards[i] = { ch: p.ch, alt: list.slice(0, i).some(q => q.ch === p.ch) };
+    NET.cards[i] = { ch: p.ch, sk: spreadSkins(list.slice(0, i + 1))[i] };
+    if (p.me) renderSwatches(el.querySelector('.skins'), p.ch, NET.sk, k => netSetSkin(k));
     wrap.appendChild(el);
   }
 }
 async function renderLobby() {
   if (!online()) return;
-  if (!NET.game) { netCards([{ name: NET.nm, ch: NET.ch, me: true, host: false }], null); NET.pucks = null; refreshGrid(); return; }
+  if (!NET.game) { netCards([{ name: NET.nm, ch: NET.ch, sk: NET.sk, me: true, host: false }], null); NET.pucks = null; refreshGrid(); return; }
   const tok = ++NET.rtok, { pm, ord, cfg } = lobbyOrder();
   $('#netCodeShow').textContent = NET.code;
   $('#netInvite').hidden = !NET.p2p; if (NET.p2p) $('#netLink').value = inviteLink();
@@ -5249,7 +5315,7 @@ async function renderLobby() {
     const p = pm.get(peer), pr = p.presence || {};
     const ck = pr.ch === 'random' || (CHARS[pr.ch] && !CHARS[pr.ch].hidden) ? pr.ch : 'volt';
     const name = (p.by && ps[p.by] && ps[p.by].name) || cleanName(pr.nm) || (pr.role === 'host' ? 'Host' : 'Speler');
-    if (i < 4) { pucks.push({ ch: ck, color: PCOL[i], label: 'P' + (i + 1), active: !!p.sameTab }); list.push({ name, ch: ck, me: !!p.sameTab, host: pr.role === 'host' }); }
+    if (i < 4) { pucks.push({ ch: ck, color: PCOL[i], label: 'P' + (i + 1), active: !!p.sameTab }); list.push({ name, ch: ck, sk: p.sameTab ? NET.sk : clamp(pr.sk | 0, 0, SKINS - 1), me: !!p.sameTab, host: pr.role === 'host' }); }
     else watch.push(name + (p.sameTab ? ' (jij)' : ''));
   });
   NET.pucks = pucks; refreshGrid();
@@ -5265,6 +5331,11 @@ async function renderLobby() {
     $('#netHint').textContent = 'Podium: ' + st + ' · ' + clamp(cfg.stocks | 0, 1, 9) + ' levens · items ' + (cfg.items ? 'aan' : 'uit') + (cfg.cpu ? ' · CPU\'s vullen aan' : '') + '. Wachten tot de host start…';
   } else $('#netHint').textContent = 'Wachten op de host…';
 }
+function netSetSkin(k) {
+  NET.sk = ((k % SKINS) + SKINS) % SKINS; settings.netSk = NET.sk; save(); SFX.ui();
+  if (NET.role === 'host') hostLobbyPresence(); else if (NET.game) NET.game.presence({ sk: NET.sk }).catch(() => {});
+  if (!NET.game) { NET.lkey = ''; } renderLobby();
+}
 function netSetCh(ck) {
   NET.ch = ck; settings.netCh = ck; save();
   if (NET.role === 'host') hostLobbyPresence(); else if (NET.game) NET.game.presence({ ch: ck }).catch(() => {});
@@ -5273,14 +5344,14 @@ function netSetCh(ck) {
 function netStartMatch() {
   if (NET.role !== 'host' || !NET.game) return;
   const { pm, ord } = lobbyOrder();
-  const list = ord.slice(0, 4).map((peer, i) => peer === NET.me ? { i, ch: pickChar(NET.ch), type: NET.src, lvl: 5, peer } : { i, ch: pickChar((pm.get(peer).presence || {}).ch), type: 'net', lvl: 5, peer });
-  if (NET.cfg.cpu) while (list.length < 4) list.push({ i: list.length, ch: CHAR_KEYS[Math.random() * CHAR_KEYS.length | 0], type: 'cpu', lvl: 5, peer: null });
+  const list = ord.slice(0, 4).map((peer, i) => peer === NET.me ? { i, ch: pickChar(NET.ch), sk: NET.sk, type: NET.src, lvl: 5, peer } : { i, ch: pickChar((pm.get(peer).presence || {}).ch), sk: (pm.get(peer).presence || {}).sk | 0, type: 'net', lvl: 5, peer });
+  if (NET.cfg.cpu) while (list.length < 4) list.push({ i: list.length, ch: CHAR_KEYS[Math.random() * CHAR_KEYS.length | 0], sk: Math.random() * SKINS | 0, type: 'cpu', lvl: 5, peer: null });
   if (list.length < 2) { netMsg('Wacht op een tweede speler, of zet CPU\'s aan.'); return; }
   SFX.init(); netMsg('');
   NET.mid += 1; NET.sentResults = false;
   startMatch(false, list, { stage: NET.cfg.stage, stocks: NET.cfg.stocks, items: NET.cfg.items });
   G.net = { role: 'host' };
-  NET.ro = G.fighters.map((f, i) => [f.slot, f.key, f.col === f.c.alt ? 1 : 0, f.cpu ? 1 : 0, f.lvl, list[i].peer || '']);
+  NET.ro = G.fighters.map((f, i) => [f.slot, f.key, f.skin, f.cpu ? 1 : 0, f.lvl, list[i].peer || '']);
   if (NET.room) NET.room.presence({ open: null }).catch(() => {});
   menuEl.hidden = true; resEl.hidden = true; pauseEl.hidden = true; pbtn.hidden = false;
   touchEl.hidden = NET.src !== 'touch'; G.hudTop = NET.src === 'touch';
@@ -5348,7 +5419,7 @@ function netClientStart(hp) {
   const S = makeStage(STAGES[hp.st] ? hp.st : 'ruins');
   Object.assign(G, { stage: S, projs: [], items: [], parts: [], kos: [], frame: 0, shake: 0, flash: 0, paused: false, endT: 0, mode: 'match', countdown: 200, stocks: 3, useItems: false });
   G.fighters = hp.ro.slice(0, 4).map(r => {
-    const ck = Array.isArray(r) && CHARS[r[1]] ? r[1] : 'volt', f = new Fighter(clamp((r && r[0]) | 0, 0, 3), ck, 'none', clamp((r && r[4]) | 0, 1, 9), !!(r && r[2]));
+    const ck = Array.isArray(r) && CHARS[r[1]] ? r[1] : 'volt', f = new Fighter(clamp((r && r[0]) | 0, 0, 3), ck, 'none', clamp((r && r[4]) | 0, 1, 12), clamp((r && r[2]) | 0, 0, SKINS - 1));
     f.cpu = !!(r && r[3]); f.state = 'idle'; f.grounded = true; f.ground = S.main; return f;
   });
   G.netClient = true; G.net = { role: 'guest' };
@@ -5444,6 +5515,7 @@ function netFighter(f, r, nb, k, fresh) {
 }
 function initNetUI() {
   if (settings.netCh === 'random' || (CHARS[settings.netCh] && !CHARS[settings.netCh].hidden)) NET.ch = settings.netCh;
+  NET.sk = clamp(settings.netSk | 0, 0, SKINS - 1);
   if (['kb1', 'kb2', 'pad1', 'pad2', 'touch'].includes(settings.netSrc)) NET.src = settings.netSrc;
   $('#modeLocal').addEventListener('click', () => setMode('local'));
   $('#modeOnline').addEventListener('click', () => setMode('online'));
@@ -5527,7 +5599,7 @@ function moveCell(cells, idx, dx, dy) {
   });
   return best;
 }
-function pollCursor(cur, raw, cells, now, onPick) {
+function pollCursor(cur, raw, cells, now, onPick, onSkin) {
   const P = cur.prev || {}, dirs = [['l', -1, 0], ['r', 1, 0], ['u', 0, -1], ['d', 0, 1]];
   const held = dirs.find(([d]) => raw[d]);
   if (held) {
@@ -5536,6 +5608,7 @@ function pollCursor(cur, raw, cells, now, onPick) {
     else if (now >= cur.rep) { cur.idx = moveCell(cells, cur.idx, dx, dy); cur.rep = now + 130; }
   }
   if (raw.atk && !P.atk) onPick(cells[cur.idx].dataset.c);
+  if (raw.spc && !P.spc && onSkin) onSkin();
   cur.prev = Object.assign({}, raw);
 }
 function renderCursors(el, list, which) {
@@ -5559,7 +5632,7 @@ function pollCursors(now) {
       let cur = cursors.menu[i];
       if (!cur) cur = cursors.menu[i] = { idx: Math.max(0, cells.findIndex(c => c.dataset.c === s.ch)), prev: raw };
       if (typing()) { cur.prev = Object.assign({}, raw); return; }
-      pollCursor(cur, raw, cells, now, k => { activeSlot = i; pickForActive(k); });
+      pollCursor(cur, raw, cells, now, k => { activeSlot = i; pickForActive(k); }, () => setSkin(i, (s.sk | 0) + 1));
     });
     renderCursors(el, Object.entries(cursors.menu).map(([i, c]) => ({ idx: c.idx, color: PCOL[i], label: 'P' + (+i + 1) })), 'menu');
   } else {
@@ -5568,7 +5641,7 @@ function pollCursors(now) {
     let cur = cursors.net;
     if (!cur) cur = cursors.net = { idx: Math.max(0, cells.findIndex(c => c.dataset.c === NET.ch)), prev: raw };
     if (typing()) { cur.prev = Object.assign({}, raw); return; }
-    pollCursor(cur, raw, cells, now, k => netSetCh(k));
+    pollCursor(cur, raw, cells, now, k => netSetCh(k), () => netSetSkin(NET.sk + 1));
     const ord = lobbyOrder().ord, me = ord.indexOf(NET.me);
     renderCursors(el, [{ idx: cur.idx, color: me >= 0 && me < 4 ? PCOL[me] : '#ffc933', label: me >= 0 && me < 4 ? 'P' + (me + 1) : 'Jij' }], 'net');
   }
