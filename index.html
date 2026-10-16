@@ -676,7 +676,7 @@ Object.assign(CHARS, {
 Object.assign(CHARS, {
   gokko: { name: 'Gokko', blurb: 'Vrolijke vechtkunstenaar in een oranje gi. Een energiestraal die je oplaadt, een vliegende drakenvuist, teleporteren en een reuzen-energiebal die je boven je hoofd verzamelt. Raken vult zijn ki-meter; is die vol, dan verandert speciaal omlaag hem 12 seconden in Super-Gokko: goud haar, harder slaan, sneller en zwaarder.', weight: 98, run: 7.4, acc: 1.15, jump: 16, djump: 15, grav: 0.9, fall: 13, ffall: 18.5, air: 5.1, airAcc: 0.5, airJumps: 1, w: 42, h: 80, pow: 1.05, reach: 1, lag: 0, limb: 11, zoner: true, sideRec: true, hr: 0.16,
     col: { body: '#f08a24', dark: '#27408f', acc: '#17151f', skin: '#f6cfa8', fx: '#8fe3ff' }, alt: { body: '#3a62c9', dark: '#d8262f', acc: '#17151f', skin: '#f6cfa8', fx: '#ffe066' } },
-  rekker: { name: 'Rekker', blurb: 'Piraat met een strohoed en een rubberen lijf. Rekbare stoten van ver, een stotenregen, zichzelf omhoogschieten en opblazen als een ballon die projectielen terugkaatst. Raken vult zijn meter; is die vol, dan zet speciaal omlaag hem 12 seconden in de tweede versnelling: roze stomend lijf, razendsnel en harder.', weight: 94, run: 6.8, acc: 1.05, jump: 15.5, djump: 14.5, grav: 0.82, fall: 12, ffall: 17, air: 4.9, airAcc: 0.48, airJumps: 1, w: 40, h: 78, pow: 1, reach: 1.15, lag: 0, limb: 10, arm: 0.19, hr: 0.16,
+  rekker: { name: 'Rekker', blurb: 'Piraat met een strohoed en een rubberen lijf. Rekbare stoten van ver, een stotenregen, zichzelf omhoogschieten en een rubberen bijlschop die van hoog boven neerkomt en tegenstanders de grond in slaat. Raken vult zijn meter; is die vol, dan zet speciaal omlaag hem 12 seconden in de tweede versnelling: roze stomend lijf, razendsnel en harder.', weight: 94, run: 6.8, acc: 1.05, jump: 15.5, djump: 14.5, grav: 0.82, fall: 12, ffall: 17, air: 4.9, airAcc: 0.48, airJumps: 1, w: 40, h: 78, pow: 1, reach: 1.15, lag: 0, limb: 10, arm: 0.19, hr: 0.16,
     col: { body: '#d8262f', dark: '#2f5fb5', acc: '#e9c46a', skin: '#f2c29a', fx: '#ffd36b' }, alt: { body: '#2c2c34', dark: '#d8a03a', acc: '#e9c46a', skin: '#f2c29a', fx: '#ff8a6b' } },
   draai: { name: 'Draaikolk', blurb: 'Luidruchtige ninja met een hoofdband. Een draaiende energiebal in zijn hand, een grote werpster, een schaduwkloon die hem omhoog gooit en een kloon die vooruit rent en slaat. Zijn vosmeter vult vooral als hij geraakt wordt; is die vol, dan maakt speciaal omlaag hem 12 seconden een negenstaartvos: sneller, harder en hij geneest langzaam.', weight: 88, run: 7.8, acc: 1.2, jump: 16, djump: 15, grav: 0.88, fall: 12.8, ffall: 18, air: 5.2, airAcc: 0.52, airJumps: 1, w: 40, h: 76, pow: 0.96, reach: 1, lag: -1, limb: 10, zoner: 'side', hr: 0.165,
     col: { body: '#f2832a', dark: '#283a6b', acc: '#ffd23f', skin: '#f6cfa8', fx: '#8fd8ff' }, alt: { body: '#2b2b33', dark: '#e8742a', acc: '#ffd23f', skin: '#f6cfa8', fx: '#ffb36b' } },
@@ -1589,11 +1589,15 @@ const SPECIALS = {
     upB: M({ special: true, start: 10, active: 20, end: 10, pose: 'clapUp', helpless: true, ledgeOK: 10, rocket: true,
       hb: [H(0, -60, 30, 7, 85, 50, 60, { nr: 1, when: (f, t) => t > 10 && t <= 20 })], noGrav: (f, t) => t < 10,
       tick: (f, t) => { if (t < 10) { f.vx *= 0.7; f.vy *= 0.3; } if (t === 10) { f.vy = -19.5; f.vx = f.ix * 3; f.grounded = false; f.ground = null; SFX.jump(); } } }),
-    // balloon: blow up, bounce projectiles back and sink slowly, then let the air out with a push
-    downB: M({ special: true, start: 4, active: 44, end: 14, pose: 'balloon', balloon: true, reflect: [4, 44],
+    // rubber axe: stretch a leg high up, then slam it down in front; buries grounded foes, spikes airborne ones
+    downB: M({ special: true, start: 18, active: 4, end: 22, pose: 'axeKick', axeKick: true, ll: 16,
       onStart: f => { if ((f.ki || 0) >= 100 && !(f.ssj > 0)) return f.startMove(f.M.gear2Up); },
-      hb: [H(0, -36, 46, 6, 60, 55, 50, { nr: 1, f0: 40 })],
-      tick: (f, t) => { if (!f.grounded && f.vy > 1.2) f.vy = 1.2; f.vx *= 0.9; if (t === 4) SFX.ui(); if (t === 45) SFX.boom(); } }),
+      hb: [H(92, -18, 30, 14, 275, 42, 80, { sweet: true, bury: true }), H(40, -70, 22, 8, 60, 30, 60)],
+      tick: (f, t) => {
+        if (!f.grounded && f.vy > 1) f.vy = 1; f.vx *= 0.85;
+        if (t === 6) SFX.swing();
+        if (t === 19) { dustFx(f.x + f.facing * 92 * f.c.h / 80, f.y, 8); G.shake = Math.max(G.shake, 6); SFX.boom(); }
+      } }),
     // second gear: crouch and pump the legs (untouchable) while the steam builds, then a steam burst that pushes everyone away
     gear2Up: M({ special: true, start: 30, active: 2, end: 16, pose: 'gear', ssjUp: true, intang: [1, 31],
       hb: [H(0, -40, 64, 2, 80, 60, 0, { nr: 1 })],
@@ -2837,7 +2841,7 @@ const POSE = {
   genki: { wind: mk({ aF: [2.2, -0.6], aB: [2.0, -0.6] }), strike: mk({ aF: [3.0, 0], aB: [2.9, 0], lean: -0.1, plant: 'both' }) },
   stretchP: { wind: mk({ aF: [-1.5, -0.6], aB: [0.8, -1.0], lean: -0.25, plant: 'both' }), strike: mk({ aF: [1.57, 0], aB: [-0.8, -0.6], lean: 0.3, lF: [0.8, -0.4], lB: [-0.7, -0.2], plant: 'both' }) },
   gatling: { strike: mk({ lean: 0.25, lF: [0.8, -0.4], lB: [-0.7, -0.2], plant: 'both' }), fn: (f, t, P) => { const k = Math.sin(t * 1.6); P.aF = [1.57 + k * 0.25, 0]; P.aB = [1.5 - k * 0.25, 0.1]; return P; } },
-  balloon: { strike: mk({ aF: [2.2, -0.3], aB: [-2.2, -0.3], lF: [0.5, -0.3], lB: [-0.5, -0.3] }) },
+  axeKick: { wind: mk({ lean: -0.35, aF: [1.2, -0.6], aB: [-1.4, -0.4], lF: [2.7, 0], lB: [-0.1, -0.2], plant: 'B' }), strike: mk({ lean: 0.3, aF: [-0.6, -0.6], aB: [-1.3, -0.4], lF: [1.4, 0], lB: [-0.3, -0.3], plant: 'B' }) },
   rasen: { wind: mk({ aF: [0.9, -1.2], aB: [-0.6, -0.8], crouch: 0.25, lean: -0.1, plant: 'both' }), strike: mk({ aF: [1.6, 0], aB: [-1.2, -0.4], lean: 0.45, lF: [1.0, -0.3], lB: [-0.9, -0.2] }) },
   powerUp: { wind: mk({ crouch: 0.35, lean: -0.12, aF: [-0.4, -0.9], aB: [-0.6, -0.9], lF: [0.6, -0.6], lB: [-0.6, -0.5], plant: 'both' }), strike: mk({ crouch: 0.1, lean: -0.2, aF: [2.0, -0.4], aB: [-2.0, -0.4], plant: 'both' }) },
   bankaiP: { wind: mk({ aF: [2.4, -0.4], aB: [-0.5, -0.7], crouch: 0.2, lean: -0.1, plant: 'both' }), strike: mk({ aF: [1.62, 0], aB: [-0.7, -0.6], crouch: 0.15, lean: 0.1, plant: 'both' }) },
@@ -4234,15 +4238,14 @@ function drawCharFx(g, f) {
     for (let i = 0; i < 3; i++) { const a = fr * 0.7 + i * TAU / 3; g.beginPath(); g.arc(x, y, r * (0.5 + i * 0.2), a, a + 2.2); g.stroke(); }
     g.restore();
   }
-  if (m.balloon) {
-    const k = t <= st ? t / st : t <= st + ac ? 1 : Math.max(0, 1 - (t - st - ac) / 5);
-    if (k > 0.05) {
-      const R = c.w * (0.55 + 0.5 * k), cy = f.y - c.h * 0.36;
-      g.save(); g.beginPath(); g.arc(f.x, cy, R, 0, TAU); g.fillStyle = skinOf(f); g.fill();
-      g.save(); g.clip(); g.fillStyle = f.col.body; g.fillRect(f.x - R, cy - R, R * 0.55, R * 2); g.fillRect(f.x + R * 0.45, cy - R, R * 0.55, R * 2); g.restore();
-      g.lineWidth = 3; g.strokeStyle = INK; g.beginPath(); g.arc(f.x, cy, R, 0, TAU); g.stroke();
-      g.fillStyle = INK; g.beginPath(); g.arc(f.x + f.facing * R * 0.05, cy + R * 0.25, 2.5, 0, TAU); g.fill(); g.restore();
-    }
+  if (m.axeKick && t <= st + ac + 8) {
+    // the stretched leg: rises up during the wind-up, swings down in front, then snaps back
+    const hx = f.x, hy = f.y - c.h * 0.4, L = 104 * s;
+    let th, len;
+    if (t <= st) { th = 0.12; len = L * (0.35 + 0.65 * t / st); }
+    else if (t <= st + ac) { th = 0.12 + (t - st) / ac * 1.73; len = L; }
+    else { th = 1.85; len = L * Math.max(0.2, 1 - (t - st - ac) / 8); }
+    rubber(g, hx, hy, hx + f.facing * Math.sin(th) * len, hy - Math.cos(th) * len, skinOf(f), '#8a5a2b', c.limb);
   }
   if (m.stretch === 'arm') {
     const e = t <= st ? 0 : t <= st + ac ? 1 : Math.max(0, 1 - (t - st - ac) / 6), tip = m.hb.reduce((p, h) => Math.abs(h.x) > Math.abs(p.x) ? h : p);
