@@ -674,7 +674,7 @@ Object.assign(CHARS, {
     col: { body: '#26252e', dark: '#121117', acc: '#e2283c', skin: '#f1c9a5', fx: '#ffd23f' }, alt: { body: '#62677a', dark: '#363a46', acc: '#3fa9ff', skin: '#f1c9a5', fx: '#9fe3ff' } },
 });
 Object.assign(CHARS, {
-  gokko: { name: 'Gokko', blurb: 'Vrolijke vechtkunstenaar in een oranje gi. Een energiestraal die je oplaadt, een vliegende drakenvuist, teleporteren en een reuzen-energiebal die je boven je hoofd verzamelt.', weight: 98, run: 7.4, acc: 1.15, jump: 16, djump: 15, grav: 0.9, fall: 13, ffall: 18.5, air: 5.1, airAcc: 0.5, airJumps: 1, w: 42, h: 80, pow: 1.05, reach: 1, lag: 0, limb: 11, zoner: true, sideRec: true, hr: 0.16,
+  gokko: { name: 'Gokko', blurb: 'Vrolijke vechtkunstenaar in een oranje gi. Een energiestraal die je oplaadt, een vliegende drakenvuist, teleporteren en een reuzen-energiebal die je boven je hoofd verzamelt. Raken vult zijn ki-meter; is die vol, dan verandert speciaal omlaag hem 12 seconden in Super-Gokko: goud haar, harder slaan, sneller en zwaarder.', weight: 98, run: 7.4, acc: 1.15, jump: 16, djump: 15, grav: 0.9, fall: 13, ffall: 18.5, air: 5.1, airAcc: 0.5, airJumps: 1, w: 42, h: 80, pow: 1.05, reach: 1, lag: 0, limb: 11, zoner: true, sideRec: true, hr: 0.16,
     col: { body: '#f08a24', dark: '#27408f', acc: '#17151f', skin: '#f6cfa8', fx: '#8fe3ff' }, alt: { body: '#3a62c9', dark: '#d8262f', acc: '#17151f', skin: '#f6cfa8', fx: '#ffe066' } },
   rekker: { name: 'Rekker', blurb: 'Piraat met een strohoed en een rubberen lijf. Rekbare stoten van ver, een stotenregen, zichzelf omhoogschieten en opblazen als een ballon die projectielen terugkaatst.', weight: 94, run: 6.8, acc: 1.05, jump: 15.5, djump: 14.5, grav: 0.82, fall: 12, ffall: 17, air: 4.9, airAcc: 0.48, airJumps: 1, w: 40, h: 78, pow: 1, reach: 1.15, lag: 0, limb: 10, arm: 0.19, hr: 0.16,
     col: { body: '#d8262f', dark: '#2f5fb5', acc: '#e9c46a', skin: '#f2c29a', fx: '#ffd36b' }, alt: { body: '#2c2c34', dark: '#d8a03a', acc: '#e9c46a', skin: '#f2c29a', fx: '#ff8a6b' } },
@@ -1556,13 +1556,25 @@ const SPECIALS = {
       } }),
     // giant energy ball: gather it above your head as long as you hold special, then throw it
     downB: M({ special: true, start: 12, active: 1, end: 26, pose: 'genki', charge: true, chargeKey: 'spc', chargeAt: 10, chargeMax: 120, genki: true,
-      onStart: f => { if (!f.grounded) f.vy *= 0.4; },
+      onStart: f => { if ((f.ki || 0) >= 100 && !(f.ssj > 0)) return f.startMove(f.M.ssjUp); if (!f.grounded) f.vy *= 0.4; },
       noGrav: (f, t) => !f.grounded && t <= 12,
       tick: (f, t) => {
         if (t !== 12) return;
         const ch = f.charge, r = 16 + ch * 0.32;
         spawnProj({ type: 'genki', owner: f, x: f.x + f.facing * 10, y: f.y - f.c.h - 18 - r, vx: f.facing * 6, vy: 5, r, life: 140, ch, reflect: false, hb: { d: 0, a: 0, b: 0, g: 0 }, explode: genkiBoom, onDie: genkiBoom, onGround: p => { p.dead = true; genkiBoom(p); } });
         SFX.zap();
+      } }),
+    // the transformation: power up for half a second (untouchable), then burst outward
+    ssjUp: M({ special: true, start: 30, active: 2, end: 16, pose: 'powerUp', ssjUp: true, intang: [1, 31],
+      hb: [H(0, -40, 64, 2, 80, 60, 0, { nr: 1 })],
+      noGrav: (f, t) => !f.grounded && t <= 32,
+      tick: (f, t) => {
+        f.vx *= 0.8; if (!f.grounded) f.vy = 0;
+        if (t % 6 === 0 && t < 30) { dustFx(f.x, f.y, 2); SFX.hit(1); }
+        if (t === 30) {
+          f.ssj = 720; f.ki = 0; G.flash = 6; G.shake = Math.max(G.shake, 10); SFX.boom();
+          sparkFx(f.x, f.y - f.c.h / 2, '#ffe066', 16); addP({ type: 'ring', x: f.x, y: f.y - f.c.h / 2, life: 18, max: 18, size: 44, color: '#ffe066' });
+        }
       } }),
   }),
   rekker: (M, H, s) => ({
@@ -1814,7 +1826,7 @@ class Fighter {
     Object.assign(this, { x, y, px: x, py: y, vx: 0, vy: 0, lvx: 0, lvy: 0, facing: x <= 0 ? 1 : -1, grounded: false, ground: null, state: 'air', t: 0,
       jumps: this.c.airJumps, move: null, mt: 0, hitSet: new Set(), charge: 0, hitlag: 0, hitstun: 0, tumble: false, tumbleAnim: false, invuln: 0, intang: false,
       star: 0, feather: 0, shieldHP: 60, shieldStun: 0, fastfall: false, ledgeSide: 0, ledgeCD: 0, dropT: 0, airdodged: false, adDir: false, upBUsed: false, sideBUsed: false,
-      held: null, holder: null, grabT: 0, pumT: 0, item: null, lastHit: null, lastHitT: -9999, frozen: 0, buried: false, punchStore: 0, flash: 0, lag: 0, ev: null, mv: {}, jabN: 0, dizzy: 0, percent: 0, jsTap: false, hop: null, sjWin: 0, maskT: 0, maskCD: 0 });
+      held: null, holder: null, grabT: 0, pumT: 0, item: null, lastHit: null, lastHitT: -9999, frozen: 0, buried: false, punchStore: 0, flash: 0, lag: 0, ev: null, mv: {}, jabN: 0, dizzy: 0, percent: 0, jsTap: false, hop: null, sjWin: 0, maskT: 0, maskCD: 0, ssj: 0, ki: this.ki || 0 });
   }
   get ix() { const h = this.ctrl.h; return (h.r ? 1 : 0) - (h.l ? 1 : 0); }
   get iy() { const h = this.ctrl.h; return (h.d ? 1 : 0) - (h.u ? 1 : 0); }
@@ -1840,6 +1852,7 @@ class Fighter {
     if (this.star > 0) this.star--;
     if (this.feather > 0) this.feather--;
     if (this.maskT > 0) this.maskT--;
+    if (this.ssj > 0 && --this.ssj === 0) { sparkFx(this.x, this.y - this.c.h * 0.8, '#ffe066', 6); clonePoof({ x: this.x, y: this.y - this.c.h * 0.8 }); SFX.ui(); }
     if (this.maskCD > 0) this.maskCD--;
     if (this.state !== 'shield' && this.shieldHP < 60) this.shieldHP = Math.min(60, this.shieldHP + 0.09);
     this.px = this.x; this.py = this.y;
@@ -1891,7 +1904,7 @@ class Fighter {
     if (ix) {
       if (ix !== this.facing) { if (this.state === 'run' && Math.abs(this.vx) > 3) { this.vx *= 0.3; dustFx(this.x, this.y, 3); } this.facing = ix; }
       if (this.state !== 'run') this.setState('run');
-      this.vx = approach(this.vx, ix * c.run, G.stage.def.ice ? c.acc * 0.3 : c.acc);
+      this.vx = approach(this.vx, ix * c.run * (this.ssj > 0 ? 1.15 : 1), G.stage.def.ice ? c.acc * 0.3 : c.acc);
       return;
     }
     this.fric();
@@ -2327,7 +2340,7 @@ function staleInfo(a, o) {
 function applyHit(a, v, hb, dir, hx, hy, mult = 1, o = {}) {
   if (v.state === 'dead') return;
   const st = a && a !== v ? staleInfo(a, o) : null, trWas = G.training && v.key === 'bag' ? (v.state === 'hitstun' || v.state === 'grabbed' || v.hitlag > 0) : null;
-  const d = hb.d * mult * (st ? st.mult : 1) * (a && a.maskT > 0 ? 1.2 : 1);
+  const d = hb.d * mult * (st ? st.mult : 1) * (a && a.maskT > 0 ? 1.2 : 1) * (a && a.ssj > 0 ? 1.25 : 1);
   if (!o.throw) {
     const vm = v.move;
     if (v.state === 'attack' && vm && vm.counter && v.mt >= vm.counter[0] && v.mt <= vm.counter[1]) { triggerCounter(v, a, d); return; }
@@ -2352,8 +2365,11 @@ function applyHit(a, v, hb, dir, hx, hy, mult = 1, o = {}) {
   if (st && !a.stale.some(e => e.k === st.key && e.u === st.use)) { a.stale.unshift({ k: st.key, u: st.use }); if (a.stale.length > 9) a.stale.pop(); }
   if (hb.sweet) { addP({ type: 'ring', x: hx, y: hy, life: 14, max: 14, size: 18, color: '#ffffff' }); addP({ type: 'flash', x: hx, y: hy, life: 8, max: 8, size: 26, color: 'rgba(255,255,255,.9)' }); }
   if (a) { a.stats.dmg += d; if (a !== v) { v.lastHit = a; v.lastHitT = G.frame; } }
+  // Gokko's ki meter: fills by hitting (and a little by being hit)
+  if (a && a !== v && a.key === 'gokko' && !(a.ssj > 0)) a.ki = Math.min(100, (a.ki || 0) + d * 1.6);
+  if (v.key === 'gokko' && !(v.ssj > 0)) v.ki = Math.min(100, (v.ki || 0) + d * 0.5);
   const p = v.percent;
-  let kb = ((p / 10 + p * d / 20) * 200 / (v.c.weight + 100) * 1.4 + 18) * hb.g / 100 + hb.b;
+  let kb = ((p / 10 + p * d / 20) * 200 / (v.c.weight + (v.ssj > 0 ? 20 : 0) + 100) * 1.4 + 18) * hb.g / 100 + hb.b;
   const hl = Math.min(20, Math.floor(d * 0.45 + 4));
   if (!o.throw && v.state === 'attack' && v.move && v.move.armor && v.mt >= v.move.armor[0] && v.mt <= v.move.armor[1] && kb < 140) {
     v.hitlag = hl; if (a && !o.proj) a.hitlag = hl; v.flash = 8; sparkFx(hx, hy, '#ffffff', d); SFX.hit(d); return;
@@ -2778,6 +2794,7 @@ const POSE = {
   gatling: { strike: mk({ lean: 0.25, lF: [0.8, -0.4], lB: [-0.7, -0.2], plant: 'both' }), fn: (f, t, P) => { const k = Math.sin(t * 1.6); P.aF = [1.57 + k * 0.25, 0]; P.aB = [1.5 - k * 0.25, 0.1]; return P; } },
   balloon: { strike: mk({ aF: [2.2, -0.3], aB: [-2.2, -0.3], lF: [0.5, -0.3], lB: [-0.5, -0.3] }) },
   rasen: { wind: mk({ aF: [0.9, -1.2], aB: [-0.6, -0.8], crouch: 0.25, lean: -0.1, plant: 'both' }), strike: mk({ aF: [1.6, 0], aB: [-1.2, -0.4], lean: 0.45, lF: [1.0, -0.3], lB: [-0.9, -0.2] }) },
+  powerUp: { wind: mk({ crouch: 0.35, lean: -0.12, aF: [-0.4, -0.9], aB: [-0.6, -0.9], lF: [0.6, -0.6], lB: [-0.6, -0.5], plant: 'both' }), strike: mk({ crouch: 0.1, lean: -0.2, aF: [2.0, -0.4], aB: [-2.0, -0.4], plant: 'both' }) },
   maskOn: { wind: mk({ aF: [2.6, -1.9], aB: [-0.4, -0.6], crouch: 0.15, plant: 'both' }), strike: mk({ aF: [1.0, -0.6], aB: [-0.8, -0.6], lean: -0.15, plant: 'both' }) },
   cast: { wind: mk({ aF: [0.2, -1.5], aB: [-0.4, -1.2], plant: 'both' }), strike: mk({ aF: [1.55, -0.05], aB: [-0.5, -0.7], lean: 0.15, plant: 'both' }) },
   dashB: { strike: mk({ lean: 0.65, aF: [1.5, 0], aB: [-1.7, 0], lF: [1.2, -0.7], lB: [-1.1, -0.8] }) },
@@ -3173,10 +3190,14 @@ function drawPuppet(g, ck, col, P, o = {}) {
     g.fillStyle = col.acc; g.fillRect(-hr * 0.95, -hr * 0.78, hr * 1.9, hr * 0.32);
   } else if (ck === 'gokko') {
     g.lineWidth = 3; g.strokeStyle = INK;
-    g.beginPath(); [[-0.95, 0.2], [-1.9, -0.35], [-1.0, -0.6], [-1.75, -1.35], [-0.7, -1.05], [-0.75, -2.05], [-0.05, -1.2], [0.5, -1.95], [0.55, -1.0], [1.15, -1.2], [0.85, -0.45]].forEach(([x, y], i) => i ? g.lineTo(hr * x, hr * y) : g.moveTo(hr * x, hr * y)); g.closePath(); g.fillStyle = col.acc; g.fill(); g.stroke();
+    const hair = o.ssj ? '#ffe14d' : col.acc, spikes = o.ssj
+      ? [[-0.95, 0.15], [-1.6, -0.7], [-0.95, -0.75], [-1.35, -1.75], [-0.5, -1.15], [-0.35, -2.3], [0.15, -1.25], [0.75, -2.0], [0.65, -1.0], [1.25, -1.15], [0.85, -0.45]]
+      : [[-0.95, 0.2], [-1.9, -0.35], [-1.0, -0.6], [-1.75, -1.35], [-0.7, -1.05], [-0.75, -2.05], [-0.05, -1.2], [0.5, -1.95], [0.55, -1.0], [1.15, -1.2], [0.85, -0.45]];
+    g.beginPath(); spikes.forEach(([x, y], i) => i ? g.lineTo(hr * x, hr * y) : g.moveTo(hr * x, hr * y)); g.closePath(); g.fillStyle = hair; g.fill(); g.stroke();
     g.beginPath(); g.arc(0, 0, hr, 0, TAU); g.fillStyle = col.skin; g.fill(); g.stroke();
-    g.beginPath(); g.moveTo(-hr * 0.6, -hr * 0.75); g.lineTo(hr * 0.1, -hr * 0.25); g.lineTo(hr * 0.15, -hr * 0.7); g.lineTo(hr * 0.6, -hr * 0.2); g.lineTo(hr * 0.55, -hr * 0.75); g.lineTo(hr * 0.95, -hr * 0.45); g.lineTo(hr * 0.5, -hr * 1.05); g.closePath(); g.fillStyle = col.acc; g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(-hr * 0.6, -hr * 0.75); g.lineTo(hr * 0.1, -hr * 0.25); g.lineTo(hr * 0.15, -hr * 0.7); g.lineTo(hr * 0.6, -hr * 0.2); g.lineTo(hr * 0.55, -hr * 0.75); g.lineTo(hr * 0.95, -hr * 0.45); g.lineTo(hr * 0.5, -hr * 1.05); g.closePath(); g.fillStyle = hair; g.fill(); g.stroke();
     eye(g, hr * 0.48, hr * 0.02, hr * 0.24, hurt);
+    if (o.ssj && !hurt) { g.beginPath(); g.arc(hr * 0.5, hr * 0.02, hr * 0.09, 0, TAU); g.fillStyle = '#2fd3c4'; g.fill(); g.beginPath(); g.moveTo(hr * 0.22, -hr * 0.3); g.lineTo(hr * 0.75, -hr * 0.16); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke(); }
     g.beginPath(); g.arc(hr * 0.5, hr * 0.4, hr * 0.2, 0.2, Math.PI - 0.4); g.lineWidth = 2; g.stroke();
   } else if (ck === 'rekker') {
     g.lineWidth = 3; g.strokeStyle = INK;
@@ -3754,7 +3775,7 @@ function drawStage(g, V, S, fr) {
 function drawAnimeProj(g, p, fr) {
   const dir = Math.sign(p.vx) || (p.owner ? p.owner.facing : 1);
   if (p.type === 'kibeam') {
-    const col = p.owner ? p.owner.col.fx : '#8fe3ff', L = Math.max(0, Math.min((p.t - 1) * Math.abs(p.vx) + 6, 340)), r = p.r;
+    const col = p.owner ? (p.owner.ssj > 0 ? '#ffe066' : p.owner.col.fx) : '#8fe3ff', L = Math.max(0, Math.min((p.t - 1) * Math.abs(p.vx) + 6, 340)), r = p.r;
     g.globalCompositeOperation = 'lighter';
     g.fillStyle = hexA(col, 0.45); g.fillRect(dir > 0 ? -L : 0, -r, L, r * 2);
     g.fillStyle = 'rgba(255,255,255,.75)'; g.fillRect(dir > 0 ? -L : 0, -r * 0.42, L, r * 0.84);
@@ -3962,6 +3983,7 @@ function drawFighter(g, f, fr, z) {
     const rg = g.createLinearGradient(f.x - 50, 0, f.x + 50, 0); rg.addColorStop(0, 'rgba(255,255,255,0)'); rg.addColorStop(0.5, f.pc); rg.addColorStop(1, 'rgba(255,255,255,0)');
     g.fillStyle = rg; g.fillRect(f.x - 50, f.y, 100, 8); g.strokeStyle = f.pc; g.lineWidth = 2; g.beginPath(); g.ellipse(f.x, f.y + 4, 46, 9, 0, 0, TAU); g.stroke();
   }
+  drawAura(g, f);
   g.save(); g.translate(f.x + sx, f.y);
   if (f.state === 'attack' && f.move && f.move.riptide && f.mt > 10 && f.mt < 26) {
     // fly head first along the launch direction and spin around that axis like a drill
@@ -3982,7 +4004,7 @@ function drawFighter(g, f, fr, z) {
   if (filt !== 'none' && 'filter' in g) g.filter = filt;
   const sword = f.key === 'techno' ? !f.item && !(f.state === 'attack' && f.move && (f.move.throw || ['cast', 'counter', 'throwItem', 'pick', 'bow', 'riptide'].includes(f.move.pose)))
     : (f.key === 'sable' || f.key === 'lonk' || f.key === 'aardbei') && f.state === 'attack' && f.move && !f.move.throw && !['cast', 'counter', 'throwItem', 'pick', 'bow', 'lonkpull', 'maskOn'].includes(f.move.pose);
-  drawPuppet(g, f.key, f.col, P, { mask: f.maskT > 0, grounded: f.grounded || f.state === 'land', fr: fr + f.id * 30, sword, held: f.item ? f.item.type : f.state === 'attack' && f.move && f.move.bat ? 'bat' : null, wings: f.feather > 0, xbow: f.key === 'techno' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, trident: f.key === 'techno' && f.state === 'attack' && f.move === f.M.upB, totem: f.key === 'techno' && f.state === 'attack' && f.move === f.M.downB, bow: f.key === 'lonk' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, pull: f.charge, jet: f.key === 'bliep' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 4, hurt: f.state === 'hitstun' || f.state === 'knockdown' || f.state === 'dizzy' || f.state === 'shieldbreak' || f.state === 'grabbed', ...(f.key === 'poef' ? poefFlags(f) : {}) });
+  drawPuppet(g, f.key, f.col, P, { mask: f.maskT > 0, ssj: f.ssj > 0 || (f.state === 'attack' && f.move && f.move.ssjUp && f.mt > 18 && f.mt % 4 < 2), grounded: f.grounded || f.state === 'land', fr: fr + f.id * 30, sword, held: f.item ? f.item.type : f.state === 'attack' && f.move && f.move.bat ? 'bat' : null, wings: f.feather > 0, xbow: f.key === 'techno' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, trident: f.key === 'techno' && f.state === 'attack' && f.move === f.M.upB, totem: f.key === 'techno' && f.state === 'attack' && f.move === f.M.downB, bow: f.key === 'lonk' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, pull: f.charge, jet: f.key === 'bliep' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 4, hurt: f.state === 'hitstun' || f.state === 'knockdown' || f.state === 'dizzy' || f.state === 'shieldbreak' || f.state === 'grabbed', ...(f.key === 'poef' ? poefFlags(f) : {}) });
   if ('filter' in g) g.filter = 'none';
   g.globalAlpha = 1; g.restore();
   if (f.key === 'kwak' && f.state === 'attack' && f.move === f.M.sideB) {
@@ -4086,6 +4108,21 @@ function drawHitboxes(g, fr) {
   }
   g.globalCompositeOperation = 'source-over';
 }
+function drawAura(g, f) {
+  // Super-Gokko's golden aura, drawn behind the fighter
+  const up = f.state === 'attack' && f.move && f.move.ssjUp && f.mt > 6;
+  if (!(f.ssj > 0) && !up) return;
+  const c = f.c, fr = G.frame, cy = f.y - c.h * 0.5, k0 = up && !(f.ssj > 0) ? Math.min(1, f.mt / 30) : 1;
+  g.save(); g.globalCompositeOperation = 'lighter';
+  const gr = g.createRadialGradient(f.x, cy, 4, f.x, cy, c.h * 0.85); gr.addColorStop(0, `rgba(255,236,140,${0.42 * k0})`); gr.addColorStop(1, 'rgba(255,200,40,0)');
+  g.fillStyle = gr; g.beginPath(); g.ellipse(f.x, cy, c.w * 1.1, c.h * 0.8, 0, 0, TAU); g.fill();
+  for (let i = 0; i < 9; i++) {
+    const k = (fr * 0.07 + i / 9) % 1, x = f.x + Math.sin(i * 1.7 + fr * 0.13) * c.w * 0.6, y = f.y - c.h * (k * 1.2), r = (11 + 11 * (1 - k)) * k0;
+    g.fillStyle = `rgba(255,${200 + (i % 3) * 20},70,${0.7 * (1 - k)})`; g.beginPath(); g.moveTo(x - r * 0.6, y); g.quadraticCurveTo(x, y - r * 2.2, x + r * 0.6, y); g.quadraticCurveTo(x, y + r * 0.6, x - r * 0.6, y); g.fill();
+  }
+  if (up && fr % 6 < 3) { g.strokeStyle = 'rgba(200,240,255,.8)'; g.lineWidth = 2; g.beginPath(); let x = f.x + rand(-20, 20), y = f.y - c.h; g.moveTo(x, y); for (let j = 0; j < 4; j++) { x += rand(-12, 12); y += c.h * 0.25; g.lineTo(x, y); } g.stroke(); }
+  g.restore();
+}
 function rubber(g, x0, y0, x1, y1, col, tipCol, lw) {
   g.save(); g.lineCap = 'round'; g.strokeStyle = INK; g.lineWidth = lw + 3; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
   g.strokeStyle = col; g.lineWidth = lw - 1; g.stroke(); dot(g, x1, y1, lw * 0.85, tipCol); g.restore();
@@ -4099,7 +4136,7 @@ function drawCharFx(g, f) {
     g.restore();
   }
   const m = f.move; if (f.state !== 'attack' || !m) return;
-  const t = f.mt, st = m.start, ac = m.active, fx = f.col.fx;
+  const t = f.mt, st = m.start, ac = m.active, fx = f.ssj > 0 ? '#ffe066' : f.col.fx;
   const orb = (x, y, r, c1) => { g.save(); g.globalCompositeOperation = 'lighter'; const gr = g.createRadialGradient(x, y, 1, x, y, r); gr.addColorStop(0, 'rgba(255,255,255,.95)'); gr.addColorStop(0.45, hexA(c1, 0.75)); gr.addColorStop(1, hexA(c1, 0)); g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill(); g.restore(); };
   if (m.kame && t <= st + 1) orb(f.x + f.facing * (t < st ? -12 : 26) * s, f.y - 40 * s, (8 + f.charge * 0.16) * (1 + Math.sin(fr * 0.6) * 0.1), fx);
   if (m.genki && t <= st) {
@@ -4230,6 +4267,12 @@ function drawHUD(g, V) {
     if (G.training) { /* onbeperkt */ }
     else if (st <= 6) for (let k = 0; k < st; k++) { g.beginPath(); g.arc(px + 36 * s + k * 13 * s, y + 28 * s, 5 * s, 0, TAU); g.fillStyle = f.pc; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke(); }
     else { g.font = `${12 * s}px system-ui, 'Segoe UI', Arial, sans-serif`; g.fillStyle = f.pc; g.fillText('× ' + st, px + 32 * s, y + 32 * s); }
+    if (f.key === 'gokko' && !f.out) {
+      const bx = px + 32 * s, by = y + 36 * s, bw = 74 * s, bh = 6 * s, full = f.ssj > 0 || (f.ki || 0) >= 100, k = f.ssj > 0 ? 1 : (f.ki || 0) / 100;
+      rr(g, bx, by, bw, bh, bh / 2); g.fillStyle = 'rgba(18,14,29,.75)'; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke();
+      if (k > 0) { rr(g, bx + 1, by + 1, Math.max(bh - 2, (bw - 2) * k), bh - 2, (bh - 2) / 2); g.fillStyle = full ? (G.frame % 20 < 10 ? '#ffe066' : '#fff4b0') : '#7fd0ff'; g.fill(); }
+      if (full && !(f.ssj > 0)) { g.font = `${10 * s}px Impact, 'Arial Black', sans-serif`; g.fillStyle = '#ffe066'; g.lineWidth = 3; g.strokeStyle = INK; g.strokeText('KI VOL', bx + bw + 4 * s, by + bh); g.fillText('KI VOL', bx + bw + 4 * s, by + bh); }
+    }
     g.globalAlpha = 1;
   });
 }
@@ -4755,10 +4798,10 @@ function netRaw(c) {
 function snapF(f) {
   const ev = f.ev; let evk = 0, evd = 1;
   if (ev) { evk = ev.roll ? 1 : ev.tech ? 2 : ev.spot ? 3 : ev.climb ? 4 : 5; evd = (ev.vx < 0 || ev.tx < ev.fx ? -1 : 1) * (ev.face ? -1 : 1); }
-  const fl = (f.grounded ? 1 : 0) | (f.tumble ? 2 : 0) | (f.tumbleAnim ? 4 : 0) | (f.adDir ? 8 : 0) | (f.intang ? 16 : 0) | (f.item ? 32 : 0) | (f.out ? 64 : 0) | (f.star > 0 ? 128 : 0) | (f.feather > 0 ? 256 : 0) | (f.buried ? 512 : 0) | (f.punchStore >= 100 ? 1024 : 0) | (f.maskT > 0 ? 2048 : 0);
+  const fl = (f.grounded ? 1 : 0) | (f.tumble ? 2 : 0) | (f.tumbleAnim ? 4 : 0) | (f.adDir ? 8 : 0) | (f.intang ? 16 : 0) | (f.item ? 32 : 0) | (f.out ? 64 : 0) | (f.star > 0 ? 128 : 0) | (f.feather > 0 ? 256 : 0) | (f.buried ? 512 : 0) | (f.punchStore >= 100 ? 1024 : 0) | (f.maskT > 0 ? 2048 : 0) | (f.ssj > 0 ? 4096 : 0);
   const mk = f.move ? (f.move.netKey || 'ctr') : '';
   return [ST_LIST.indexOf(f.state), Math.round(f.x), Math.round(f.y), f.facing, mk, f.mt | 0, f.charge | 0, f.t | 0, fl, Math.round(f.percent * 10), f.stocks, Math.round(f.shieldHP), f.invuln | 0, f.hitlag | 0, f.frozen | 0, f.flash | 0, f.djT | 0,
-    Math.round(f.runPh * 100) % 100000, Math.round(f.vx * 10), evk, evd, ev ? ev.dur : 0, f.stats.ko, f.stats.falls, Math.round(f.stats.dmg), f.elim | 0, f.item ? ITEM_LIST.indexOf(f.item.type) : -1, f.copy || '', Math.round((f.aim || 0) * 100), f.key];
+    Math.round(f.runPh * 100) % 100000, Math.round(f.vx * 10), evk, evd, ev ? ev.dur : 0, f.stats.ko, f.stats.falls, Math.round(f.stats.dmg), f.elim | 0, f.item ? ITEM_LIST.indexOf(f.item.type) : -1, f.copy || '', Math.round((f.aim || 0) * 100), f.key, Math.round(f.ki || 0)];
 }
 function netSnap() {
   const F = G.fighters, P = [];
@@ -4863,11 +4906,12 @@ function netFighter(f, r, nb, k, fresh) {
     if (cp !== (f.copy || null)) applyCopy(f, cp);
     f.aim = clamp((r[28] | 0) / 100, -3.2, 3.2);
     if (typeof r[29] === 'string' && CHARS[r[29]] && r[29] !== f.key) setForm(f, r[29]);
+    f.ki = clamp(r[30] | 0, 0, 100);
     const mk = r[4];
     f.move = st === 'attack' ? (mk === 'ctr' ? CTR_MOVE : (typeof mk === 'string' && Object.prototype.hasOwnProperty.call(f.M, mk) ? f.M[mk] : f.M.jab)) : null;
     f.mt = r[5] | 0; f.charge = r[6] | 0; f.t = r[7] | 0;
     const fl = r[8] | 0;
-    f.grounded = !!(fl & 1); f.tumble = !!(fl & 2); f.tumbleAnim = !!(fl & 4); f.adDir = !!(fl & 8); f.intang = !!(fl & 16); f.item = fl & 32 ? { type: ITEM_LIST[r[26]] || 'bomb' } : null; f.out = !!(fl & 64); f.star = fl & 128 ? 1 : 0; f.feather = fl & 256 ? 1 : 0; f.buried = !!(fl & 512); f.punchStore = fl & 1024 ? 100 : 0; f.maskT = fl & 2048 ? 1 : 0;
+    f.grounded = !!(fl & 1); f.tumble = !!(fl & 2); f.tumbleAnim = !!(fl & 4); f.adDir = !!(fl & 8); f.intang = !!(fl & 16); f.item = fl & 32 ? { type: ITEM_LIST[r[26]] || 'bomb' } : null; f.out = !!(fl & 64); f.star = fl & 128 ? 1 : 0; f.feather = fl & 256 ? 1 : 0; f.buried = !!(fl & 512); f.punchStore = fl & 1024 ? 100 : 0; f.maskT = fl & 2048 ? 1 : 0; f.ssj = fl & 4096 ? 1 : 0;
     f.percent = (r[9] | 0) / 10; f.stocks = r[10] | 0; f.shieldHP = r[11] | 0; f.invuln = r[12] | 0; f.hitlag = r[13] | 0; f.frozen = r[14] | 0; f.flash = r[15] | 0; f.djT = r[16] | 0;
     f.runPh = (r[17] | 0) / 100; f.vx = (r[18] | 0) / 10;
     const evk = r[19] | 0;
