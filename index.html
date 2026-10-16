@@ -3089,7 +3089,8 @@ function startMatch(demo, custom, cfg) {
   const list = custom || (demo ? demoRoster() : activeSlots()), used = {}, n = list.length;
   const xs = n === 2 ? [-0.55, 0.55] : n === 3 ? [-0.6, 0, 0.6] : [-0.65, 0.65, -0.22, 0.22];
   G.fighters = list.map((s, k) => {
-    const ck = pickChar(s.ch), alt = (used[ck] || 0) % 2 === 1; used[ck] = (used[ck] || 0) + 1;
+    // pickChar turns hidden characters into a random one; the training bag is hidden but asked for on purpose
+    const ck = custom && s.ch === 'bag' ? 'bag' : pickChar(s.ch), alt = (used[ck] || 0) % 2 === 1; used[ck] = (used[ck] || 0) + 1;
     const f = new Fighter(s.i, ck, demo ? 'cpu' : s.type, demo ? 6 : s.lvl, alt);
     if (s.peer) f.ctrl.peer = s.peer;
     const x = S.main.x2 * xs[k];
