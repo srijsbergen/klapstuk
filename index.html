@@ -2024,21 +2024,30 @@ function fsRush(f, t) {
 function ballTick(it) {
   const m = G.stage.main;
   if (it.t > 1500) { it.vy -= 0.25; it.x += it.vx; it.y += it.vy; if (it.y < m.y - 1500) it.dead = true; return; }
-  if (it.t % 50 === 1) { const a = rand(0, TAU), sp = rand(1.6, 3.2); it.tvx = Math.cos(a) * sp; it.tvy = Math.sin(a) * sp * 0.6; }
-  for (const f of G.fighters) {
-    if (f.state === 'dead' || f.state === 'respawn') continue;
-    const dx = it.x - f.x, dy = it.y - (f.y - f.c.h / 2), d = Math.hypot(dx, dy);
-    if (d < 150 && d > 1) { it.tvx += dx / d * 0.1; it.tvy += dy / d * 0.06; }
+  // it drifts from spot to spot between head and jump height, so it stays in reach; now and then it shies a little to the side
+  if (it.t % 70 === 1 || it.tx == null) {
+    const near = G.fighters.filter(f => f.state !== 'dead' && f.state !== 'respawn').sort((a, b) => Math.abs(a.x - it.x) - Math.abs(b.x - it.x))[0];
+    let tx = rand(m.x1 + 40, m.x2 - 40);
+    if (near && Math.random() < 0.5 && Math.abs(tx - near.x) < 120) tx = clamp(near.x + (tx >= near.x ? 1 : -1) * 160, m.x1 + 40, m.x2 - 40);
+    it.tx = tx; it.ty = m.y - rand(80, 260);
   }
-  it.tvx = clamp(it.tvx || 0, -4, 4); it.tvy = clamp(it.tvy || 0, -3, 3);
-  it.vx = approach(it.vx, it.tvx, 0.12); it.vy = approach(it.vy, it.tvy, 0.12); it.x += it.vx; it.y += it.vy;
-  const x1 = m.x1 - 60, x2 = m.x2 + 60, y1 = m.y - 430, y2 = m.y - 70;
-  if (it.x < x1) { it.x = x1; it.tvx = Math.abs(it.tvx); } else if (it.x > x2) { it.x = x2; it.tvx = -Math.abs(it.tvx); }
-  if (it.y < y1) { it.y = y1; it.tvy = Math.abs(it.tvy); } else if (it.y > y2) { it.y = y2; it.tvy = -Math.abs(it.tvy); }
+  // hard to hit: when someone nearby winds up an attack it often darts aside (not up), with a short rest after
+  if (it.dodge > 0) it.dodge--;
+  else for (const f of G.fighters) {
+    if (f.state !== 'attack' || !f.move || f.move.fs || f.mt > 2 || Math.abs(f.x - it.x) > 120 || Math.abs((f.y - f.c.h / 2) - it.y) > 150) continue;
+    if (Math.random() < 0.6) { const dir = it.x >= f.x ? 1 : -1; it.vx = dir * 5.5; it.tx = clamp(it.x + dir * 150, m.x1 + 20, m.x2 - 20); }
+    it.dodge = 30; break;
+  }
+  const dx = it.tx - it.x, dy = it.ty - it.y, d = Math.hypot(dx, dy) || 1, sp = Math.min(2.3, d * 0.04);
+  it.vx = approach(it.vx, dx / d * sp, 0.1); it.vy = approach(it.vy, dy / d * sp + Math.sin(it.t * 0.07) * 0.4, 0.1);
+  it.x += it.vx; it.y += it.vy;
+  const x1 = m.x1 - 60, x2 = m.x2 + 60, y1 = m.y - 300, y2 = m.y - 50;
+  if (it.x < x1 || it.x > x2) { it.x = clamp(it.x, x1, x2); it.vx = 0; }
+  if (it.y < y1 || it.y > y2) { it.y = clamp(it.y, y1, y2); it.vy = 0; }
 }
 function ballHit(it, a, d, dir) {
   if (it.dead || !a || a.key === 'bag') return;
-  it.hp -= d; it.vx = dir * 6; it.tvx = dir * 3; it.vy = -2.5; it.tvy = -1;
+  it.hp -= d; it.vx = dir * 6; it.vy = -2.5;
   sparkFx(it.x, it.y, '#ffffff', Math.min(12, d)); SFX.hit(d);
   if (it.hp > 0) return;
   it.dead = true; a.fs = true; G.flash = 6; G.shake = Math.max(G.shake, 10); SFX.star();
@@ -2881,7 +2890,7 @@ function randItem(noCrate) {
   return keys[0];
 }
 function spawnItem(type, x, y, extra) {
-  const it = Object.assign({ type, x, y, vx: 0, vy: 0, grounded: null, holder: null, t: 0, ammo: type === 'blaster' ? 10 : 0, hp: type === 'smashball' ? 24 : 0, hitBy: {}, armed: false, dir: Math.random() < 0.5 ? -1 : 1 }, extra || {});
+  const it = Object.assign({ type, x, y, vx: 0, vy: 0, grounded: null, holder: null, t: 0, ammo: type === 'blaster' ? 10 : 0, hp: type === 'smashball' ? 30 : 0, hitBy: {}, armed: false, dir: Math.random() < 0.5 ? -1 : 1 }, extra || {});
   G.items.push(it); return it;
 }
 function trip(f) {
