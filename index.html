@@ -2683,7 +2683,19 @@ function updateParts() {
 /* ---------------- CPU ---------------- */
 class AI {
   constructor(f, lvl) { this.f = f; this.L = lvl; this.wait = 0; this.mem = blank(); }
-  out(o, w) { this.mem = o; this.wait = w + Math.floor((9 - this.L) * 1.3); return o; }
+  out(o, w) { this.mem = o; this.wait = w + Math.floor(Math.max(0, 9 - this.L) * 1.3); return o; }
+  useSmart() {
+    if (this.L >= 10) return true; if (this.L < 8) return false;
+    if (G.frame >= (this.smT || 0)) { this.smT = G.frame + 40; this.smOn = Math.random() < (this.L - 7) * 0.2; }
+    return this.smOn;
+  }
+  chaseOK() {
+    // level 11+: jump off the stage after a recovering target while the double jump is still there
+    const f = this.f, m = G.stage.main, t = this.pickTarget();
+    if (!t || f.state !== 'air' || f.jumps < 1 || f.y > m.y + 30 || t.state === 'respawn') return false;
+    const ex = f.x < (m.x1 + m.x2) / 2 ? m.x1 : m.x2;
+    return Math.abs(f.x - ex) < 170 && Math.abs(t.x - f.x) < 200 && (t.x < m.x1 || t.x > m.x2) && t.y > m.y - 200;
+  }
   pickTarget() {
     const f = this.f; let best = null, bd = 1e9;
     for (const g of G.fighters) {
@@ -2720,7 +2732,7 @@ class AI {
     }
     if (st === 'knockdown' || st === 'dizzy') { if (Math.random() < 0.3) o.atk = true; this.mem = o; return o; }
     const offstage = !f.grounded && (f.x < m.x1 - 2 || f.x > m.x2 + 2 || f.y > m.y + 4);
-    if (offstage) return this.recover(o);
+    if (offstage && !(this.L >= 11 && this.chaseOK())) return this.recover(o);
     const LV = G.stage.lava, hot = LV && LV.st !== 'idle' && LV.st !== 'fall';
     if (hot && f.grounded && f.ground === m && GROUNDED_ACT.includes(st)) {
       let best = null; for (const p of G.stage.plats) if (!best || Math.abs((p.x1 + p.x2) / 2 - f.x) < Math.abs((best.x1 + best.x2) / 2 - f.x)) best = p;
@@ -2729,9 +2741,12 @@ class AI {
     }
     if (G.stage.def.ice && f.grounded && f.ground === m && GROUNDED_ACT.includes(st) && ((f.x > m.x2 - 150 && f.vx > 1.5) || (f.x < m.x1 + 150 && f.vx < -1.5))) { o[f.vx > 0 ? 'l' : 'r'] = true; this.mem = o; this.wait = 0; return o; }
     if (this.wait > 0) { this.wait--; return Object.assign({}, this.mem); }
+    const sm = this.useSmart();
+    if (sm && st === 'attack' && f.move && f.move.aerial) return this.aerialHold();
     if (['attack', 'land', 'evade', 'jumpsquat', 'airdodge', 'helpless'].includes(st)) return Object.assign({}, this.mem);
-    if (st === 'shield') { this.mem = o; return o; }
+    if (st === 'shield' && !sm) { this.mem = o; return o; }
     const t = this.pickTarget(); if (!t) return o;
+    if (st === 'shield') { const r = this.smart(t, o); if (r) return r; this.mem = o; return o; }
     const dx = t.x - f.x, dy = (t.y - t.c.h * 0.5) - (f.y - f.c.h * 0.5), adx = Math.abs(dx), face = dx >= 0 ? 1 : -1, fk = face > 0 ? 'r' : 'l';
     const reach = 26 + f.c.w * 0.5 + t.c.w * 0.5 + (f.key === 'sable' ? 22 : 0) + (f.key === 'brick' ? 8 : 0);
     if (f.item) {
@@ -2747,6 +2762,7 @@ class AI {
         o[it.x > f.x ? 'r' : 'l'] = true; return this.out(o, 2);
       }
     }
+    if (sm) { const r = this.smart(t, o); if (r) return r; }
     const threat = t.state === 'attack' && t.move && !t.move.throw && adx < reach + 60 && Math.abs(dy) < 90;
     const incoming = G.projs.some(p => p.owner !== f && p.type !== 'pipbomb' && Math.abs(p.x - f.x) < 130 && Math.abs(p.y - (f.y - f.c.h / 2)) < 70 && (p.vx === 0 || Math.sign(p.vx) === Math.sign(f.x - p.x)));
     if (f.grounded && (threat || incoming) && Math.random() < L * 0.035) { o.shd = true; return this.out(o, 8 + (Math.random() * 10 | 0)); }
@@ -2793,15 +2809,263 @@ class AI {
     else { o[fk] = true; o.atk = true; }
     return this.out(o, 10);
   }
+  /* ---- levels 10-12 (and a taste from 8): read the hitboxes, predict where everyone will be, then pick what connects ---- */
+  tap(o, keep) { this.mem = keep || blank(); this.wait = 0; return o; }
+  hold(o, w) { this.mem = o; this.wait = w; return o; }
+  // is ending a move here safe? above the stage, or not far out and still high (level 11+ may dip lower with a jump left)
+  safeAt(p) {
+    const f = this.f, m = G.stage.main, out = p.x < m.x1 ? m.x1 - p.x : p.x > m.x2 ? p.x - m.x2 : 0;
+    if (!out) return p.y <= m.y + 2;
+    if (out < 120 && p.y < m.y - 30) return true;
+    return this.L >= 11 && f.jumps > 0 && out < 150 && p.y < m.y + 50;
+  }
+  driftX(x) {
+    const f = this.f, m = G.stage.main;
+    return this.L >= 11 && f.jumps > 0 && f.y < m.y ? x : clamp(x, m.x1 + 20, m.x2 - 20);
+  }
+  roll(id) { if (this.rk !== id) { this.rk = id; this.rv = Math.random(); } return this.rv; }
+  groundAt(x, y, py) {
+    const m = G.stage.main;
+    if (x >= m.x1 && x <= m.x2 && py <= m.y + 1 && y >= m.y) return true;
+    for (const p of G.stage.plats) if (x >= p.x1 && x <= p.x2 && py <= p.y + 1 && y >= p.y) return true;
+    return false;
+  }
+  // feet positions of any fighter over the next n frames, as it is moving now
+  predict(v, n) {
+    const m = G.stage.main, out = [{ x: v.x, y: v.y }];
+    let x = v.x, y = v.y, vx = v.vx, vy = v.vy, lx = v.lvx || 0, ly = v.lvy || 0, gr = v.grounded, hl = v.hitlag || 0;
+    const still = v.state === 'ledge' || v.state === 'grabbed' || v.state === 'holding' || v.buried || v.frozen > 0, hs = v.state === 'hitstun';
+    const g = v.c.grav * (hs ? 0.62 : 1), mx = v.fastfall ? v.c.ffall : v.c.fall, ng = v.state === 'attack' && v.move && v.move.noGrav;
+    for (let i = 1; i <= n; i++) {
+      if (hl > 0 || still) { hl--; out.push({ x, y }); continue; }
+      if (lx || ly) { const sp = Math.hypot(lx, ly), ns = Math.max(0, sp - 0.26); if (ns <= 0) lx = ly = 0; else { lx *= ns / sp; ly *= ns / sp; } }
+      if (gr) { vx *= hs ? 0.85 : 0.95; x += vx + lx; if (v.ground === m && (x < m.x1 - 2 || x > m.x2 + 2)) gr = false; }
+      else {
+        if (!ng) vy = Math.min(vy + g, mx);
+        const py = y; x += vx + lx; y += vy + ly;
+        if (vy + ly >= 0 && this.groundAt(x, y, py)) { gr = true; vy = ly = 0; }
+      }
+      out.push({ x, y });
+    }
+    return out;
+  }
+  // own feet positions: 'stand' slides to a stop, 'air' falls while drifting toward dir, 'sh'/'fh' hop first
+  selfPath(mode, dir, n, slide) {
+    const f = this.f, c = f.c, fm = formOf(f), air = c.air * (fm ? fm.air : 1);
+    let x = f.x, y = f.y, vx = f.vx, vy = f.vy, gr = f.grounded && mode !== 'air', sq = mode === 'sh' || mode === 'fh' ? 4 : 0;
+    const out = [{ x, y }]; out.land = -1;
+    for (let i = 1; i <= n; i++) {
+      if (sq > 0) { vx = approach(vx, 0, 0.9); x += vx; if (--sq === 0) { vy = -(mode === 'fh' ? c.jump : c.jump * 0.66); vx = vx * 0.85 + dir * 1.2; gr = false; y += vy; } }
+      else if (gr) { if (slide) vx *= slide; else vx = approach(vx, 0, 0.9); x += vx; }
+      else {
+        if (dir) { const tg = dir * air; if (Math.abs(vx) < Math.abs(tg) || Math.sign(vx) !== dir) vx = approach(vx, tg, c.airAcc); } else vx *= 0.975;
+        vy = Math.min(vy + c.grav, c.fall); const py = y; x += vx; y += vy;
+        if (out.land < 0 && vy > 0 && this.groundAt(x, y, py)) out.land = i;
+      }
+      out.push({ x, y });
+    }
+    return out;
+  }
+  // first frame (counted from now) at which a move started at frame `off` would hit the target, or null
+  hitsAt(mv, path, fac, TP, off, t, grab) {
+    if (!mv || !mv.hb) return null;
+    let best = null;
+    for (const hb of mv.hb) {
+      if (hb.when || !!hb.grab !== !!grab) continue;
+      const a0 = mv.start + (hb.f0 || 0) + 1, a1 = mv.start + (hb.f1 != null ? hb.f1 : mv.active);
+      for (let k = a0; k <= a1; k++) {
+        const i = off + k; if (i >= path.length || i >= TP.length || (best && i >= best.k)) break;
+        if (mv.aerial && path.land >= 0 && i >= path.land) break;
+        const p = path[i], v = TP[i];
+        if (circleRect(p.x + hb.x * fac, p.y + hb.y, hb.r, v.x - t.c.w / 2, v.y - t.c.h, t.c.w, t.c.h)) { best = { k: i, hb }; break; }
+      }
+    }
+    return best;
+  }
+  kbOf(v, hb, d) { const p = v.percent + d; return ((p / 10 + p * d / 20) * 200 / (v.c.weight + (formOf(v) ? formOf(v).weight : 0) + 100) * 1.4 + 18) * hb.g / 100 + hb.b; }
+  // would this hit send the target past a blast line? (no DI, launched from where it will be hit)
+  koSim(v, hb, d, dir, at) {
+    const b = G.stage.blast, m = G.stage.main;
+    let kb = this.kbOf(v, hb, d); const ang = hb.a * Math.PI / 180; let lx = Math.cos(ang) * dir, ly = -Math.sin(ang);
+    const gr = Math.abs(at.y - m.y) < 2 && at.x >= m.x1 && at.x <= m.x2;
+    if (hb.bury && gr) return false;
+    if (gr && ly > 0.15) { ly = -ly * 0.8; kb *= 0.8; }
+    let x = at.x, y = at.y, lvx = lx * kb * 0.15, lvy = ly * kb * 0.15, vy = 0; const hs = kb * 0.4;
+    for (let i = 0; i < 150; i++) {
+      const sp = Math.hypot(lvx, lvy), ns = Math.max(0, sp - 0.26); if (ns <= 0) lvx = lvy = 0; else { lvx *= ns / sp; lvy *= ns / sp; }
+      vy = Math.min(vy + v.c.grav * (i < hs ? 0.62 : 1), v.c.fall); const py = y; x += lvx; y += vy + lvy;
+      if (x < b.l || x > b.r || y > b.b || y - v.c.h < b.t) return true;
+      if (vy + lvy > 0 && x >= m.x1 && x <= m.x2 && py <= m.y && y >= m.y) return false;
+    }
+    return false;
+  }
+  score(mv, h, t, at) {
+    const f = this.f, hb = h.hb;
+    let s;
+    if (hb.grab) {
+      const kill = ['f', 'b', 'u', 'd'].some(k => f.M[k + 'throw'] && throwKB(f.M[k + 'throw'].thb, t) > 165);
+      s = 9 + (kill ? 60 : 0) + (t.state === 'shield' ? 30 : 0) - mv.dur * 0.08;
+    } else {
+      const d = hb.d * (formOf(f) ? formOf(f).dmg : 1) * (f.maskT > 0 ? 1.2 : 1);
+      s = d - mv.dur * 0.12;
+      if (t.state === 'shield' && !hb.unblock && t.shieldHP > d * 1.25) s -= 40;
+      if (this.koSim(t, hb, d, f.facing, at)) s += 80;
+      else { const kb = this.kbOf(t, hb, d); if (kb * 0.4 > mv.dur - mv.start + 4 && kb < 120) s += d * 0.6; }
+      if (f.stale) s -= f.stale.filter(e => e.k === mv.netKey).length * 1.5;
+    }
+    return s - h.k * 0.25;
+  }
+  // frames until an enemy hitbox or projectile reaches this fighter (99 = nothing coming)
+  threatIn(f, n) {
+    let best = 99;
+    const box = (x, y, r) => circleRect(x, y, r, f.x - f.c.w / 2 - 4, f.y - f.c.h - 4, f.c.w + 8, f.c.h + 8);
+    for (const a of G.fighters) {
+      if (a === f || a.state !== 'attack' || !a.move || !a.move.hb || a.move.throw) continue;
+      const mv = a.move; let P = null;
+      for (const hb of mv.hb) {
+        if (hb.when || hb.grab) continue;
+        const a0 = mv.start + (hb.f0 || 0) + 1 - a.mt, a1 = Math.min(n, mv.start + (hb.f1 != null ? hb.f1 : mv.active) - a.mt);
+        for (let i = Math.max(1, a0); i <= a1 && i < best; i++) { P = P || this.predict(a, n); if (box(P[i].x + hb.x * a.facing, P[i].y + hb.y, hb.r)) { best = i; break; } }
+      }
+    }
+    for (const p of G.projs) {
+      if (p.owner === f || p.ghost || p.dead) continue;
+      for (let i = 1; i <= n && i < best; i++) if (box(p.x + p.vx * i, p.y + p.vy * i, p.r || 10)) { best = i; break; }
+    }
+    return best;
+  }
+  smart(t, o) {
+    const f = this.f, m = G.stage.main, st = f.state, q = clamp((this.L - 7) / 5, 0, 1);
+    if (!t || t.state === 'respawn' || t.state === 'dead' || t.state === 'grabbed') return null;
+    const adx = Math.abs(t.x - f.x), tOff = t.x < m.x1 - 4 || t.x > m.x2 + 4 || (t.y > m.y + 8 && !t.grounded);
+    if (!(adx < 320 && Math.abs(t.y - f.y) < 300) && !tOff && t.state !== 'hitstun') return null;
+    if (Math.random() < (1 - q) * 0.35) return null;
+    const TP = this.predict(t, 48), thr = this.threatIn(f, 16);
+    if (st === 'shield') return this.oos(t, o, thr, q);
+    if (f.grounded && GROUNDED_ACT.includes(st)) {
+      // transform when the meter is full and there is room for it
+      if (METER[f.key] && (f.ki || 0) >= 100 && !(f.ssj > 0) && thr > 30 && (adx > 200 || t.state === 'knockdown' || (t.state === 'hitstun' && t.hitstun > 40))) { o.d = true; o.spc = true; return this.tap(o); }
+      return this.ground(t, o, thr, TP, q, tOff);
+    }
+    if (st === 'air') return this.airPlay(t, o, thr, TP, q, tOff);
+    return null;
+  }
+  ground(t, o, thr, TP, q, tOff) {
+    const f = this.f, m = G.stage.main, M = f.M, dx = t.x - f.x, adx = Math.abs(dx), face = dx >= 0 ? 1 : -1, fk = face > 0 ? 'r' : 'l', bk = face > 0 ? 'l' : 'r';
+    const ff = f.facing > 0 ? 'r' : 'l', id = t.id + ':' + (t.moveUse || 0);
+    // defence: counter or parry what is about to land, shield or step out of what is still winding up
+    if (thr < 99) {
+      const r = this.roll(id), ctr = M.downB && M.downB.counter;
+      if (ctr && thr > ctr[0] && thr <= ctr[1] && r < q * 0.3) { o.d = true; o.spc = true; return this.tap(o); }
+      if (thr <= 3 && r < 0.1 + q * 0.5) { o.shd = true; return this.hold(o, 6); }
+      if (thr <= 7 && r < 0.2 + q * 0.4) { o.shd = true; return this.hold(o, 10); }
+      if (thr <= 12 && r > 0.85 - q * 0.25 && !((bk === 'r' && f.x > m.x2 - 70) || (bk === 'l' && f.x < m.x1 + 70))) { o[bk] = true; return this.hold(o, 3); }
+    }
+    if (t.intang && !(t.state === 'evade' && t.ev && t.t + 4 >= t.ev.i1)) { if (adx > 90) o[fk] = true; return this.out(o, 1); }
+    const run = f.state === 'run' && Math.abs(f.vx) > f.c.run * 0.6, tg = t.grounded || G.frame - (t.pinT ?? -99) <= 10;
+    const stand = this.selfPath('stand', 0, 44), opts = [];
+    const add = (key, inp, fac, path, grab) => { const mv = M[key]; const h = this.hitsAt(mv, path || stand, fac, TP, 0, t, grab); if (h) opts.push({ s: this.score(mv, h, t, TP[h.k]) + (thr < h.k ? -25 : 0), inp, keep: null }); };
+    add('jab', { atk: true }, f.facing);
+    add('fsmash', { [fk]: true, atk: true, smash: true }, face);
+    add('usmash', { u: true, atk: true, smash: true }, f.facing);
+    add('dsmash', { d: true, atk: true, smash: true }, f.facing);
+    if (run) add('dash', { [ff]: true, atk: true }, f.facing, this.selfPath('stand', 0, 44, M.dash.slide || 1));
+    else { add('ftilt', { [fk]: true, atk: true }, face); add('utilt', { u: true, atk: true }, f.facing); add('dtilt', { d: true, atk: true }, f.facing); }
+    if (tg && t.state !== 'hitstun') add(run ? 'dashGrab' : 'grab', { grb: true }, f.facing, null, true);
+    // hop into an aerial: which hop and which aerial would land on the target soonest
+    const jd = Math.sign(this.driftX(TP[16].x) - f.x) || 0, jk = jd > 0 ? 'r' : jd < 0 ? 'l' : null;
+    for (const mode of ['sh', 'fh']) {
+      if (mode === 'fh' && TP[20].y > f.y - 60) continue;
+      const path = this.selfPath(mode, jd, 46);
+      for (const key of ['nair', 'fair', 'bair', 'uair', 'dair']) {
+        let h = null;
+        for (let off = 5; off <= 26 && !h; off += 2) h = this.hitsAt(M[key], path, f.facing, TP, off, t);
+        if (!h || !this.safeAt(path[Math.min(path.length - 1, h.k + M[key].dur - M[key].start)])) continue;
+        const s = this.score(M[key], h, t, TP[h.k]) - 3;
+        if (!opts.some(x => x.jump === mode && x.s >= s)) opts.push({ s, jump: mode, inp: Object.assign({ jmp: true }, jk ? { [jk]: true } : {}), keep: Object.assign(mode === 'fh' ? { jmp: true } : {}, jk ? { [jk]: true } : {}) });
+      }
+    }
+    if (opts.length) {
+      opts.sort((a, b) => b.s - a.s);
+      const pick = opts.length > 1 && Math.random() > 0.55 + q * 0.4 ? opts[1] : opts[0];
+      if (pick.s > -6) return this.tap(pick.inp, pick.keep && Object.assign(blank(), pick.keep));
+    }
+    // nothing connects yet: guard the ledge, get under a falling target, or walk into range
+    const edgeStop = () => { if (f.ground === m && ((o.r && f.x > m.x2 - 26) || (o.l && f.x < m.x1 + 26))) o.r = o.l = false; };
+    if (tOff) {
+      const ex = t.x < (m.x1 + m.x2) / 2 ? m.x1 + 30 : m.x2 - 30;
+      if (Math.abs(f.x - ex) > 12) o[ex > f.x ? 'r' : 'l'] = true;
+      edgeStop(); return this.out(o, 1);
+    }
+    const reach = 26 + f.c.w * 0.5 + t.c.w * 0.5 + 18 * (f.c.reach || 1);
+    // on another floor: jump up to it, or drop through the platform down to it
+    if (t.grounded && t.ground !== f.ground && Math.abs(t.y - f.y) > 50) {
+      if (t.y < f.y) { o.jmp = true; if (adx > 20) o[fk] = true; return this.hold(o, 5); }
+      if (f.ground && !f.ground.solid && f.ground !== m) { o.d = true; return this.tap(o); }
+      if (adx > 20) o[fk] = true; edgeStop(); return this.out(o, 0);
+    }
+    if (!t.grounded && TP[20].y < f.y - 40) { const ux = TP[20].x; if (Math.abs(ux - f.x) > 14) o[ux > f.x ? 'r' : 'l'] = true; edgeStop(); return this.out(o, 0); }
+    const busy = t.state === 'attack' && t.move && t.mt < t.move.start + t.move.active;
+    if (busy && adx < reach + 90 && this.roll(id) < q * 0.6) { o[bk] = true; edgeStop(); return this.out(o, 2); }
+    if (adx > reach * 0.85) o[fk] = true;
+    else if (run) o.l = o.r = false;
+    else if (f.facing !== face) o[fk] = true;
+    edgeStop(); return this.out(o, 0);
+  }
+  airPlay(t, o, thr, TP, q, tOff) {
+    const f = this.f, m = G.stage.main, M = f.M, face = t.x >= f.x ? 1 : -1;
+    const ff = f.facing > 0 ? 'r' : 'l', fb = f.facing > 0 ? 'l' : 'r', id = t.id + ':' + (t.moveUse || 0);
+    const onStage = f.x > m.x1 && f.x < m.x2;
+    if (thr <= 4 && !f.airdodged && this.roll(id) < q * 0.45) { o.shd = true; if (onStage) o[face > 0 ? 'l' : 'r'] = true; return this.tap(o); }
+    const dX = this.driftX(TP[10].x), jd = Math.abs(dX - f.x) > 10 ? Math.sign(dX - f.x) : 0, jk = jd > 0 ? 'r' : jd < 0 ? 'l' : null, keep = () => Object.assign(blank(), jk ? { [jk]: true } : {});
+    const path = this.selfPath('air', jd, 40), opts = [];
+    const add = (key, inp) => { const h = this.hitsAt(M[key], path, f.facing, TP, 0, t); if (h && this.safeAt(path[Math.min(path.length - 1, M[key].dur)])) opts.push({ s: this.score(M[key], h, t, TP[h.k]), inp }); };
+    add('nair', { atk: true }); add('fair', { [ff]: true, atk: true }); add('bair', { [fb]: true, atk: true });
+    add('uair', { u: true, atk: true }); add('dair', { d: true, atk: true });
+    if (opts.length) {
+      opts.sort((a, b) => b.s - a.s);
+      const pick = opts.length > 1 && Math.random() > 0.55 + q * 0.4 ? opts[1] : opts[0];
+      return this.tap(pick.inp, keep());
+    }
+    // chase upward with the double jump, drop fast onto a grounded target, otherwise drift toward it
+    if (f.jumps > 0 && TP[14].y < f.y - 70 && Math.abs(TP[14].x - f.x) < 170 && f.vy > -3 && !this.mem.jmp) { o.jmp = true; if (jk) o[jk] = true; return this.tap(o, keep()); }
+    if (onStage && !tOff && f.vy > 0 && !f.fastfall && (t.grounded || t.y > f.y + 40) && Math.random() < q) { o.d = !this.mem.d; if (jk) o[jk] = true; return this.tap(o, Object.assign(keep(), { d: o.d })); }
+    if (jk) o[jk] = true;
+    return this.tap(o, keep());
+  }
+  // in shield: hold it while hits keep coming, then grab or jump out of it when the attacker is stuck
+  oos(t, o, thr, q) {
+    const f = this.f, M = f.M;
+    if (f.shieldStun > 0 || thr <= 6) { o.shd = true; return this.hold(o, 1); }
+    const open = t.hitlag > 0 || t.state === 'land' || (t.state === 'attack' && t.move && t.mt > t.move.start + t.move.active);
+    if (open && Math.random() < 0.3 + q * 0.7) {
+      const TP = this.predict(t, 30), h = t.grounded && this.hitsAt(M.grab, this.selfPath('stand', 0, 30), f.facing, TP, 0, t, true);
+      if (h) { o.grb = true; return this.tap(o); }
+      if (Math.abs(t.x - f.x) < 110) { o.jmp = true; return this.tap(o); }
+    }
+    return this.out(o, 0);
+  }
+  // during its own aerial: keep drifting toward the target and fastfall once the hitbox is done
+  aerialHold() {
+    const f = this.f, m = G.stage.main, mv = f.move, t = this.pickTarget(), o = blank();
+    if (!t) return o;
+    const px = this.driftX(this.predict(t, 12)[12].x);
+    if (Math.abs(px - f.x) > 12) o[px > f.x ? 'r' : 'l'] = true;
+    const done = f.mt > mv.start + Math.max(...mv.hb.map(h => h.f1 != null ? h.f1 : mv.active), mv.active);
+    if (done && f.vy > 0 && !f.fastfall && f.x > m.x1 && f.x < m.x2 && (t.grounded || t.y > f.y)) o.d = !this.mem.d;
+    this.mem = o; return o;
+  }
   recover(o) {
-    const f = this.f, m = G.stage.main, dir = f.x < (m.x1 + m.x2) / 2 ? 1 : -1, ledgeX = dir > 0 ? m.x1 : m.x2, dx = Math.abs(f.x - ledgeX), fk = dir > 0 ? 'r' : 'l';
+    const f = this.f, m = G.stage.main, cx = (m.x1 + m.x2) / 2, under = f.x > m.x1 + 4 && f.x < m.x2 - 4 && f.y > m.y + 4;
+    // from under the stage, drift out past the ledge first; an up-B there only hits the bottom
+    const dir = (f.x < cx ? 1 : -1) * (under ? -1 : 1), ledgeX = f.x < cx ? m.x1 : m.x2, dx = Math.abs(f.x - ledgeX), fk = dir > 0 ? 'r' : 'l';
     o[fk] = true;
     if (f.state === 'attack' || f.state === 'helpless') { o.u = f.y > m.y - 60; this.mem = o; return o; }
     if (f.state !== 'air') { this.mem = o; return o; }
     const below = f.y - m.y;
     if (f.jumps > 0 && f.vy > -1 && (below > -40 || dx > 260) && !this.mem.jmp) o.jmp = true;
-    else if (f.jumps === 0 && f.c.sideRec && !f.sideBUsed && dx > 200 && below < 60 && below > -120 && !this.mem.spc) o.spc = true;
-    else if (f.jumps === 0 && f.vy > -1 && below > -30 && !this.mem.spc && !(f.key === 'poef' && (dx > 150 || (f.x > m.x1 && f.x < m.x2)))) { o.u = true; o.spc = true; if (dx < 30) o.l = o.r = false; }
+    else if (f.jumps === 0 && !under && f.c.sideRec && !f.sideBUsed && dx > 200 && below < 60 && below > -120 && !this.mem.spc) o.spc = true;
+    else if (f.jumps === 0 && !under && f.vy > -1 && below > -30 && !this.mem.spc && !(f.key === 'poef' && (dx > 150 || (f.x > m.x1 && f.x < m.x2)))) { o.u = true; o.spc = true; if (dx < 30) o.l = o.r = false; }
     this.mem = o; this.wait = 0; return o;
   }
 }
@@ -4620,7 +4884,7 @@ function buildMenu() {
       <span class="now" hidden>kiest nu</span>
       <canvas class="pv" id="pv${i}" width="360" height="320" aria-label="Speler ${i + 1}: klik om voor deze speler te kiezen" tabindex="0"></canvas>
       <div class="cn"><b id="cn${i}"></b><small id="cb${i}"></small></div>
-      <div class="lvl" id="lvw${i}"><label for="lv${i}">CPU-niveau</label><input type="range" id="lv${i}" min="1" max="9"><output id="lo${i}"></output></div>`;
+      <div class="lvl" id="lvw${i}"><label for="lv${i}">CPU-niveau</label><input type="range" id="lv${i}" min="1" max="12"><output id="lo${i}"></output></div>`;
     wrap.appendChild(el);
     el.addEventListener('click', e => { if (e.target.closest('select,input,label')) return; setActiveSlot(i); });
     el.querySelector('.pv').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveSlot(i); document.querySelector('#cgrid .cg').focus(); } });
