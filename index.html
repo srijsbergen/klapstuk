@@ -3075,7 +3075,8 @@ function drawPuppet(g, ck, col, P, o = {}) {
     return limbPts(hip.x + (k === 'lF' ? 2 : -2), hip.y, u, l, LL, LL);
   };
   const lB = leg('lB'), lF = leg('lF');
-  const aB = limbPts(sh.x, sh.y + 3, P.aB[0] + lean, P.aB[1], AL, AL), aF = limbPts(sh.x, sh.y + 3, P.aF[0] + lean, P.aF[1], AL, AL);
+  // elbows are hinges that only flex one way (forearm turns toward the front), unlike knees
+  const aB = limbPts(sh.x, sh.y + 3, P.aB[0] + lean, Math.abs(P.aB[1]), AL, AL), aF = limbPts(sh.x, sh.y + 3, P.aF[0] + lean, Math.abs(P.aF[1]), AL, AL);
   const handCol = { techno: col.body, ninja: col.dark, rat: col.body, lonk: '#8a5a2b', klauw: col.body, bongo: col.skin, brick: col.dark, sable: col.dark, volt: col.skin, gloei: col.acc, kwak: col.body, bliep: col.dark, schim: '#f4f4f4' }[ck] || col.skin;
   // back limbs
   const backCol = ck === 'klauw' ? shade(col.body, 0.78) : ck === 'lonk' ? '#cdc3aa' : ck === 'volt' ? shade(col.jacket, 0.78) : ck === 'techno' ? '#25202e' : col.dark;
