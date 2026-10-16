@@ -924,8 +924,9 @@ const AIRS = {
   }),
 };
 function buildMoves(ck) {
-  const c = CHARS[ck], s = c.h / 80, R = c.reach, P = c.pow, LG = c.lag;
-  const H = (x, y, r, d, a, b, g, o) => Object.assign({ x: x * s * (o && o.nr ? 1 : R), y: y * s, r: r * s, d: Math.round(d * P * 10) / 10, a, b, g }, o || {});
+  // hitbox height follows the body, but reach and size never drop below a fighter of normal height (80), so small fighters don't also hit short
+  const c = CHARS[ck], s = c.h / 80, sr = Math.max(s, 1), R = c.reach, P = c.pow, LG = c.lag;
+  const H = (x, y, r, d, a, b, g, o) => Object.assign({ x: x * sr * (o && o.nr ? 1 : R), y: y * s, r: r * sr, d: Math.round(d * P * 10) / 10, a, b, g }, o || {});
   const M = o => {
     const m = Object.assign({ start: 4, active: 3, end: 12, pose: 'jab', ll: 8, hb: [] }, o);
     if (!o.special) m.start = Math.max(1, m.start + LG);
