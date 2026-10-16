@@ -685,9 +685,9 @@ Object.assign(CHARS, {
     col: { body: '#3f9a3a', dark: '#2b6b28', acc: '#e8c547', skin: '#f6cfa8', fx: '#9ff0ff' }, alt: { body: '#c8402f', dark: '#8a2a1f', acc: '#e8c547', skin: '#f6cfa8', fx: '#ffb36b' } },
   rat: { name: 'Bliksemrat', blurb: 'Kleine, snelle elektrische rat. Stroomballen over de grond, een oplaadbare kopstoot, een zigzaggende flitssprong en een bliksem uit de lucht.', weight: 79, run: 7.2, acc: 1.1, jump: 15, djump: 13.5, grav: 0.85, fall: 12, ffall: 17.5, air: 4.8, airAcc: 0.5, airJumps: 1, w: 40, h: 60, pow: 0.95, reach: 0.95, lag: -1, limb: 9, zoner: true, sideRec: true, hr: 0.25, arm: 0.14,
     col: { body: '#ffd84a', dark: '#d9a514', acc: '#e8323c', skin: '#ffe98a', fx: '#fff27a' }, alt: { body: '#ffb34a', dark: '#c77a14', acc: '#ff6b9a', skin: '#ffd08a', fx: '#ffe08a' } },
-  kakel: { name: 'Kakelninja', blurb: 'Kip die in een ninja verandert. Als kip zweeft hij met vier kleine sprongetjes en schiet hij eieren; als ninja jodelt hij een geluidsgolf (te kantelen), doet hij een rookdash en een bladerwervel. Speciaal omlaag wisselt van vorm.', weight: 74, run: 5.9, acc: 1, jump: 13, djump: 7.5, grav: 0.45, fall: 6.5, ffall: 10, air: 4.8, airAcc: 0.47, airJumps: 4, w: 40, h: 62, pow: 0.95, reach: 1, lag: 0, limb: 8, zoner: true, pz: 2.0,
+  kakel: { name: 'Kakelninja', blurb: 'Kip die in een ninja verandert. De kip is licht en sterk in de lucht: vier sprongetjes, eieren van afstand en een fladderend herstel. De ninja is snel en sterk op de grond, met een jodelgolf (te kantelen), een rookdash en een bladerwervel, maar komt slechter terug. Speciaal omlaag wisselt van vorm.', weight: 74, run: 5.9, acc: 1, jump: 13, djump: 7.5, grav: 0.45, fall: 6.5, ffall: 10, air: 5.2, airAcc: 0.52, airJumps: 4, w: 40, h: 62, pow: 1, reach: 1, lag: 0, limb: 8, zoner: true, pz: 2.0,
     col: { body: '#f7f3ea', dark: '#c9c2b0', acc: '#e0302f', skin: '#f2b632', fx: '#fff1b0' }, alt: { body: '#b5713a', dark: '#7d4a22', acc: '#e0302f', skin: '#f2b632', fx: '#ffd08a' } },
-  ninja: { name: 'Kakelninja', hidden: true, blurb: '', weight: 88, run: 7.4, acc: 1.15, jump: 16, djump: 14.5, grav: 0.85, fall: 13, ffall: 18.5, air: 5, airAcc: 0.5, airJumps: 1, w: 40, h: 74, pow: 0.98, reach: 1.05, lag: -1, limb: 9, sideRec: true, hr: 0.16,
+  ninja: { name: 'Kakelninja', hidden: true, blurb: '', weight: 84, run: 7.4, acc: 1.15, jump: 16, djump: 14.5, grav: 0.85, fall: 13, ffall: 18.5, air: 4.6, airAcc: 0.45, airJumps: 1, w: 40, h: 74, pow: 0.96, reach: 1.05, lag: -1, limb: 9, sideRec: true, hr: 0.16,
     col: { body: '#f2f2f4', dark: '#c4c4ce', acc: '#e0302f', skin: '#f2c9a5', fx: '#fff1b0' }, alt: { body: '#3a3a44', dark: '#24242c', acc: '#e0302f', skin: '#d9a77c', fx: '#ffd08a' } },
   techno: { name: 'Technoblade', blurb: 'Varkenskoning met gouden kroon, rode cape en een diamanten zwaard. Vuurwerk-kruisboog, een zwaardstoot, een draaiende drietand omhoog en een totem die een klap opvangt en je geneest.', weight: 108, run: 6.4, acc: 1, jump: 15, djump: 14, grav: 0.84, fall: 12.5, ffall: 17.5, air: 4.6, airAcc: 0.44, airJumps: 1, w: 44, h: 82, pow: 1.1, reach: 1.3, lag: 0, limb: 11, hr: 0.17, zoner: true, sideRec: true,
     col: { body: '#f2a0b0', dark: '#c8707f', acc: '#c0262d', skin: '#f7c0cb', fx: '#5ef0ff' }, alt: { body: '#f2a0b0', dark: '#c8707f', acc: '#2d4fc0', skin: '#f7c0cb', fx: '#ffd34d' } },
@@ -936,15 +936,15 @@ const AIRS = {
   kakel: (M, H) => ({
     nair: M({ start: 5, active: 12, end: 10, pose: 'flap', aerial: true, afx: 'feather', ll: 6, hb: mh(H, 3, 4, 3, 0, -30, 34, 2.5, 80, 12, 0, { nr: 1 }).concat([H(0, -30, 36, 5, 50, 30, 78, { nr: 1, f0: 10, f1: 12, grp: 9 })]) }),
     fair: M({ start: 6, active: 3, end: 14, pose: 'peck', aerial: true, ll: 9, hb: [H(44, -36, 22, 11, 40, 32, 94), H(24, -36, 16, 7, 40, 26, 85)] }),
-    bair: M({ start: 6, active: 4, end: 13, pose: 'flap', aerial: true, afx: 'feather', ll: 8, hb: [H(-44, -34, 26, 11, 145, 32, 95)] }),
+    bair: M({ start: 6, active: 4, end: 13, pose: 'flap', aerial: true, afx: 'feather', ll: 8, hb: [H(-44, -34, 26, 12, 145, 36, 95)] }),
     uair: M({ start: 5, active: 6, end: 12, pose: 'flap', aerial: true, afx: 'feather', ll: 7, hb: [H(0, -74, 32, 8, 88, 30, 92, { nr: 1 })] }),
     dair: M({ start: 9, active: 5, end: 16, pose: 'stompD', aerial: true, ll: 13, hb: [H(0, 16, 23, 12, 275, 36, 84, { nr: 1 })] }),
   }),
   ninja: (M, H) => ({
-    nair: M({ start: 4, active: 10, end: 10, pose: 'nair', aerial: true, afx: 'slash', ll: 6, hb: [H(0, -40, 40, 9, 45, 30, 84, { nr: 1 })] }),
-    fair: M({ start: 5, active: 4, end: 13, pose: 'axe', aerial: true, afx: 'slash', ll: 8, hb: [H(52, -46, 22, 11, 40, 32, 94), H(28, -46, 18, 8, 45, 28, 85)] }),
-    bair: M({ start: 4, active: 4, end: 12, pose: 'bair', aerial: true, ll: 8, hb: [H(-50, -34, 22, 12, 145, 32, 98), H(-26, -36, 18, 8, 145, 28, 88)] }),
-    uair: M({ start: 4, active: 5, end: 11, pose: 'uair', aerial: true, ll: 6, hb: [H(0, -98, 27, 9, 85, 30, 92, { nr: 1 })] }),
+    nair: M({ start: 5, active: 10, end: 11, pose: 'nair', aerial: true, afx: 'slash', ll: 7, hb: [H(0, -40, 40, 9, 45, 30, 84, { nr: 1 })] }),
+    fair: M({ start: 6, active: 4, end: 14, pose: 'axe', aerial: true, afx: 'slash', ll: 9, hb: [H(52, -46, 22, 11, 40, 32, 94), H(28, -46, 18, 8, 45, 28, 85)] }),
+    bair: M({ start: 5, active: 4, end: 13, pose: 'bair', aerial: true, ll: 9, hb: [H(-50, -34, 22, 12, 145, 32, 98), H(-26, -36, 18, 8, 145, 28, 88)] }),
+    uair: M({ start: 5, active: 5, end: 12, pose: 'uair', aerial: true, ll: 7, hb: [H(0, -98, 27, 9, 85, 30, 92, { nr: 1 })] }),
     dair: M({ start: 8, active: 5, end: 15, pose: 'drillK', aerial: true, afx: 'slash', ll: 12, hb: [H(18, 16, 23, 12, 290, 36, 86)] }),
   }),
   techno: (M, H) => ({
@@ -1448,11 +1448,11 @@ const SPECIALS = {
       tick: (f, t) => { if (t === 1) { G.shake = Math.max(G.shake, 10); SFX.boom(); sparkFx(f.x, f.y - f.c.h / 2, '#fff27a', 14); } if (!f.grounded) { f.vy = 0; f.vx *= 0.8; } } }),
   }),
   kakel: (M, H, s) => ({
-    neutralB: M({ special: true, start: 8, active: 1, end: 12, pose: 'cast',
+    neutralB: M({ special: true, start: 6, active: 1, end: 10, pose: 'cast',
       tick: (f, t) => {
         if (!f.grounded && f.vy > 1) f.vy = 1;
-        if (t !== 8) return;
-        spawnProj({ type: 'egg', owner: f, x: f.x + f.facing * 20 * s, y: f.y - 36 * s, vx: f.facing * 7.5, vy: -5, grav: 0.35, r: 9, life: 120, spin: 0.25, hb: { d: 6, a: 50, b: 25, g: 40 }, onGround: p => { p.dead = true; eggBreak(p); }, afterHit: eggBreak });
+        if (t !== 6) return;
+        spawnProj({ type: 'egg', owner: f, x: f.x + f.facing * 20 * s, y: f.y - 36 * s, vx: f.facing * 8.5, vy: -5, grav: 0.35, r: 10, life: 120, spin: 0.25, hb: { d: 8, a: 50, b: 28, g: 42 }, onGround: p => { p.dead = true; eggBreak(p); }, afterHit: eggBreak });
         SFX.shoot();
       } }),
     sideB: M({ special: true, start: 6, active: 18, end: 14, pose: 'peck', keepVel: true, noDrift: true, ll: 10,
@@ -1483,7 +1483,7 @@ const SPECIALS = {
         const L = 66 * s * f.c.reach - f.c.w * 0.5;
         for (const h of f.move.hb) { h.x = f.c.w * 0.5 + Math.cos(f.aim) * L; h.y = -64 * s + Math.sin(f.aim) * L; }
       } }),
-    sideB: M({ special: true, start: 6, active: 12, end: 16, pose: 'dashB', keepVel: true, noDrift: true, warp: true, intang: [6, 15], ll: 10,
+    sideB: M({ special: true, start: 6, active: 12, end: 16, pose: 'dashB', keepVel: true, noDrift: true, warp: true, intang: [7, 12], ll: 10,
       hb: [H(30, -40, 30, 9, 40, 45, 70, { nr: 1, f0: 9, f1: 12 })], noGrav: (f, t) => t <= 18,
       tick: (f, t) => {
         const puff = () => { for (let i = 0; i < 8; i++) addP({ type: 'smoke', x: f.x + rand(-18, 18), y: f.y - rand(5, f.c.h), vx: rand(-1.5, 1.5), vy: -rand(0.3, 1.5), life: 24, max: 24, size: rand(8, 14), drag: 0.92 }); };
@@ -1491,7 +1491,7 @@ const SPECIALS = {
       } }),
     upB: M({ special: true, start: 5, active: 26, end: 12, pose: 'spinUp', helpless: true, ledgeOK: 8, drift: 0.8, leafFx: true,
       hb: [0, 1, 2, 3].map(i => H(0, -44, 36, 2.2, 85, 28, 0, { nr: 1, f0: i * 5, f1: i * 5 + 5, grp: i + 1 })).concat([H(0, -50, 40, 5, 80, 50, 80, { nr: 1, f0: 20, f1: 26, grp: 9 })]),
-      tick: (f, t) => { if (t === 5) { f.vy = -14; f.grounded = false; f.ground = null; SFX.swing(); } if (t > 5 && t < 28 && f.vy > -5) f.vy -= 0.35; } }),
+      tick: (f, t) => { if (t === 5) { f.vy = -12.5; f.grounded = false; f.ground = null; SFX.swing(); } if (t > 5 && t < 28 && f.vy > -5) f.vy -= 0.3; } }),
     downB: transformMove(M, 'kakel'),
   }),
   techno: (M, H, s) => ({
@@ -2908,8 +2908,12 @@ class AI {
         o[it.x > f.x ? 'r' : 'l'] = true; return this.out(o, 2);
       }
     }
-    // the CPU Kakelninja changes into the ninja when there is room, and stays one
-    if (f.key === 'kakel' && f.grounded && GROUNDED_ACT.includes(st) && adx > 150 && t.state !== 'attack' && Math.random() < 0.03 + L * 0.01) { o.d = true; o.spc = true; return this.out(o, 4); }
+    // the CPU Kakelninja picks a form: the ninja up close on the ground, the chicken at range with its eggs
+    // (the gap between 380 and 520 keeps it from flipping back and forth)
+    if ((f.key === 'kakel' || f.key === 'ninja') && f.grounded && GROUNDED_ACT.includes(st) && t.state !== 'attack' && Math.abs(dy) < 90) {
+      const want = adx < 380 && adx > 110 ? 'ninja' : adx > 520 ? 'kakel' : null;
+      if (want && want !== f.key && Math.random() < (want === 'ninja' ? 0.03 + L * 0.01 : 0.01 + L * 0.004)) { o.d = true; o.spc = true; return this.out(o, 4); }
+    }
     if (sm) { const r = this.smart(t, o); if (r) return r; }
     const threat = t.state === 'attack' && t.move && !t.move.throw && adx < reach + 60 && Math.abs(dy) < 90;
     const incoming = G.projs.some(p => p.owner !== f && p.type !== 'pipbomb' && Math.abs(p.x - f.x) < 130 && Math.abs(p.y - (f.y - f.c.h / 2)) < 70 && (p.vx === 0 || Math.sign(p.vx) === Math.sign(f.x - p.x)));
@@ -3219,6 +3223,7 @@ class AI {
     }
     if (f.state !== 'air') { this.mem = o; return o; }
     const below = f.y - m.y;
+    if (f.key === 'ninja' && f.jumps === 0 && !under && (below > 110 || dx > 190) && !this.mem.spc) { o.d = true; o.spc = true; this.mem = o; return o; }
     if (f.jumps > 0 && f.vy > (under ? 4 : -1) && (below > -40 || dx > 260) && !this.mem.jmp) o.jmp = true;
     else if (f.jumps === 0 && !under && f.c.sideRec && !f.sideBUsed && dx > 200 && below < 60 && below > -120 && !this.mem.spc) o.spc = true;
     else if (f.jumps === 0 && !under && f.vy > -1 && below > -30 && !this.mem.spc && !(f.key === 'poef' && (dx > 150 || (f.x > m.x1 && f.x < m.x2)))) { o.u = true; o.spc = true; if (dx < 30) o.l = o.r = false; }
