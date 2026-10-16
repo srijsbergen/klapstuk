@@ -650,11 +650,11 @@ Object.assign(CHARS.brick, { sideRec: true, hr: 0.14, arm: 0.2 });
 Object.assign(CHARS.sable, { zoner: true, sideRec: true });
 Object.assign(CHARS.pip, { zoner: 'side', hr: 0.19 });
 Object.assign(CHARS, {
-  gloei: { name: 'Gloei', blurb: 'Vurige bokser. Vuuradem, een vlammengreep dwars door schilden en een vlamstijger.', weight: 104, run: 6.8, acc: 1.1, jump: 15, djump: 14, grav: 0.82, fall: 12.5, ffall: 17.5, air: 5, airAcc: 0.48, airJumps: 1, w: 42, h: 80, pow: 1.05, reach: 1, lag: 0, limb: 11, sideRec: true, hr: 0.15,
+  gloei: { name: 'Gloei', blurb: 'Vurige bokser. Vuuradem, een vlammengreep dwars door schilden en een vlamstijger.', weight: 104, run: 6.8, acc: 1.1, jump: 15, djump: 14, grav: 0.82, fall: 12.5, ffall: 17.5, air: 5, airAcc: 0.48, airJumps: 1, w: 42, h: 80, pow: 1.1, reach: 1, lag: 0, limb: 11, sideRec: true, hr: 0.15,
     col: { body: '#e8473b', dark: '#9e2220', acc: '#ffb72b', skin: '#f2b48a', fx: '#ffcf5a' }, alt: { body: '#3b7be8', dark: '#1f469e', acc: '#7df9ff', skin: '#f2b48a', fx: '#a8f0ff' } },
   kwak: { name: 'Kwak', blurb: 'Springkikker. Zwevende bellen, een tong die van ver grijpt en een buikplons.', weight: 86, run: 6.4, acc: 1.1, jump: 17, djump: 14, grav: 0.86, fall: 12.5, ffall: 17.5, air: 5, airAcc: 0.47, airJumps: 1, w: 46, h: 66, pow: 1.02, reach: 1, lag: -1, limb: 10, zoner: true, hr: 0.2, arm: 0.15,
     col: { body: '#57c84d', dark: '#2f8a2c', acc: '#ff7ab0', skin: '#e9f7b0', fx: '#c6ff8a' }, alt: { body: '#e6c02f', dark: '#9c7f12', acc: '#3cc0ff', skin: '#fff3c2', fx: '#fff08a' } },
-  bliep: { name: 'Bliep', blurb: 'Robot met laser, raketvuist, jetpack en een magneet die projectielen opslurpt.', weight: 112, run: 5.4, acc: 0.9, jump: 13.8, djump: 12.8, grav: 0.8, fall: 12, ffall: 17, air: 4.4, airAcc: 0.4, airJumps: 1, w: 50, h: 86, pow: 1.05, reach: 1, lag: 1, limb: 12, zoner: 'side', hr: 0.16, arm: 0.18,
+  bliep: { name: 'Bliep', blurb: 'Robot met laser, raketvuist, jetpack en een magneet die projectielen opslurpt.', weight: 112, run: 6, acc: 1, jump: 13.8, djump: 12.8, grav: 0.8, fall: 12, ffall: 17, air: 4.6, airAcc: 0.43, airJumps: 1, w: 50, h: 86, pow: 1.02, reach: 1, lag: 0, limb: 12, zoner: 'side', hr: 0.16, arm: 0.18,
     col: { body: '#d9dde6', dark: '#8a91a3', acc: '#ff4fd8', skin: '#2a2d3a', fx: '#ff9cf0' }, alt: { body: '#3a4152', dark: '#1d222e', acc: '#52ff8e', skin: '#0f1219', fx: '#a6ffc6' } },
   joep: { name: 'Joep', blurb: 'Jongen met pet en PSI-krachten. PK-vuur, PK-flits, PK-donder (stuur hem tegen jezelf om weg te schieten; of druk nog eens op speciaal plus een richting) en een PSI-schild dat projectielen opslurpt en je geneest.', weight: 94, run: 5.9, acc: 1, jump: 15, djump: 15.5, grav: 0.78, fall: 11.5, ffall: 16.5, air: 4.6, airAcc: 0.5, airJumps: 1, w: 40, h: 72, pow: 1, reach: 1, lag: 0, limb: 9, zoner: 'side', hr: 0.19, arm: 0.155,
     col: { body: '#f2c94c', dark: '#2f4fa8', acc: '#e23b3b', skin: '#f6cfa8', fx: '#7dd8ff' }, alt: { body: '#9be36b', dark: '#5a3d9e', acc: '#ff9f1c', skin: '#f6cfa8', fx: '#ffd36b' } },
@@ -682,7 +682,7 @@ Object.assign(CHARS, {
 Object.assign(CHARS, {
   gokko: { name: 'Gokko', blurb: 'Vrolijke vechtkunstenaar in een oranje gi. Een energiestraal die je oplaadt, een vliegende drakenvuist, teleporteren en een reuzen-energiebal die je boven je hoofd verzamelt. Raken vult zijn ki-meter; is die vol, dan verandert speciaal omlaag hem 12 seconden in Super-Gokko: goud haar, harder slaan, sneller en zwaarder.', weight: 98, run: 7.4, acc: 1.15, jump: 16, djump: 15, grav: 0.9, fall: 13, ffall: 18.5, air: 5.1, airAcc: 0.5, airJumps: 1, w: 42, h: 80, pow: 1.05, reach: 1, lag: 0, limb: 11, zoner: true, sideRec: true, hr: 0.16,
     col: { body: '#f08a24', dark: '#27408f', acc: '#17151f', skin: '#f6cfa8', fx: '#8fe3ff' }, alt: { body: '#3a62c9', dark: '#d8262f', acc: '#17151f', skin: '#f6cfa8', fx: '#ffe066' } },
-  rekker: { name: 'Rekker', blurb: 'Piraat met een strohoed en een rubberen lijf. Rekbare stoten van ver, een stotenregen, zichzelf omhoogschieten en een rubberen bijlschop die van hoog boven neerkomt en tegenstanders de grond in slaat. Raken vult zijn meter; is die vol, dan zet speciaal omlaag hem 12 seconden in de tweede versnelling: roze stomend lijf, razendsnel en harder.', weight: 94, run: 6.8, acc: 1.05, jump: 15.5, djump: 14.5, grav: 0.82, fall: 12, ffall: 17, air: 4.9, airAcc: 0.48, airJumps: 1, w: 40, h: 78, pow: 1, reach: 1.15, lag: 0, limb: 10, arm: 0.19, hr: 0.16,
+  rekker: { name: 'Rekker', blurb: 'Piraat met een strohoed en een rubberen lijf. Rekbare stoten van ver, een stotenregen, zichzelf omhoogschieten en een rubberen bijlschop die van hoog boven neerkomt en tegenstanders de grond in slaat. Raken vult zijn meter; is die vol, dan zet speciaal omlaag hem 12 seconden in de tweede versnelling: roze stomend lijf, razendsnel en harder.', weight: 96, run: 7, acc: 1.1, jump: 15.5, djump: 14.5, grav: 0.82, fall: 12, ffall: 17, air: 5, airAcc: 0.5, airJumps: 1, w: 40, h: 78, pow: 1.1, reach: 1.15, lag: 0, limb: 10, arm: 0.19, hr: 0.16,
     col: { body: '#d8262f', dark: '#2f5fb5', acc: '#e9c46a', skin: '#f2c29a', fx: '#ffd36b' }, alt: { body: '#2c2c34', dark: '#d8a03a', acc: '#e9c46a', skin: '#f2c29a', fx: '#ff8a6b' } },
   draai: { name: 'Draaikolk', blurb: 'Luidruchtige ninja met een hoofdband. Een draaiende energiebal in zijn hand, een grote werpster, een schaduwkloon die hem omhoog gooit en een kloon die vooruit rent en slaat. Zijn vosmeter vult vooral als hij geraakt wordt; is die vol, dan maakt speciaal omlaag hem 12 seconden een negenstaartvos: sneller, harder en hij geneest langzaam.', weight: 88, run: 7.8, acc: 1.2, jump: 16, djump: 15, grav: 0.88, fall: 12.8, ffall: 18, air: 5.2, airAcc: 0.52, airJumps: 1, w: 40, h: 76, pow: 0.96, reach: 1, lag: -1, limb: 10, zoner: 'side', hr: 0.165,
     col: { body: '#f2832a', dark: '#283a6b', acc: '#ffd23f', skin: '#f6cfa8', fx: '#8fd8ff' }, alt: { body: '#2b2b33', dark: '#e8742a', acc: '#ffd23f', skin: '#f6cfa8', fx: '#ffb36b' } },
@@ -692,7 +692,7 @@ Object.assign(CHARS, {
 Object.assign(CHARS, {
   sleutel: { name: 'Sleutel', blurb: 'Jongen met stekelhaar, grote gele schoenen en een sleutelzwaard. Magie die steeds wisselt tussen vuur, ijs en bliksem, een flitsende zwaardstoot, een draaiende opwaartse slag en een counter.', weight: 86, run: 7.0, acc: 1.1, jump: 15, djump: 14.5, grav: 0.66, fall: 10, ffall: 15, air: 5.0, airAcc: 0.5, airJumps: 1, w: 40, h: 78, pow: 1, reach: 1.25, lag: 0, limb: 10, zoner: true, sideRec: true, hr: 0.165,
     col: { body: '#26232e', dark: '#14121a', acc: '#d8262f', skin: '#f6cfa8', fx: '#ffe066' }, alt: { body: '#d8262f', dark: '#2f5fb5', acc: '#f2d34a', skin: '#f6cfa8', fx: '#9fe3ff' } },
-  bot: { name: 'Bot', blurb: 'Klein grijnzend skelet in een blauwe hoodie. Een drakenschedel die een straal afvuurt, botten over de grond, binnendoor teleporteren en een blauwe ziel die tegenstanders de grond in drukt, dwars door hun schild.', weight: 72, run: 5.6, acc: 0.9, jump: 13.5, djump: 13, grav: 0.8, fall: 12, ffall: 17, air: 4.6, airAcc: 0.46, airJumps: 1, w: 42, h: 66, pow: 0.95, reach: 1.05, lag: 0, limb: 9, zoner: true, hr: 0.2,
+  bot: { name: 'Bot', blurb: 'Klein grijnzend skelet in een blauwe hoodie. Een drakenschedel die een straal afvuurt, botten over de grond, binnendoor teleporteren en een blauwe ziel die tegenstanders de grond in drukt, dwars door hun schild.', weight: 78, run: 6.2, acc: 1, jump: 13.5, djump: 13, grav: 0.8, fall: 12, ffall: 17, air: 4.8, airAcc: 0.48, airJumps: 1, w: 42, h: 66, pow: 1.07, reach: 1.05, lag: 0, limb: 9, zoner: true, hr: 0.2,
     col: { body: '#3f6fd8', dark: '#1d1c24', acc: '#ff8fb8', skin: '#f4f4f0', fx: '#5fd3ff' }, alt: { body: '#2b2b33', dark: '#3f6fd8', acc: '#ffd23f', skin: '#f4f4f0', fx: '#ffd23f' } },
   eik: { name: 'Eik', blurb: 'Huurling met een reuzenzwaard. Traag, maar elke klap telt. Houd speciaal vast om op te laden: een vuurzuil uit de grond, een bliksemsnelle uithaal opzij. Gooit zijn zwaard omhoog en slaat ermee neer, en heeft een counter.', weight: 116, run: 6.4, acc: 1, jump: 15, djump: 13.8, grav: 0.88, fall: 13, ffall: 18.5, air: 4.7, airAcc: 0.42, airJumps: 1, w: 46, h: 88, pow: 1.3, reach: 1.25, lag: 2, limb: 12, hr: 0.15, arm: 0.18, sideRec: true,
     col: { body: '#2f5bb0', dark: '#1d2a52', acc: '#c8312f', skin: '#f0c9a0', fx: '#ffb347', hair: '#2c46a6' }, alt: { body: '#5a4632', dark: '#2b231c', acc: '#2f7d45', skin: '#e8bf95', fx: '#ffd45e', hair: '#d8d4c8' } },
@@ -853,10 +853,10 @@ const AIRS = {
   }),
   gloei: (M, H) => ({
     nair: M({ start: 5, active: 8, end: 12, pose: 'nair', aerial: true, afx: 'fire', ll: 8, hb: [H(0, -40, 38, 11, 45, 32, 90, { nr: 1 })] }),
-    fair: M({ start: 7, active: 3, end: 15, pose: 'punchC', aerial: true, afx: 'fire', ll: 10, hb: [H(50, -50, 23, 13, 38, 34, 100), H(26, -50, 18, 9, 40, 30, 90)] }),
+    fair: M({ start: 6, active: 3, end: 14, pose: 'punchC', aerial: true, afx: 'fire', ll: 10, hb: [H(50, -50, 23, 13, 38, 34, 100), H(26, -50, 18, 9, 40, 30, 90)] }),
     bair: M({ start: 6, active: 4, end: 14, pose: 'bair', aerial: true, afx: 'fire', ll: 9, hb: [H(-52, -30, 24, 14, 150, 34, 102), H(-26, -34, 18, 9, 145, 28, 90)] }),
     uair: M({ start: 5, active: 5, end: 14, pose: 'upswing', aerial: true, afx: 'fire', ll: 8, hb: [H(10, -102, 27, 12, 85, 34, 98, { nr: 1 })] }),
-    dair: M({ start: 10, active: 4, end: 18, pose: 'stompD', aerial: true, afx: 'fire', ll: 15, hb: [H(0, 20, 27, 15, 275, 40, 88, { nr: 1 })] }),
+    dair: M({ start: 9, active: 4, end: 16, pose: 'stompD', aerial: true, afx: 'fire', ll: 12, hb: [H(0, 20, 27, 15, 275, 40, 88, { nr: 1 })] }),
   }),
   kwak: (M, H) => ({
     nair: M({ start: 4, active: 12, end: 10, pose: 'nair', aerial: true, afx: 'water', ll: 6, hb: [H(0, -34, 38, 9, 45, 28, 82, { nr: 1, f1: 4 }), H(0, -34, 34, 5, 45, 20, 70, { nr: 1, f0: 4 })] }),
@@ -866,11 +866,11 @@ const AIRS = {
     dair: M({ start: 8, active: 5, end: 14, pose: 'stompD', aerial: true, ll: 10, hb: [H(0, 18, 27, 13, 275, 38, 86, { nr: 1 })] }),
   }),
   bliep: (M, H) => ({
-    nair: M({ start: 6, active: 13, end: 12, pose: 'kongspin', aerial: true, afx: 'elec', ll: 8, hb: mh(H, 3, 4, 3, 0, -44, 40, 2, 80, 10, 0, { nr: 1 }).concat([H(0, -44, 44, 6, 45, 34, 80, { nr: 1, f0: 10, f1: 13, grp: 9 })]) }),
-    fair: M({ start: 9, active: 4, end: 16, pose: 'punchC', aerial: true, afx: 'fire', ll: 11, hb: [H(64, -50, 22, 12, 38, 34, 98), H(32, -50, 18, 8, 40, 28, 85)] }),
+    nair: M({ start: 5, active: 13, end: 11, pose: 'kongspin', aerial: true, afx: 'elec', ll: 8, hb: mh(H, 3, 4, 3, 0, -44, 40, 2, 80, 10, 0, { nr: 1 }).concat([H(0, -44, 44, 6, 45, 34, 80, { nr: 1, f0: 10, f1: 13, grp: 9 })]) }),
+    fair: M({ start: 7, active: 4, end: 15, pose: 'punchC', aerial: true, afx: 'fire', ll: 11, hb: [H(64, -50, 22, 12, 38, 34, 98), H(32, -50, 18, 8, 40, 28, 85)] }),
     bair: M({ start: 7, active: 6, end: 14, pose: 'jet', aerial: true, afx: 'fire', ll: 10, hb: [H(-46, -30, 29, 11, 150, 34, 95)] }),
     uair: M({ start: 5, active: 12, end: 12, pose: 'clapUp', aerial: true, afx: 'spin', ll: 8, hb: mh(H, 3, 3, 2, 0, -98, 30, 2, 90, 12, 0, { nr: 1 }).concat([H(0, -102, 32, 7, 88, 36, 90, { nr: 1, f0: 9, f1: 12, grp: 9 })]) }),
-    dair: M({ start: 11, active: 5, end: 18, pose: 'stompD', aerial: true, afx: 'drill', ll: 15, hb: [H(0, 26, 24, 14, 270, 40, 90, { nr: 1 })] }),
+    dair: M({ start: 9, active: 5, end: 16, pose: 'stompD', aerial: true, afx: 'drill', ll: 12, hb: [H(0, 26, 24, 14, 270, 40, 90, { nr: 1 })] }),
   }),
   joep: (M, H) => ({
     nair: M({ start: 4, active: 14, end: 9, pose: 'nair', aerial: true, afx: 'psi', ll: 6, hb: [H(0, -40, 38, 10, 45, 30, 86, { nr: 1, f1: 4 }), H(0, -40, 34, 6, 45, 22, 72, { nr: 1, f0: 4 })] }),
@@ -953,10 +953,10 @@ const AIRS = {
   }),
   rekker: (M, H) => ({
     nair: M({ start: 5, active: 14, end: 10, pose: 'heli', aerial: true, afx: 'spin', ll: 7, hb: [H(0, -44, 48, 9, 45, 30, 84, { nr: 1, f1: 6 }), H(0, -44, 44, 6, 45, 22, 72, { nr: 1, f0: 6 })] }),
-    fair: M({ start: 8, active: 4, end: 16, pose: 'stretchP', aerial: true, afx: 'stretch', ll: 10, hb: [H(96, -48, 22, 11, 40, 34, 92), H(60, -48, 18, 7, 40, 28, 80)] }),
-    bair: M({ start: 7, active: 4, end: 15, pose: 'bair', aerial: true, afx: 'stretch', ll: 10, hb: [H(-92, -30, 22, 12, 145, 34, 98), H(-56, -32, 18, 8, 145, 28, 86)] }),
+    fair: M({ start: 6, active: 4, end: 15, pose: 'stretchP', aerial: true, afx: 'stretch', ll: 10, hb: [H(96, -48, 22, 11, 40, 34, 92), H(60, -48, 18, 7, 40, 28, 80)] }),
+    bair: M({ start: 6, active: 4, end: 14, pose: 'bair', aerial: true, afx: 'stretch', ll: 10, hb: [H(-92, -30, 22, 12, 145, 34, 98), H(-56, -32, 18, 8, 145, 28, 86)] }),
     uair: M({ start: 6, active: 5, end: 13, pose: 'uair', aerial: true, afx: 'stretch', ll: 8, hb: [H(6, -150, 22, 10, 88, 30, 96, { nr: 1 }), H(4, -112, 18, 7, 85, 26, 86, { nr: 1 })] }),
-    dair: M({ start: 10, active: 5, end: 18, pose: 'stompD', aerial: true, afx: 'stretch', ll: 14, hb: [H(0, 72, 24, 13, 272, 40, 88, { nr: 1 })] }),
+    dair: M({ start: 9, active: 5, end: 16, pose: 'stompD', aerial: true, afx: 'stretch', ll: 12, hb: [H(0, 72, 24, 13, 272, 40, 88, { nr: 1 })] }),
   }),
   draai: (M, H) => ({
     nair: M({ start: 4, active: 12, end: 9, pose: 'nair', aerial: true, ll: 6, hb: [H(0, -38, 38, 9, 45, 28, 84, { nr: 1, f1: 4 }), H(0, -38, 34, 5, 45, 20, 70, { nr: 1, f0: 4 })] }),
@@ -981,10 +981,10 @@ const AIRS = {
   }),
   bot: (M, H) => ({
     nair: M({ start: 5, active: 15, end: 10, pose: 'nair', aerial: true, afx: 'bone', ll: 6, hb: mh(H, 3, 4, 3, 0, -34, 38, 2, 80, 10, 0, { nr: 1 }).concat([H(0, -34, 42, 5, 50, 32, 78, { nr: 1, f0: 12, f1: 15, grp: 9 })]) }),
-    fair: M({ start: 7, active: 4, end: 15, pose: 'axe', aerial: true, afx: 'bone', ll: 10, hb: [H(46, -38, 24, 10, 40, 32, 92), H(26, -40, 18, 7, 45, 26, 84)] }),
+    fair: M({ start: 6, active: 4, end: 14, pose: 'axe', aerial: true, afx: 'bone', ll: 10, hb: [H(46, -38, 24, 10, 40, 32, 92), H(26, -40, 18, 7, 45, 26, 84)] }),
     bair: M({ start: 6, active: 4, end: 14, pose: 'bair', aerial: true, afx: 'bone', ll: 9, hb: [H(-46, -34, 24, 11, 145, 34, 98)] }),
     uair: M({ start: 6, active: 5, end: 12, pose: 'clapUp', aerial: true, afx: 'bone', ll: 7, hb: [H(0, -92, 28, 9, 90, 30, 94, { nr: 1 })] }),
-    dair: M({ start: 10, active: 5, end: 17, pose: 'stompD', aerial: true, afx: 'bone', ll: 13, hb: [H(0, 28, 24, 12, 272, 38, 86, { nr: 1 })] }),
+    dair: M({ start: 9, active: 5, end: 15, pose: 'stompD', aerial: true, afx: 'bone', ll: 11, hb: [H(0, 28, 24, 12, 272, 38, 86, { nr: 1 })] }),
   }),
 };
 function buildMoves(ck) {
@@ -1208,12 +1208,12 @@ const SPECIALS = {
       tick: (f, t) => { if (!f.grounded && f.vy > 1.2) f.vy = 1.2; if (t === 8) SFX.fire(); if (t >= 8 && t < 32) addP({ type: 'ember', x: f.x + f.facing * 26 * s, y: f.y - 50 * s + rand(-6, 6), vx: f.facing * rand(4, 7), vy: rand(-0.8, 0.8), life: 14, max: 14, size: rand(6, 10), color: Math.random() < 0.5 ? f.col.acc : f.col.fx, drag: 0.92 }); } }),
     sideB: M({ special: true, start: 7, active: 10, end: 24, pose: 'grab', keepVel: true, noDrift: true,
       hb: [H(34, -44, 26, 0, 0, 0, 0, { nr: 1, grab: true, cmd: 'suplex' })],
-      tick: (f, t) => { if (t >= 4 && t < 17) { f.vx = f.facing * 7.5; if (!f.grounded) f.vy = Math.min(f.vy, 1); if (t % 2) addP({ type: 'ember', x: f.x - f.facing * 16, y: f.y - rand(10, 60), vy: -rand(0.5, 2), life: 14, max: 14, size: 6, color: f.col.acc }); } else if (t === 17) f.vx *= 0.3; } }),
+      tick: (f, t) => { if (t >= 4 && t < 17) { f.vx = f.facing * (f.grounded ? 7.5 : 9); if (!f.grounded) f.vy = Math.min(f.vy, 1); if (t % 2) addP({ type: 'ember', x: f.x - f.facing * 16, y: f.y - rand(10, 60), vy: -rand(0.5, 2), life: 14, max: 14, size: 6, color: f.col.acc }); } else if (t === 17) f.vx *= 0.3; } }),
     suplex: M({ special: true, start: 14, active: 1, end: 20, pose: 'throwB', throw: true, thb: { d: 13, a: 130, b: 70, g: 72 }, onLand: () => {},
       tick: (f, t) => { throwTick(f, t); if (t === 14) { sparkFx(f.x - f.facing * 30, f.y - 20, f.col.acc, 12); G.shake = Math.max(G.shake, 10); SFX.boom(); } } }),
-    upB: M({ special: true, start: 4, active: 16, end: 14, pose: 'upB', helpless: true, ledgeOK: 8, drift: 0.6,
+    upB: M({ special: true, start: 4, active: 16, end: 14, pose: 'upB', helpless: true, ledgeOK: 8, drift: 1,
       hb: [H(24, -52, 28, 14, 80, 55, 82, { f1: 4 }), H(8, -74, 24, 5, 85, 30, 50, { f0: 4, grp: 1 })],
-      tick: (f, t) => { if (t === 4) { f.vy = -16.5; f.vx = f.facing * 2.5 + f.ix * 1.5; f.grounded = false; f.ground = null; SFX.fire(); } if (t > 4 && t < 20) addP({ type: 'ember', x: f.x + rand(-14, 14), y: f.y - rand(10, 70), vy: rand(0.5, 2), life: 16, max: 16, size: 7, color: f.col.acc }); } }),
+      tick: (f, t) => { if (t === 4) { if (f.ix) f.facing = f.ix; f.vy = -17; f.vx = f.facing * 3.5 + f.ix * 2; f.grounded = false; f.ground = null; SFX.fire(); } if (t > 4 && t < 20) addP({ type: 'ember', x: f.x + rand(-14, 14), y: f.y - rand(10, 70), vy: rand(0.5, 2), life: 16, max: 16, size: 7, color: f.col.acc }); } }),
     downB: M({ special: true, start: 8, active: 32, end: 0, dur: 40, pose: 'divekick', ll: 14,
       hb: [H(26, -6, 24, 10, 40, 40, 72, { nr: 1, when: (f, t) => t > 8 })],
       onStart: f => { if (f.grounded) { f.vy = -9; f.mv.hop = true; } },
