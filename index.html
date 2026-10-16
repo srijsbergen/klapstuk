@@ -344,7 +344,7 @@ window.KlapP2P = (() => {
     <div class="wrap">
       <header class="brand">
         <h1>Klapstuk</h1>
-        <p>Een platformvechter voor 2 tot 4 spelers, met zestien vechters. Elke klap telt op als <b>schade-%</b>; hoe hoger je percentage, hoe verder je vliegt. Sla je tegenstanders <b>buiten beeld</b> en hou zelf je levens.</p>
+        <p>Een platformvechter voor 2 tot 4 spelers, met twintig vechters. Elke klap telt op als <b>schade-%</b>; hoe hoger je percentage, hoe verder je vliegt. Sla je tegenstanders <b>buiten beeld</b> en hou zelf je levens.</p>
       </header>
 
       <div class="modes" role="tablist" aria-label="Speelwijze">
@@ -673,6 +673,16 @@ Object.assign(CHARS, {
   schim: { name: 'Schim', blurb: 'Pikzwarte snelheidsduivel. Schimsperen, spindash, teleport en een rode schokgolf.', weight: 90, run: 8.4, acc: 1.25, jump: 15.5, djump: 14.5, grav: 0.85, fall: 12.5, ffall: 18, air: 5.3, airAcc: 0.5, airJumps: 1, w: 40, h: 74, pow: 1, reach: 1, lag: -1, limb: 9, zoner: true, sideRec: true, hr: 0.165,
     col: { body: '#26252e', dark: '#121117', acc: '#e2283c', skin: '#f1c9a5', fx: '#ffd23f' }, alt: { body: '#62677a', dark: '#363a46', acc: '#3fa9ff', skin: '#f1c9a5', fx: '#9fe3ff' } },
 });
+Object.assign(CHARS, {
+  gokko: { name: 'Gokko', blurb: 'Vrolijke vechtkunstenaar in een oranje gi. Een energiestraal die je oplaadt, een vliegende drakenvuist, teleporteren en een reuzen-energiebal die je boven je hoofd verzamelt.', weight: 98, run: 7.4, acc: 1.15, jump: 16, djump: 15, grav: 0.9, fall: 13, ffall: 18.5, air: 5.1, airAcc: 0.5, airJumps: 1, w: 42, h: 80, pow: 1.05, reach: 1, lag: 0, limb: 11, zoner: true, sideRec: true, hr: 0.16,
+    col: { body: '#f08a24', dark: '#27408f', acc: '#17151f', skin: '#f6cfa8', fx: '#8fe3ff' }, alt: { body: '#3a62c9', dark: '#d8262f', acc: '#17151f', skin: '#f6cfa8', fx: '#ffe066' } },
+  rekker: { name: 'Rekker', blurb: 'Piraat met een strohoed en een rubberen lijf. Rekbare stoten van ver, een stotenregen, zichzelf omhoogschieten en opblazen als een ballon die projectielen terugkaatst.', weight: 94, run: 6.8, acc: 1.05, jump: 15.5, djump: 14.5, grav: 0.82, fall: 12, ffall: 17, air: 4.9, airAcc: 0.48, airJumps: 1, w: 40, h: 78, pow: 1, reach: 1.15, lag: 0, limb: 10, arm: 0.19, hr: 0.16,
+    col: { body: '#d8262f', dark: '#2f5fb5', acc: '#e9c46a', skin: '#f2c29a', fx: '#ffd36b' }, alt: { body: '#2c2c34', dark: '#d8a03a', acc: '#e9c46a', skin: '#f2c29a', fx: '#ff8a6b' } },
+  draai: { name: 'Draaikolk', blurb: 'Luidruchtige ninja met een hoofdband. Een draaiende energiebal in zijn hand, een grote werpster, een schaduwkloon die hem omhoog gooit en een kloon die vooruit rent en slaat.', weight: 88, run: 7.8, acc: 1.2, jump: 16, djump: 15, grav: 0.88, fall: 12.8, ffall: 18, air: 5.2, airAcc: 0.52, airJumps: 1, w: 40, h: 76, pow: 0.96, reach: 1, lag: -1, limb: 10, zoner: 'side', hr: 0.165,
+    col: { body: '#f2832a', dark: '#283a6b', acc: '#ffd23f', skin: '#f6cfa8', fx: '#8fd8ff' }, alt: { body: '#2b2b33', dark: '#e8742a', acc: '#ffd23f', skin: '#f6cfa8', fx: '#ffb36b' } },
+  aardbei: { name: 'Aardbei', blurb: 'Zwaardvechter met oranje stekelhaar en een reuzenhakmes. Een zwaardgolf, een flitsstap, een springende opwaartse slag en een masker dat hem een tijdje harder laat slaan.', weight: 102, run: 7.0, acc: 1.05, jump: 15.5, djump: 14.5, grav: 0.86, fall: 13, ffall: 18, air: 4.8, airAcc: 0.46, airJumps: 1, w: 42, h: 82, pow: 1.08, reach: 1.32, lag: 0, limb: 10, zoner: true, sideRec: true, hr: 0.155,
+    col: { body: '#1d1c24', dark: '#0f0e14', acc: '#ff8a2a', skin: '#f6cfa8', fx: '#9fd8ff' }, alt: { body: '#ececf0', dark: '#bfc2cc', acc: '#ff8a2a', skin: '#f6cfa8', fx: '#ff5a6a' } },
+});
 const CHAR_KEYS = Object.keys(CHARS).filter(k => !CHARS[k].hidden);
 
 let NEXT_ID = 1;
@@ -706,6 +716,10 @@ const THROWS = {
   techno: { f: { d: 9, a: 40, b: 65, g: 60, fx: 'slash' }, b: { d: 11, a: 135, b: 50, g: 85, fx: 'slash' }, u: { d: 8, a: 90, b: 65, g: 60 }, d: { d: 6, a: 80, b: 45, g: 35, end: 8, fx: 'slam' } },
   rat:   { f: { d: 4, a: 40, b: 50, g: 55, fx: 'zap', start: 11, pre: [4, 7, 10], preD: 1 }, b: { d: 9, a: 135, b: 50, g: 65, fx: 'zap' },
            u: { d: 6, a: 90, b: 65, g: 50, fx: 'zap' }, d: { d: 3, a: 80, b: 40, g: 25, fx: 'zap', start: 12, end: 6, pre: [4, 7, 10], preD: 1 } },
+  gokko: { f: { d: 8, a: 40, b: 60, g: 60, fx: 'zap' }, b: { d: 10, a: 135, b: 50, g: 85 }, u: { d: 7, a: 90, b: 65, g: 55, fx: 'zap' }, d: { d: 5, a: 80, b: 45, g: 35, fx: 'slam' } },
+  rekker: { f: { d: 7, a: 40, b: 70, g: 50 }, b: { d: 9, a: 140, b: 45, g: 90 }, u: { d: 3, a: 90, b: 60, g: 50, start: 11, pre: [4, 7, 10], preD: 1 }, d: { d: 6, a: 80, b: 45, g: 30, fx: 'slam' } },
+  draai: { f: { d: 7, a: 40, b: 55, g: 55, fx: 'slash' }, b: { d: 8, a: 135, b: 50, g: 70 }, u: { d: 6, a: 90, b: 60, g: 50 }, d: { d: 3, a: 80, b: 42, g: 28, start: 12, pre: [4, 8], preD: 1.5 } },
+  aardbei: { f: { d: 9, a: 40, b: 60, g: 65, fx: 'slash' }, b: { d: 10, a: 140, b: 50, g: 85, fx: 'slash' }, u: { d: 8, a: 90, b: 60, g: 60, fx: 'slash' }, d: { d: 6, a: 80, b: 45, g: 35, fx: 'slam' } },
 };
 function throwKB(thb, v) { const p = v.percent; return ((p / 10 + p * thb.d / 20) * 200 / (v.c.weight + 100) * 1.4 + 18) * thb.g / 100 + thb.b; }
 function throwFx(f, v, fx, low) {
@@ -858,6 +872,34 @@ const AIRS = {
     uair: M({ start: 4, active: 8, end: 11, pose: 'uair', aerial: true, afx: 'dark', ll: 6, hb: [H(0, -92, 26, 3, 90, 24, 20, { nr: 1, f1: 3, grp: 1, link: true }), H(0, -98, 28, 8, 88, 32, 96, { nr: 1, f0: 4, grp: 2 })] }),
     dair: M({ start: 9, active: 6, end: 15, pose: 'stompD', aerial: true, afx: 'dark', ll: 12, hb: [H(10, 18, 25, 12, 280, 38, 86, { nr: 1 })] }),
   }),
+  gokko: (M, H) => ({
+    nair: M({ start: 4, active: 14, end: 9, pose: 'nair', aerial: true, ll: 6, hb: [H(0, -40, 38, 10, 45, 30, 86, { nr: 1, f1: 4 }), H(0, -40, 34, 6, 45, 22, 72, { nr: 1, f0: 4 })] }),
+    fair: M({ start: 6, active: 9, end: 14, pose: 'punchC', aerial: true, afx: 'ki', ll: 9, hb: [H(44, -48, 22, 4, 60, 20, 0, { f1: 3, grp: 1, link: true }), H(48, -46, 25, 10, 40, 34, 90, { f0: 5, grp: 2 })] }),
+    bair: M({ start: 6, active: 4, end: 14, pose: 'bair', aerial: true, ll: 9, hb: [H(-50, -36, 24, 13, 145, 36, 100), H(-26, -38, 18, 9, 145, 28, 88)] }),
+    uair: M({ start: 5, active: 5, end: 12, pose: 'uair', aerial: true, ll: 7, hb: [H(0, -100, 28, 10, 88, 32, 96, { nr: 1 })] }),
+    dair: M({ start: 10, active: 4, end: 18, pose: 'swingDown', aerial: true, afx: 'ki', ll: 14, hb: [H(10, 14, 28, 14, 280, 40, 88, { sweet: true }), H(14, -14, 22, 8, 60, 30, 80)] }),
+  }),
+  rekker: (M, H) => ({
+    nair: M({ start: 5, active: 14, end: 10, pose: 'heli', aerial: true, afx: 'spin', ll: 7, hb: [H(0, -44, 48, 9, 45, 30, 84, { nr: 1, f1: 6 }), H(0, -44, 44, 6, 45, 22, 72, { nr: 1, f0: 6 })] }),
+    fair: M({ start: 8, active: 4, end: 16, pose: 'stretchP', aerial: true, afx: 'stretch', ll: 10, hb: [H(96, -48, 22, 11, 40, 34, 92), H(60, -48, 18, 7, 40, 28, 80)] }),
+    bair: M({ start: 7, active: 4, end: 15, pose: 'bair', aerial: true, afx: 'stretch', ll: 10, hb: [H(-92, -30, 22, 12, 145, 34, 98), H(-56, -32, 18, 8, 145, 28, 86)] }),
+    uair: M({ start: 6, active: 5, end: 13, pose: 'uair', aerial: true, afx: 'stretch', ll: 8, hb: [H(6, -150, 22, 10, 88, 30, 96, { nr: 1 }), H(4, -112, 18, 7, 85, 26, 86, { nr: 1 })] }),
+    dair: M({ start: 10, active: 5, end: 18, pose: 'stompD', aerial: true, afx: 'stretch', ll: 14, hb: [H(0, 72, 24, 13, 272, 40, 88, { nr: 1 })] }),
+  }),
+  draai: (M, H) => ({
+    nair: M({ start: 4, active: 12, end: 9, pose: 'nair', aerial: true, ll: 6, hb: [H(0, -38, 38, 9, 45, 28, 84, { nr: 1, f1: 4 }), H(0, -38, 34, 5, 45, 20, 70, { nr: 1, f0: 4 })] }),
+    fair: M({ start: 5, active: 4, end: 13, pose: 'axe', aerial: true, afx: 'slash', ll: 8, hb: [H(50, -46, 22, 11, 40, 32, 94), H(28, -46, 18, 8, 45, 28, 86)] }),
+    bair: M({ start: 6, active: 10, end: 12, pose: 'dkick', aerial: true, ll: 9, hb: [H(-44, -34, 22, 4, 150, 24, 30, { f1: 3, grp: 1, link: true }), H(-48, -34, 24, 9, 145, 32, 92, { f0: 6, grp: 2 })] }),
+    uair: M({ start: 4, active: 5, end: 11, pose: 'uair', aerial: true, ll: 6, hb: [H(0, -98, 27, 9, 85, 30, 92, { nr: 1 })] }),
+    dair: M({ start: 9, active: 5, end: 16, pose: 'stompD', aerial: true, ll: 13, hb: [H(12, 16, 24, 12, 280, 38, 86, { nr: 1 })] }),
+  }),
+  aardbei: (M, H) => ({
+    nair: M({ start: 6, active: 8, end: 12, pose: 'nair', aerial: true, afx: 'slash', ll: 8, hb: [H(0, -44, 48, 11, 45, 34, 88, { nr: 1 })] }),
+    fair: M({ start: 8, active: 4, end: 17, pose: 'axe', aerial: true, afx: 'slash', ll: 11, hb: [H(60, -50, 28, 14, 40, 36, 100), H(32, -58, 22, 9, 50, 30, 88)] }),
+    bair: M({ start: 7, active: 4, end: 16, pose: 'elbowB', aerial: true, afx: 'slash', ll: 10, hb: [H(-60, -46, 26, 14, 140, 36, 100), H(-30, -50, 20, 9, 140, 30, 88)] }),
+    uair: M({ start: 6, active: 5, end: 14, pose: 'upswing', aerial: true, afx: 'slash', ll: 8, hb: [H(0, -118, 28, 12, 88, 34, 98, { nr: 1 }), H(26, -92, 22, 8, 80, 30, 85)] }),
+    dair: M({ start: 11, active: 5, end: 18, pose: 'stabDown', aerial: true, afx: 'slash', ll: 15, hb: [H(0, 36, 25, 15, 270, 40, 90, { nr: 1 })] }),
+  }),
 };
 function buildMoves(ck) {
   const c = CHARS[ck], s = c.h / 80, R = c.reach, P = c.pow, LG = c.lag;
@@ -914,7 +956,7 @@ function buildMoves(ck) {
     m.dur = m.start + m.active + m.end;
   }
   if (ck === 'joep') { const f = mv.fsmash; f.bat = true; f.reflect = [f.start - 1, f.start + f.active]; f.hb = f.hb.map(h => Object.assign({}, h, { x: h.x * 1.25, d: Math.round(h.d * 1.1 * 10) / 10 })); }
-  const SW = ck === 'sable' || ck === 'lonk' || ck === 'techno', mid = -c.h * 0.5 * s * 80 / c.h;
+  const SW = ck === 'sable' || ck === 'lonk' || ck === 'techno' || ck === 'aardbei', mid = -c.h * 0.5 * s * 80 / c.h;
   for (const k in mv) {
     const m = mv[k];
     if (m.special || m.throw || !m.hb || m.hb.length < 2 || m.hb.some(h => h.grab || h.when || h.f0 || h.f1 != null || h.sweet)) continue;
@@ -1486,6 +1528,104 @@ const SPECIALS = {
         if (t === 14) { for (let i = 0; i < 16; i++) { const a = i / 16 * TAU; addP({ type: 'line', x: f.x, y: f.y - f.c.h / 2, vx: Math.cos(a) * 9, vy: Math.sin(a) * 9, life: 16, max: 16, size: 18, color: f.col.acc, drag: 0.9 }); } addP({ type: 'ring', x: f.x, y: f.y - f.c.h / 2, life: 14, max: 14, size: 30, color: f.col.acc }); G.shake = Math.max(G.shake, 6); SFX.boom(); }
       } }),
   }),
+  gokko: (M, H, s) => ({
+    // energy beam: hold special to charge, it fires on release
+    neutralB: M({ special: true, start: 14, active: 18, end: 16, pose: 'kame', charge: true, chargeKey: 'spc', chargeAt: 10, chargeMax: 60, kame: true,
+      onStart: f => { if (!f.grounded) f.vy *= 0.4; },
+      noGrav: (f, t) => !f.grounded && t <= 16,
+      tick: (f, t) => {
+        if (!f.grounded && f.vy > 0.8) f.vy = 0.8;
+        if (t === 14) { const ch = f.charge; spawnProj({ type: 'kibeam', owner: f, x: f.x + f.facing * 34 * s, y: f.y - 44 * s, vx: f.facing * 22, r: 11 + ch * 0.12, life: 30, pierce: true, hb: { d: 6 + ch * 0.13, a: 40, b: 35 + ch * 0.25, g: 55 + ch * 0.3 } }); SFX.zap(); G.shake = Math.max(G.shake, 3 + ch * 0.06); }
+      } }),
+    sideB: M({ special: true, start: 10, active: 12, end: 18, pose: 'punchC', keepVel: true, noDrift: true, ll: 12, afx: 'ki',
+      hb: [H(22, -44, 28, 12, 40, 45, 80, { nr: 1 })], noGrav: (f, t) => t <= 24,
+      tick: (f, t) => { if (t < 10) { f.vx *= 0.7; f.vy *= 0.4; } else if (t < 22) { f.vx = f.facing * 16; f.vy = 0; if (t % 2) ghostFx(f); } else if (t === 22) f.vx = f.facing * 4; } }),
+    // teleport in the held direction
+    upB: M({ special: true, start: 10, active: 8, end: 12, pose: 'cast', helpless: true, warp: true, intang: [6, 16], ledgeOK: 11,
+      hb: [H(0, -40, 34, 5, 80, 40, 40, { nr: 1, f1: 3 })], noGrav: (f, t) => t < 18,
+      tick: (f, t) => {
+        if (t < 10) { f.vx *= 0.7; f.vy *= 0.4; }
+        if (t === 6) { ghostFx(f); SFX.zap(); }
+        if (t === 10) {
+          let ix = f.ix, iy = f.iy; if (f.grounded && iy > 0) iy = 0; if (!ix && !iy) iy = -1;
+          const n = Math.hypot(ix, iy); ghostFx(f);
+          f.x += ix / n * 180; f.y += iy / n * 180; f.px = f.x; f.py = f.y;
+          if (iy < 0) { f.grounded = false; f.ground = null; }
+          if (ix) f.facing = ix; f.vx = ix / n * 2; f.vy = 0; sparkFx(f.x, f.y - f.c.h / 2, f.col.fx, 6);
+        }
+      } }),
+    // giant energy ball: gather it above your head as long as you hold special, then throw it
+    downB: M({ special: true, start: 12, active: 1, end: 26, pose: 'genki', charge: true, chargeKey: 'spc', chargeAt: 10, chargeMax: 120, genki: true,
+      onStart: f => { if (!f.grounded) f.vy *= 0.4; },
+      noGrav: (f, t) => !f.grounded && t <= 12,
+      tick: (f, t) => {
+        if (t !== 12) return;
+        const ch = f.charge, r = 16 + ch * 0.32;
+        spawnProj({ type: 'genki', owner: f, x: f.x + f.facing * 10, y: f.y - f.c.h - 18 - r, vx: f.facing * 6, vy: 5, r, life: 140, ch, reflect: false, hb: { d: 0, a: 0, b: 0, g: 0 }, explode: genkiBoom, onDie: genkiBoom, onGround: p => { p.dead = true; genkiBoom(p); } });
+        SFX.zap();
+      } }),
+  }),
+  rekker: (M, H, s) => ({
+    // rubber pistol: the arm stretches far forward
+    neutralB: M({ special: true, start: 9, active: 5, end: 18, pose: 'stretchP', stretch: 'arm',
+      hb: [H(132, -50, 20, 10, 40, 40, 82), H(84, -50, 16, 6, 40, 30, 60)],
+      tick: (f, t) => { if (!f.grounded && f.vy > 1.2) f.vy = 1.2; if (t === 9) SFX.swing(); } }),
+    sideB: M({ special: true, start: 8, active: 24, end: 16, pose: 'gatling', gatling: true,
+      hb: mh(H, 7, 3, 2, 70, -50, 30, 1.6, 40, 8, 0).concat([H(80, -50, 32, 5, 40, 45, 70, { f0: 22, f1: 24, grp: 9 })]),
+      tick: (f, t) => { if (!f.grounded && f.vy > 1) f.vy = 1; f.vx *= 0.85; if (t > 8 && t % 3 === 0) SFX.hit(1); } }),
+    // stretch both arms up and sling yourself into the air
+    upB: M({ special: true, start: 10, active: 20, end: 10, pose: 'clapUp', helpless: true, ledgeOK: 10, rocket: true,
+      hb: [H(0, -60, 30, 7, 85, 50, 60, { nr: 1, when: (f, t) => t > 10 && t <= 20 })], noGrav: (f, t) => t < 10,
+      tick: (f, t) => { if (t < 10) { f.vx *= 0.7; f.vy *= 0.3; } if (t === 10) { f.vy = -19.5; f.vx = f.ix * 3; f.grounded = false; f.ground = null; SFX.jump(); } } }),
+    // balloon: blow up, bounce projectiles back and sink slowly, then let the air out with a push
+    downB: M({ special: true, start: 4, active: 44, end: 14, pose: 'balloon', balloon: true, reflect: [4, 44],
+      hb: [H(0, -36, 46, 6, 60, 55, 50, { nr: 1, f0: 40 })],
+      tick: (f, t) => { if (!f.grounded && f.vy > 1.2) f.vy = 1.2; f.vx *= 0.9; if (t === 4) SFX.ui(); if (t === 45) SFX.boom(); } }),
+  }),
+  draai: (M, H, s) => ({
+    // spiral ball: hold special to grow it, then lunge forward with it
+    neutralB: M({ special: true, start: 14, active: 14, end: 18, pose: 'rasen', charge: true, chargeKey: 'spc', chargeAt: 10, chargeMax: 60, chargeBoost: 0.65, rasen: true, keepVel: true,
+      hb: mh(H, 3, 4, 3, 36, -44, 26, 2, 60, 10, 0).concat([H(38, -44, 30, 8, 40, 50, 80, { f0: 12, f1: 14, grp: 9 })]),
+      tick: (f, t) => { if (!f.grounded && f.vy > 1) f.vy = 1; if (t === 14) { f.vx = f.facing * 11; SFX.zap(); } else if (t > 14 && t < 28) f.vx = approach(f.vx, f.facing * 8, 0.6); else if (t >= 28) f.vx *= 0.8; } }),
+    sideB: M({ special: true, start: 10, active: 1, end: 18, pose: 'cast',
+      tick: (f, t) => { if (!f.grounded && f.vy > 1.2) f.vy = 1.2; if (t === 10) { spawnProj({ type: 'shuriken', owner: f, x: f.x + f.facing * 28 * s, y: f.y - 46 * s, vx: f.facing * 12, r: 15, life: 50, spin: 0.45, pierce: true, hb: { d: 7, a: 45, b: 30, g: 55 } }); SFX.shoot(); } } }),
+    // a shadow clone appears under you and throws you up
+    upB: M({ special: true, start: 8, active: 22, end: 10, pose: 'clapUp', helpless: true, ledgeOK: 8,
+      noGrav: (f, t) => t < 8,
+      tick: (f, t) => {
+        if (t < 8) { f.vx *= 0.6; f.vy *= 0.3; }
+        if (t === 8) {
+          spawnProj({ type: 'clone', owner: f, x: f.x - f.facing * 6, y: f.y + f.c.h * 0.1, vx: 0, vy: 0, r: 24, life: 22, pierce: true, reflect: false, hb: { d: 6, a: 85, b: 50, g: 55 }, onDie: clonePoof });
+          clonePoof({ x: f.x, y: f.y - 10 }); f.vy = -18; f.vx = f.ix * 4; f.grounded = false; f.ground = null; SFX.jump();
+        }
+      } }),
+    // a shadow clone runs ahead and punches
+    downB: M({ special: true, start: 8, active: 1, end: 16, pose: 'cast',
+      tick: (f, t) => {
+        if (!f.grounded && f.vy > 1.2) f.vy = 1.2;
+        if (t !== 8 || G.projs.some(p => p.type === 'clone' && p.owner === f && p.vx)) return;
+        spawnProj({ type: 'clone', owner: f, x: f.x + f.facing * 20, y: f.y - f.c.h * 0.4, vx: f.facing * 8, vy: 0, r: 22, life: 46, reflect: false, hb: { d: 7, a: 40, b: 40, g: 60 }, onDie: clonePoof, afterHit: clonePoof });
+        clonePoof({ x: f.x + f.facing * 20, y: f.y - f.c.h * 0.4 }); SFX.ui();
+      } }),
+  }),
+  aardbei: (M, H, s) => ({
+    neutralB: M({ special: true, start: 12, active: 1, end: 20, pose: 'axe',
+      tick: (f, t) => { if (!f.grounded && f.vy > 1.2) f.vy = 1.2; if (t === 12) { spawnProj({ type: 'getsuga', owner: f, x: f.x + f.facing * 44 * s, y: f.y - 44 * s, vx: f.facing * 13, r: 26, life: 34, pierce: true, hb: { d: 11, a: 40, b: 45, g: 72 } }); SFX.swing(); } } }),
+    sideB: M({ special: true, start: 6, active: 8, end: 18, pose: 'dashB', keepVel: true, noDrift: true, intang: [6, 13], ll: 12, afx: 'slash',
+      hb: [H(10, -42, 34, 10, 38, 45, 76, { nr: 1 })], noGrav: (f, t) => t <= 15,
+      tick: (f, t) => { if (t < 6) { f.vx *= 0.6; f.vy *= 0.4; } else if (t <= 13) { f.vx = f.facing * 20; f.vy = 0; ghostFx(f); } else if (t === 14) f.vx = f.facing * 3; } }),
+    upB: M({ special: true, start: 5, active: 18, end: 14, pose: 'upswing', helpless: true, ledgeOK: 8, drift: 0.7, afx: 'slash',
+      hb: [H(20, -70, 30, 4, 80, 40, 20, { f1: 6, grp: 1, link: true }), H(10, -96, 34, 9, 85, 50, 80, { f0: 8, f1: 14, grp: 2 })],
+      tick: (f, t) => { if (t === 5) { f.vy = -17; f.vx = f.facing * 2 + f.ix * 2; f.grounded = false; f.ground = null; SFX.swing(); } } }),
+    // mask: 8 seconds of 20% harder hits, then a cooldown
+    downB: M({ special: true, start: 20, active: 1, end: 14, pose: 'maskOn',
+      tick: (f, t) => {
+        if (!f.grounded && f.vy > 1) f.vy = 1;
+        if (t !== 20) return;
+        if (f.maskCD > 0) { clonePoof({ x: f.x, y: f.y - f.c.h * 0.8 }); SFX.ui(); return; }
+        f.maskT = 480; f.maskCD = 900; sparkFx(f.x, f.y - f.c.h * 0.8, '#ff3048', 14); addP({ type: 'ring', x: f.x, y: f.y - f.c.h / 2, life: 16, max: 16, size: 34, color: '#ff3048' }); G.shake = Math.max(G.shake, 6); SFX.boom();
+      } }),
+  }),
 };
 function slamHit(f, v) {
   f.held = null; v.holder = null;
@@ -1537,6 +1677,12 @@ function pkBoom(owner, x, y, r, hb) {
   spawnProj({ type: 'boom', x, y, owner, r, life: 7, hb, pierce: true, selfHit: false, reflect: false });
   boomFx(x, y, r); addP({ type: 'ring', x, y, life: 16, max: 16, size: r * 0.5, color: '#9dffb0' });
 }
+function genkiBoom(p) {
+  const r = p.r * 1.7;
+  spawnProj({ type: 'boom', x: p.x, y: p.y, owner: p.owner, r, life: 8, hb: { d: 8 + p.ch * 0.12, a: 70, b: 45, g: 70 + p.ch * 0.22 }, pierce: true, selfHit: false, reflect: false });
+  boomFx(p.x, p.y, r); G.shake = Math.max(G.shake, 8 + p.ch * 0.08); SFX.boom();
+}
+function clonePoof(p) { for (let i = 0; i < 7; i++) addP({ type: 'smoke', x: p.x + rand(-16, 16), y: p.y + rand(-24, 24), life: 26, max: 26, size: 15, vy: -0.6 }); }
 function pkPillar(owner, x, y) {
   spawnProj({ type: 'pkfire', owner, x, y, r: 24, life: 48, pierce: true, reflect: false, hb: { d: 1.5, a: 85, b: 16, g: 0, pin: true },
     tick: p => { if (p.t % 7 === 0) p.hitSet = new Set(); if (p.t === 42) { p.hitSet = new Set(); p.hb = { d: 4, a: 60, b: 45, g: 55 }; } } });
@@ -1668,7 +1814,7 @@ class Fighter {
     Object.assign(this, { x, y, px: x, py: y, vx: 0, vy: 0, lvx: 0, lvy: 0, facing: x <= 0 ? 1 : -1, grounded: false, ground: null, state: 'air', t: 0,
       jumps: this.c.airJumps, move: null, mt: 0, hitSet: new Set(), charge: 0, hitlag: 0, hitstun: 0, tumble: false, tumbleAnim: false, invuln: 0, intang: false,
       star: 0, feather: 0, shieldHP: 60, shieldStun: 0, fastfall: false, ledgeSide: 0, ledgeCD: 0, dropT: 0, airdodged: false, adDir: false, upBUsed: false, sideBUsed: false,
-      held: null, holder: null, grabT: 0, pumT: 0, item: null, lastHit: null, lastHitT: -9999, frozen: 0, buried: false, punchStore: 0, flash: 0, lag: 0, ev: null, mv: {}, jabN: 0, dizzy: 0, percent: 0, jsTap: false, hop: null, sjWin: 0 });
+      held: null, holder: null, grabT: 0, pumT: 0, item: null, lastHit: null, lastHitT: -9999, frozen: 0, buried: false, punchStore: 0, flash: 0, lag: 0, ev: null, mv: {}, jabN: 0, dizzy: 0, percent: 0, jsTap: false, hop: null, sjWin: 0, maskT: 0, maskCD: 0 });
   }
   get ix() { const h = this.ctrl.h; return (h.r ? 1 : 0) - (h.l ? 1 : 0); }
   get iy() { const h = this.ctrl.h; return (h.d ? 1 : 0) - (h.u ? 1 : 0); }
@@ -1693,6 +1839,8 @@ class Fighter {
     if (this.djT > 0) this.djT--;
     if (this.star > 0) this.star--;
     if (this.feather > 0) this.feather--;
+    if (this.maskT > 0) this.maskT--;
+    if (this.maskCD > 0) this.maskCD--;
     if (this.state !== 'shield' && this.shieldHP < 60) this.shieldHP = Math.min(60, this.shieldHP + 0.09);
     this.px = this.x; this.py = this.y;
     this.t++;
@@ -2179,7 +2327,7 @@ function staleInfo(a, o) {
 function applyHit(a, v, hb, dir, hx, hy, mult = 1, o = {}) {
   if (v.state === 'dead') return;
   const st = a && a !== v ? staleInfo(a, o) : null, trWas = G.training && v.key === 'bag' ? (v.state === 'hitstun' || v.state === 'grabbed' || v.hitlag > 0) : null;
-  const d = hb.d * mult * (st ? st.mult : 1);
+  const d = hb.d * mult * (st ? st.mult : 1) * (a && a.maskT > 0 ? 1.2 : 1);
   if (!o.throw) {
     const vm = v.move;
     if (v.state === 'attack' && vm && vm.counter && v.mt >= vm.counter[0] && v.mt <= vm.counter[1]) { triggerCounter(v, a, d); return; }
@@ -2624,6 +2772,13 @@ const POSE = {
   stabUp: { wind: mk({ aF: [1.2, -1.6], aB: [-0.6, -0.6] }), strike: mk({ aF: [3.1, 0], aB: [-0.7, -0.5], lF: [0.9, -1.6], lB: [0.5, -1.4], lean: -0.05 }) },
   stabDown: { wind: mk({ aF: [2.2, -0.8], aB: [-0.6, -0.8], lF: [1.2, -2.0], lB: [0.9, -2.0] }), strike: mk({ aF: [0.0, 0], aB: [0.25, -0.4], lF: [1.2, -2.0], lB: [0.9, -2.0], crouch: 0.2 }) },
   heli: { strike: mk({ aF: [1.57, 0], aB: [-1.57, 0], lF: [0.2, -0.2], lB: [-0.2, -0.2] }), spin: 2 },
+  kame: { wind: mk({ aF: [-0.9, -1.5], aB: [-0.7, -1.5], lean: -0.2, crouch: 0.3, lF: [0.7, -0.6], lB: [-0.5, -0.3], plant: 'both' }), strike: mk({ aF: [1.6, 0], aB: [1.5, 0.05], lean: 0.25, crouch: 0.2, lF: [0.7, -0.5], lB: [-0.6, -0.2], plant: 'both' }) },
+  genki: { wind: mk({ aF: [2.2, -0.6], aB: [2.0, -0.6] }), strike: mk({ aF: [3.0, 0], aB: [2.9, 0], lean: -0.1, plant: 'both' }) },
+  stretchP: { wind: mk({ aF: [-1.5, -0.6], aB: [0.8, -1.0], lean: -0.25, plant: 'both' }), strike: mk({ aF: [1.57, 0], aB: [-0.8, -0.6], lean: 0.3, lF: [0.8, -0.4], lB: [-0.7, -0.2], plant: 'both' }) },
+  gatling: { strike: mk({ lean: 0.25, lF: [0.8, -0.4], lB: [-0.7, -0.2], plant: 'both' }), fn: (f, t, P) => { const k = Math.sin(t * 1.6); P.aF = [1.57 + k * 0.25, 0]; P.aB = [1.5 - k * 0.25, 0.1]; return P; } },
+  balloon: { strike: mk({ aF: [2.2, -0.3], aB: [-2.2, -0.3], lF: [0.5, -0.3], lB: [-0.5, -0.3] }) },
+  rasen: { wind: mk({ aF: [0.9, -1.2], aB: [-0.6, -0.8], crouch: 0.25, lean: -0.1, plant: 'both' }), strike: mk({ aF: [1.6, 0], aB: [-1.2, -0.4], lean: 0.45, lF: [1.0, -0.3], lB: [-0.9, -0.2] }) },
+  maskOn: { wind: mk({ aF: [2.6, -1.9], aB: [-0.4, -0.6], crouch: 0.15, plant: 'both' }), strike: mk({ aF: [1.0, -0.6], aB: [-0.8, -0.6], lean: -0.15, plant: 'both' }) },
   cast: { wind: mk({ aF: [0.2, -1.5], aB: [-0.4, -1.2], plant: 'both' }), strike: mk({ aF: [1.55, -0.05], aB: [-0.5, -0.7], lean: 0.15, plant: 'both' }) },
   dashB: { strike: mk({ lean: 0.65, aF: [1.5, 0], aB: [-1.7, 0], lF: [1.2, -0.7], lB: [-1.1, -0.8] }) },
   upB: { strike: mk({ aF: [3.1, 0], aB: [2.7, -0.2], lF: [0.15, -0.1], lB: [-0.3, -0.6] }) },
@@ -2780,9 +2935,10 @@ function drawPuppet(g, ck, col, P, o = {}) {
   // back limbs
   const backCol = ck === 'klauw' ? shade(col.body, 0.78) : ck === 'lonk' ? '#cdc3aa' : ck === 'volt' ? shade(col.jacket, 0.78) : ck === 'techno' ? '#25202e' : col.dark;
   strokeLimb(g, lB, backCol, lw); foot(g, ck, lB, lw, col);
-  strokeLimb(g, aB, backCol, lw * 0.9); dot(g, aB[4], aB[5], lw * (ck === 'gloei' ? 0.95 : ck === 'bongo' ? 0.8 : ck === 'klauw' ? 0.7 : 0.6), handCol);
+  strokeLimb(g, aB, ck === 'rekker' ? shade(col.skin, 0.82) : backCol, lw * 0.9); dot(g, aB[4], aB[5], lw * (ck === 'gloei' ? 0.95 : ck === 'bongo' ? 0.8 : ck === 'klauw' ? 0.7 : 0.6), handCol);
   if (ck === 'lonk') drawShieldL(g, aB[4], aB[5], h);
   if (ck === 'lonk' && !o.sword) { g.lineCap = 'round'; g.strokeStyle = INK; g.lineWidth = 9; g.beginPath(); g.moveTo(sh.x - 18, sh.y - 12); g.lineTo(hip.x + 12, hip.y + 6); g.stroke(); g.strokeStyle = '#6b4423'; g.lineWidth = 5; g.stroke(); g.strokeStyle = '#4f6bd8'; g.lineWidth = 5; g.beginPath(); g.moveTo(sh.x - 18, sh.y - 12); g.lineTo(sh.x - 24, sh.y - 20); g.stroke(); }
+  if (ck === 'aardbei' && !o.sword) { g.save(); g.translate(sh.x - 4, sh.y - 2); g.rotate(2.45 + lean); rr(g, -7, 4, 15, h * 0.62, 3); g.fillStyle = '#2a2d36'; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke(); g.strokeStyle = '#dfe5f2'; g.lineWidth = 2.5; g.beginPath(); g.moveTo(6, 8); g.lineTo(6, h * 0.6); g.stroke(); rr(g, -3, -14, 6, 18, 2); g.fillStyle = '#efe9dc'; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke(); g.restore(); }
   if (ck === 'sable' && !o.sword) { g.strokeStyle = INK; g.lineWidth = 8; g.beginPath(); g.moveTo(sh.x - 22, sh.y - 10); g.lineTo(hip.x + 14, hip.y + 10); g.stroke(); g.strokeStyle = '#3b2a20'; g.lineWidth = 4; g.stroke(); }
   if (ck === 'volt') { // bushy tail
     g.save(); g.translate(hip.x, hip.y); g.rotate(lean - 0.55 + Math.sin(fr * 0.15) * 0.08); g.lineWidth = 3; g.strokeStyle = INK;
@@ -2870,6 +3026,10 @@ function drawPuppet(g, ck, col, P, o = {}) {
       g.beginPath(); g.moveTo(tw * 0.0, -tl + 2); g.lineTo(tw * 0.34, -tl + 2); g.lineTo(tw * 0.3, -tl * 0.28); g.lineTo(tw * 0.17, -tl * 0.12); g.lineTo(tw * 0.04, -tl * 0.28); g.closePath(); g.fillStyle = col.acc; g.fill(); g.stroke(); g.fillStyle = '#ffd34d'; g.font = `bold ${Math.round(tl * 0.22)}px Impact, sans-serif`; g.textAlign = 'center'; g.fillText('B', tw * 0.17, -tl * 0.45); }
     else if (ck === 'joep') { g.save(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.clip(); g.fillStyle = col.dark; for (const yy of [-0.78, -0.4, -0.02]) g.fillRect(-tw / 2, tl * yy, tw, tl * 0.17); g.restore(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.lineWidth = 3; g.strokeStyle = INK; g.stroke(); }
     else if (ck === 'schim') { g.fillStyle = '#f4f4f4'; g.beginPath(); g.moveTo(-tw * 0.32, -tl + 1); g.lineTo(tw * 0.36, -tl + 1); g.lineTo(tw * 0.16, -tl * 0.58); g.lineTo(0, -tl * 0.78); g.lineTo(-tw * 0.16, -tl * 0.58); g.closePath(); g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke(); }
+    else if (ck === 'gokko') { g.fillStyle = col.dark; g.fillRect(-tw / 2 + 1, -tl * 0.2, tw - 2, tl * 0.13); g.beginPath(); g.moveTo(-tw * 0.22, -tl - 2); g.lineTo(tw * 0.22, -tl - 2); g.lineTo(0, -tl * 0.6); g.closePath(); g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke(); g.beginPath(); g.arc(tw * 0.14, -tl * 0.6, tw * 0.15, 0, TAU); g.fillStyle = '#f4f1ea'; g.fill(); g.stroke(); }
+    else if (ck === 'rekker') { g.save(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.clip(); g.fillStyle = col.skin; g.fillRect(-tw * 0.16, -tl - 6, tw * 0.42, tl * 0.92); g.fillStyle = col.acc; g.fillRect(-tw, -tl * 0.12, tw * 2, tl * 0.16); g.restore(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.lineWidth = 3; g.strokeStyle = INK; g.stroke(); g.strokeStyle = shade(col.skin, 0.7); g.lineWidth = 2; g.beginPath(); g.moveTo(-tw * 0.08, -tl * 0.85); g.lineTo(tw * 0.18, -tl * 0.55); g.moveTo(tw * 0.18, -tl * 0.85); g.lineTo(-tw * 0.08, -tl * 0.55); g.stroke(); }
+    else if (ck === 'draai') { g.save(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.clip(); g.fillStyle = col.dark; g.fillRect(-tw, -tl - 6, tw * 2, tl * 0.38); g.restore(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.lineWidth = 3; g.strokeStyle = INK; g.stroke(); g.strokeStyle = '#f4f1ea'; g.lineWidth = 2; g.beginPath(); g.moveTo(tw * 0.1, -tl * 0.62); g.lineTo(tw * 0.1, tl * 0.1); g.stroke(); }
+    else if (ck === 'aardbei') { g.fillStyle = '#f4f1ea'; g.beginPath(); g.moveTo(-tw * 0.26, -tl - 2); g.lineTo(tw * 0.3, -tl - 2); g.lineTo(tw * 0.05, -tl * 0.55); g.closePath(); g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke(); g.strokeStyle = '#b3262f'; g.lineWidth = 5; g.beginPath(); g.moveTo(-tw * 0.45, -tl * 0.95); g.lineTo(tw * 0.4, -tl * 0.05); g.stroke(); }
     else { g.strokeStyle = col.acc; g.lineWidth = 6; g.beginPath(); g.moveTo(-tw / 2 + 2, -tl * 0.15); g.lineTo(tw / 2 - 2, -tl * 0.32); g.stroke(); }
   }
   g.restore();
@@ -3011,6 +3171,50 @@ function drawPuppet(g, ck, col, P, o = {}) {
     g.strokeStyle = INK; g.lineWidth = 9; g.beginPath(); g.moveTo(-hr * 0.9, -hr * 0.55); g.quadraticCurveTo(-hr * 2, -hr * 0.8 + w, -hr * 2.8, -hr * 0.1 - w); g.stroke();
     g.strokeStyle = col.acc; g.lineWidth = 5; g.stroke();
     g.fillStyle = col.acc; g.fillRect(-hr * 0.95, -hr * 0.78, hr * 1.9, hr * 0.32);
+  } else if (ck === 'gokko') {
+    g.lineWidth = 3; g.strokeStyle = INK;
+    g.beginPath(); [[-0.95, 0.2], [-1.9, -0.35], [-1.0, -0.6], [-1.75, -1.35], [-0.7, -1.05], [-0.75, -2.05], [-0.05, -1.2], [0.5, -1.95], [0.55, -1.0], [1.15, -1.2], [0.85, -0.45]].forEach(([x, y], i) => i ? g.lineTo(hr * x, hr * y) : g.moveTo(hr * x, hr * y)); g.closePath(); g.fillStyle = col.acc; g.fill(); g.stroke();
+    g.beginPath(); g.arc(0, 0, hr, 0, TAU); g.fillStyle = col.skin; g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(-hr * 0.6, -hr * 0.75); g.lineTo(hr * 0.1, -hr * 0.25); g.lineTo(hr * 0.15, -hr * 0.7); g.lineTo(hr * 0.6, -hr * 0.2); g.lineTo(hr * 0.55, -hr * 0.75); g.lineTo(hr * 0.95, -hr * 0.45); g.lineTo(hr * 0.5, -hr * 1.05); g.closePath(); g.fillStyle = col.acc; g.fill(); g.stroke();
+    eye(g, hr * 0.48, hr * 0.02, hr * 0.24, hurt);
+    g.beginPath(); g.arc(hr * 0.5, hr * 0.4, hr * 0.2, 0.2, Math.PI - 0.4); g.lineWidth = 2; g.stroke();
+  } else if (ck === 'rekker') {
+    g.lineWidth = 3; g.strokeStyle = INK;
+    g.beginPath(); g.arc(0, 0, hr, 0, TAU); g.fillStyle = col.skin; g.fill(); g.stroke();
+    g.beginPath(); [[-1.0, 0.1], [-1.15, -0.35], [-0.85, -0.25], [-0.95, -0.7], [-0.5, -0.55], [0.1, -0.62], [0.25, -0.3], [0.45, -0.6], [0.9, -0.45], [0.5, -0.95], [-0.7, -0.95]].forEach(([x, y], i) => i ? g.lineTo(hr * x, hr * y) : g.moveTo(hr * x, hr * y)); g.closePath(); g.fillStyle = '#1b1820'; g.fill(); g.stroke();
+    eye(g, hr * 0.48, -hr * 0.02, hr * 0.24, hurt);
+    g.beginPath(); g.moveTo(hr * 0.32, hr * 0.26); g.lineTo(hr * 0.62, hr * 0.3); g.lineWidth = 1.5; g.stroke();
+    g.beginPath(); g.arc(hr * 0.45, hr * 0.36, hr * 0.32, 0.1, Math.PI * 0.75); g.closePath(); g.fillStyle = '#ffffff'; g.fill(); g.lineWidth = 2; g.stroke();
+    g.beginPath(); g.ellipse(hr * 0.05, -hr * 0.78, hr * 1.55, hr * 0.32, -0.05, 0, TAU); g.fillStyle = col.acc; g.fill(); g.lineWidth = 3; g.stroke();
+    g.beginPath(); g.moveTo(-hr * 0.75, -hr * 0.82); g.quadraticCurveTo(-hr * 0.7, -hr * 1.65, hr * 0.05, -hr * 1.65); g.quadraticCurveTo(hr * 0.8, -hr * 1.65, hr * 0.82, -hr * 0.84); g.closePath(); g.fill(); g.stroke();
+    g.fillStyle = '#d8262f'; g.beginPath(); g.moveTo(-hr * 0.76, -hr * 0.95); g.lineTo(hr * 0.82, -hr * 0.97); g.lineTo(hr * 0.8, -hr * 1.17); g.lineTo(-hr * 0.73, -hr * 1.15); g.closePath(); g.fill(); g.lineWidth = 2; g.stroke();
+  } else if (ck === 'draai') {
+    g.lineWidth = 3; g.strokeStyle = INK;
+    g.beginPath(); [[-0.9, 0.25], [-1.75, -0.1], [-1.05, -0.45], [-1.7, -1.0], [-0.7, -0.85], [-0.85, -1.75], [-0.15, -1.05], [0.25, -1.8], [0.45, -0.95], [1.1, -1.35], [0.85, -0.5]].forEach(([x, y], i) => i ? g.lineTo(hr * x, hr * y) : g.moveTo(hr * x, hr * y)); g.closePath(); g.fillStyle = col.acc; g.fill(); g.stroke();
+    g.beginPath(); g.arc(0, 0, hr, 0, TAU); g.fillStyle = col.skin; g.fill(); g.stroke();
+    const w = Math.sin(fr * 0.25) * 4;
+    g.lineWidth = 7; g.beginPath(); g.moveTo(-hr * 0.9, -hr * 0.5); g.quadraticCurveTo(-hr * 1.6, -hr * 0.4 + w, -hr * 2.2, -hr * 0.05 - w); g.stroke(); g.strokeStyle = '#283a6b'; g.lineWidth = 3.5; g.stroke();
+    g.fillStyle = '#283a6b'; g.fillRect(-hr * 0.98, -hr * 0.72, hr * 1.96, hr * 0.3); g.strokeStyle = INK; g.lineWidth = 2; g.strokeRect(-hr * 0.98, -hr * 0.72, hr * 1.96, hr * 0.3);
+    rr(g, hr * 0.1, -hr * 0.76, hr * 0.8, hr * 0.38, 2); g.fillStyle = '#c9ced8'; g.fill(); g.stroke();
+    g.beginPath(); g.arc(hr * 0.5, -hr * 0.57, hr * 0.09, 0, TAU * 0.8); g.stroke();
+    eye(g, hr * 0.5, 0, hr * 0.24, hurt);
+    g.lineWidth = 1.5; for (const yy of [0.18, 0.3, 0.42]) { g.beginPath(); g.moveTo(hr * 0.22, hr * yy); g.lineTo(hr * 0.52, hr * (yy + 0.03)); g.stroke(); }
+    g.beginPath(); g.arc(hr * 0.62, hr * 0.48, hr * 0.16, 0.2, Math.PI - 0.3); g.lineWidth = 2; g.stroke();
+  } else if (ck === 'aardbei') {
+    g.lineWidth = 3; g.strokeStyle = INK;
+    g.beginPath(); [[-0.95, 0.3], [-1.8, 0.05], [-1.1, -0.35], [-1.75, -0.9], [-0.75, -0.8], [-0.9, -1.6], [-0.1, -1.0], [0.3, -1.7], [0.5, -0.95], [1.15, -1.15], [0.95, -0.4]].forEach(([x, y], i) => i ? g.lineTo(hr * x, hr * y) : g.moveTo(hr * x, hr * y)); g.closePath(); g.fillStyle = col.acc; g.fill(); g.stroke();
+    g.beginPath(); g.arc(0, 0, hr, 0, TAU); g.fillStyle = col.skin; g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(-hr * 0.5, -hr * 0.85); g.lineTo(hr * 0.2, -hr * 0.35); g.lineTo(hr * 0.25, -hr * 0.75); g.lineTo(hr * 0.75, -hr * 0.3); g.lineTo(hr * 0.7, -hr * 0.85); g.closePath(); g.fillStyle = col.acc; g.fill(); g.stroke();
+    if (o.mask) {
+      g.beginPath(); g.arc(hr * 0.08, hr * 0.02, hr * 0.95, -Math.PI * 0.42, Math.PI * 0.62); g.closePath(); g.fillStyle = '#f4f1ea'; g.fill(); g.lineWidth = 2.5; g.stroke();
+      g.strokeStyle = '#c4161c'; g.lineWidth = 3; for (const xx of [0.3, 0.62]) { g.beginPath(); g.moveTo(hr * xx, -hr * 0.7); g.lineTo(hr * (xx + 0.05), hr * 0.15); g.stroke(); }
+      g.beginPath(); g.ellipse(hr * 0.48, -hr * 0.08, hr * 0.2, hr * 0.13, 0, 0, TAU); g.fillStyle = INK; g.fill(); dot(g, hr * 0.52, -hr * 0.08, hr * 0.06, '#ffd23f');
+      g.strokeStyle = INK; g.lineWidth = 1.5; g.beginPath(); g.moveTo(hr * 0.2, hr * 0.5); g.lineTo(hr * 0.85, hr * 0.45); for (const xx of [0.35, 0.5, 0.65]) { g.moveTo(hr * xx, hr * 0.4); g.lineTo(hr * xx, hr * 0.58); } g.stroke();
+    } else {
+      eye(g, hr * 0.48, 0, hr * 0.22, hurt);
+      g.beginPath(); g.moveTo(hr * 0.25, -hr * 0.3); g.lineTo(hr * 0.75, -hr * 0.18); g.lineWidth = 2.5; g.stroke();
+      g.beginPath(); g.moveTo(hr * 0.38, hr * 0.5); g.lineTo(hr * 0.7, hr * 0.46); g.lineWidth = 2; g.stroke();
+    }
   } else {
     g.beginPath(); g.arc(0, 0, hr, 0, TAU); g.fillStyle = col.skin; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke();
     eye(g, hr * 0.4, hr * 0.05, hr * 0.34, hurt);
@@ -3020,15 +3224,21 @@ function drawPuppet(g, ck, col, P, o = {}) {
   }
   g.restore();
   // front leg & arm
-  strokeLimb(g, lF, ck === 'pip' || ck === 'joep' ? col.dark : ck === 'lonk' ? '#ece3cc' : ck === 'volt' ? col.jacket : ck === 'techno' ? '#3b3046' : col.body, lw); foot(g, ck, lF, lw, col);
+  strokeLimb(g, lF, ck === 'pip' || ck === 'joep' || ck === 'rekker' ? col.dark : ck === 'lonk' ? '#ece3cc' : ck === 'volt' ? col.jacket : ck === 'techno' ? '#3b3046' : col.body, lw); foot(g, ck, lF, lw, col);
   if (ck === 'pip') { // robe overlaps front leg top
     g.save(); g.translate(hip.x, hip.y); g.rotate(lean);
     g.beginPath(); g.moveTo(-c.w * 0.24, -tl); g.lineTo(c.w * 0.24, -tl); g.lineTo(c.w * 0.56, hipH * 0.62); g.lineTo(-c.w * 0.1, hipH * 0.62); g.closePath();
     g.fillStyle = col.body; g.fill(); g.restore();
   }
-  strokeLimb(g, aF, col.body, lw);
+  strokeLimb(g, aF, ck === 'rekker' ? col.skin : col.body, lw);
   const fa = Math.atan2(aF[4] - aF[2], aF[5] - aF[3]);
-  if ((ck === 'sable' || ck === 'lonk' || ck === 'techno') && o.sword) {
+  if (ck === 'aardbei' && o.sword) {
+    const L = h * 0.7, dx = Math.sin(fa), dy = Math.cos(fa), nx = dy, ny = -dx, bx = aF[4] + dx * 8, by = aF[5] + dy * 8, W = 15;
+    g.lineCap = 'round'; g.strokeStyle = INK; g.lineWidth = 8; g.beginPath(); g.moveTo(aF[4] - dx * 12, aF[5] - dy * 12); g.lineTo(bx, by); g.stroke(); g.strokeStyle = '#efe9dc'; g.lineWidth = 4; g.stroke();
+    g.beginPath(); g.moveTo(bx - nx * 4, by - ny * 4); g.lineTo(bx + nx * W, by + ny * W); g.lineTo(bx + dx * L + nx * W * 0.8, by + dy * L + ny * W * 0.8); g.lineTo(bx + dx * (L + 10) - nx * 4, by + dy * (L + 10) - ny * 4); g.closePath();
+    g.fillStyle = '#2a2d36'; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke();
+    g.strokeStyle = '#dfe5f2'; g.lineWidth = 3; g.beginPath(); g.moveTo(bx + nx * (W - 2), by + ny * (W - 2)); g.lineTo(bx + dx * L + nx * (W * 0.8 - 2), by + dy * L + ny * (W * 0.8 - 2)); g.stroke();
+  } else if ((ck === 'sable' || ck === 'lonk' || ck === 'techno') && o.sword) {
     const L = h * (ck === 'lonk' ? 0.6 : ck === 'techno' ? 0.58 : 0.62), ex = aF[4] + Math.sin(fa) * L, ey = aF[5] + Math.cos(fa) * L, dia = ck === 'techno';
     g.lineCap = dia ? 'butt' : 'round'; g.strokeStyle = INK; g.lineWidth = dia ? 11 : 9; g.beginPath(); g.moveTo(aF[4], aF[5]); g.lineTo(ex, ey); g.stroke();
     g.strokeStyle = dia ? '#4fd8e6' : '#e9eef8'; g.lineWidth = dia ? 6.5 : 4.5; g.stroke();
@@ -3541,8 +3751,38 @@ function drawStage(g, V, S, fr) {
     }
   }
 }
+function drawAnimeProj(g, p, fr) {
+  const dir = Math.sign(p.vx) || (p.owner ? p.owner.facing : 1);
+  if (p.type === 'kibeam') {
+    const col = p.owner ? p.owner.col.fx : '#8fe3ff', L = Math.max(0, Math.min((p.t - 1) * Math.abs(p.vx) + 6, 340)), r = p.r;
+    g.globalCompositeOperation = 'lighter';
+    g.fillStyle = hexA(col, 0.45); g.fillRect(dir > 0 ? -L : 0, -r, L, r * 2);
+    g.fillStyle = 'rgba(255,255,255,.75)'; g.fillRect(dir > 0 ? -L : 0, -r * 0.42, L, r * 0.84);
+    const gr = g.createRadialGradient(0, 0, 1, 0, 0, r * 1.7); gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.45, hexA(col, 0.8)); gr.addColorStop(1, hexA(col, 0));
+    g.fillStyle = gr; g.beginPath(); g.arc(0, 0, r * 1.7, 0, TAU); g.fill();
+  } else if (p.type === 'genki') {
+    const r = p.r;
+    g.globalCompositeOperation = 'lighter';
+    const gr = g.createRadialGradient(0, 0, r * 0.1, 0, 0, r * 1.35); gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.5, 'rgba(160,215,255,.9)'); gr.addColorStop(0.8, 'rgba(80,160,255,.55)'); gr.addColorStop(1, 'rgba(80,160,255,0)');
+    g.fillStyle = gr; g.beginPath(); g.arc(0, 0, r * 1.35, 0, TAU); g.fill();
+    g.strokeStyle = 'rgba(220,240,255,.8)'; g.lineWidth = 2; g.beginPath(); g.arc(0, 0, r * (0.9 + 0.08 * Math.sin(fr * 0.4)), 0, TAU); g.stroke();
+  } else if (p.type === 'getsuga') {
+    const col = p.owner ? p.owner.col.fx : '#9fd8ff', r = p.r;
+    g.scale(dir, 1); g.globalAlpha = Math.min(1, p.life / 6);
+    g.beginPath(); g.arc(-r * 0.3, 0, r * 1.25, -1.25, 1.25); g.arc(-r * 0.95, 0, r * 1.3, 1.0, -1.0, true); g.closePath();
+    g.fillStyle = '#18142a'; g.fill(); g.lineWidth = 5; g.strokeStyle = hexA(col, 0.9); g.stroke(); g.lineWidth = 2; g.strokeStyle = '#ffffff'; g.stroke();
+  } else if (p.type === 'clone') {
+    const o = p.owner, c = CHARS.draai, col = o && o.key === 'draai' ? o.col : c.col, run = Math.abs(p.vx) > 0.1;
+    let P;
+    if (run) { const ph = p.t * 0.55; P = mk({ lean: 0.3, lF: [Math.sin(ph) * 0.95, -Math.max(0, -Math.cos(ph)) * 1.2 - 0.15], lB: [-Math.sin(ph) * 0.95, -Math.max(0, Math.cos(ph)) * 1.2 - 0.15], aF: [-Math.sin(ph) * 0.9 + 0.25, -0.9], aB: [Math.sin(ph) * 0.9, -0.9] }); }
+    else P = mk({ crouch: 0.35, aF: [2.9, -0.1], aB: [2.7, -0.1], plant: 'both' });
+    g.globalAlpha = Math.min(1, p.life / 6) * 0.9; g.scale(dir, 1); g.translate(0, c.h * 0.4);
+    drawPuppet(g, 'draai', col, P, { grounded: true, fr });
+  }
+}
 function drawProj(g, p, fr) {
   g.save(); g.translate(p.x, p.y);
+  if (p.type === 'kibeam' || p.type === 'genki' || p.type === 'getsuga' || p.type === 'clone') { drawAnimeProj(g, p, fr); g.restore(); return; }
   if (p.type === 'spark' || p.type === 'boom' || p.type === 'fire') {
     const col = p.type === 'spark' ? (p.owner ? p.owner.col.fx : '#9ff6ff') : '#ffb347';
     const r = p.type === 'boom' ? p.r * (0.6 + 0.4 * (1 - p.life / 7)) : p.r * 1.4;
@@ -3741,8 +3981,8 @@ function drawFighter(g, f, fr, z) {
   else if (f.frozen > 0 && !f.buried) filt = 'saturate(0.3) brightness(1.2) hue-rotate(160deg)';
   if (filt !== 'none' && 'filter' in g) g.filter = filt;
   const sword = f.key === 'techno' ? !f.item && !(f.state === 'attack' && f.move && (f.move.throw || ['cast', 'counter', 'throwItem', 'pick', 'bow', 'riptide'].includes(f.move.pose)))
-    : (f.key === 'sable' || f.key === 'lonk') && f.state === 'attack' && f.move && !f.move.throw && !['cast', 'counter', 'throwItem', 'pick', 'bow', 'lonkpull'].includes(f.move.pose);
-  drawPuppet(g, f.key, f.col, P, { grounded: f.grounded || f.state === 'land', fr: fr + f.id * 30, sword, held: f.item ? f.item.type : f.state === 'attack' && f.move && f.move.bat ? 'bat' : null, wings: f.feather > 0, xbow: f.key === 'techno' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, trident: f.key === 'techno' && f.state === 'attack' && f.move === f.M.upB, totem: f.key === 'techno' && f.state === 'attack' && f.move === f.M.downB, bow: f.key === 'lonk' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, pull: f.charge, jet: f.key === 'bliep' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 4, hurt: f.state === 'hitstun' || f.state === 'knockdown' || f.state === 'dizzy' || f.state === 'shieldbreak' || f.state === 'grabbed', ...(f.key === 'poef' ? poefFlags(f) : {}) });
+    : (f.key === 'sable' || f.key === 'lonk' || f.key === 'aardbei') && f.state === 'attack' && f.move && !f.move.throw && !['cast', 'counter', 'throwItem', 'pick', 'bow', 'lonkpull', 'maskOn'].includes(f.move.pose);
+  drawPuppet(g, f.key, f.col, P, { mask: f.maskT > 0, grounded: f.grounded || f.state === 'land', fr: fr + f.id * 30, sword, held: f.item ? f.item.type : f.state === 'attack' && f.move && f.move.bat ? 'bat' : null, wings: f.feather > 0, xbow: f.key === 'techno' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, trident: f.key === 'techno' && f.state === 'attack' && f.move === f.M.upB, totem: f.key === 'techno' && f.state === 'attack' && f.move === f.M.downB, bow: f.key === 'lonk' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, pull: f.charge, jet: f.key === 'bliep' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 4, hurt: f.state === 'hitstun' || f.state === 'knockdown' || f.state === 'dizzy' || f.state === 'shieldbreak' || f.state === 'grabbed', ...(f.key === 'poef' ? poefFlags(f) : {}) });
   if ('filter' in g) g.filter = 'none';
   g.globalAlpha = 1; g.restore();
   if (f.key === 'kwak' && f.state === 'attack' && f.move === f.M.sideB) {
@@ -3760,7 +4000,7 @@ function drawFighter(g, f, fr, z) {
     g.strokeStyle = '#ffffff'; g.lineWidth = 2.5; g.beginPath(); for (let i = 0; i < 9; i++) { const a = i / 9 * TAU + rand(-0.2, 0.2); let x = f.x, y = cy; g.moveTo(x, y); for (let j = 1; j <= 3; j++) { x = f.x + Math.cos(a) * R2 * j / 3 + rand(-6, 6); y = cy + Math.sin(a) * R2 * j / 3 + rand(-6, 6); g.lineTo(x, y); } } g.stroke(); g.restore();
   }
   if (f.buried && f.frozen > 0) { g.fillStyle = '#6b4a2e'; g.strokeStyle = INK; g.lineWidth = 2.5; g.beginPath(); g.ellipse(f.x, f.y, c.w * 0.75, 9, 0, Math.PI, TAU); g.closePath(); g.fill(); g.stroke(); }
-  drawAirFx(g, f);
+  drawAirFx(g, f); drawCharFx(g, f);
   if (f.state === 'attack' && f.move && f.move.psi && f.move.hb[0] && f.mt > f.move.start - 3 && f.mt <= f.move.start + f.move.active + 5) {
     // PSI burst drawn from the move state so online guests see it too
     const hb = f.move.hb[0], k = (f.mt - f.move.start + 3) / (f.move.active + 8), hx = f.x + hb.x * f.facing, hy = f.y + hb.y, R = hb.r * (0.45 + k * 0.75);
@@ -3846,6 +4086,51 @@ function drawHitboxes(g, fr) {
   }
   g.globalCompositeOperation = 'source-over';
 }
+function rubber(g, x0, y0, x1, y1, col, tipCol, lw) {
+  g.save(); g.lineCap = 'round'; g.strokeStyle = INK; g.lineWidth = lw + 3; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
+  g.strokeStyle = col; g.lineWidth = lw - 1; g.stroke(); dot(g, x1, y1, lw * 0.85, tipCol); g.restore();
+}
+function drawCharFx(g, f) {
+  // move overlays drawn from the move state (so online guests see them too)
+  const c = f.c, s = c.h / 80, fr = G.frame;
+  if (f.maskT > 0 && f.state !== 'dead') {
+    g.save(); g.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < 5; i++) { const k = (fr * 0.05 + i / 5) % 1, x = f.x + Math.sin(i * 2.3 + fr * 0.1) * c.w * 0.5, y = f.y - c.h * (0.1 + k * 0.9); g.fillStyle = `rgba(200,30,50,${0.35 * (1 - k)})`; g.beginPath(); g.arc(x, y, 8 + 6 * (1 - k), 0, TAU); g.fill(); }
+    g.restore();
+  }
+  const m = f.move; if (f.state !== 'attack' || !m) return;
+  const t = f.mt, st = m.start, ac = m.active, fx = f.col.fx;
+  const orb = (x, y, r, c1) => { g.save(); g.globalCompositeOperation = 'lighter'; const gr = g.createRadialGradient(x, y, 1, x, y, r); gr.addColorStop(0, 'rgba(255,255,255,.95)'); gr.addColorStop(0.45, hexA(c1, 0.75)); gr.addColorStop(1, hexA(c1, 0)); g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill(); g.restore(); };
+  if (m.kame && t <= st + 1) orb(f.x + f.facing * (t < st ? -12 : 26) * s, f.y - 40 * s, (8 + f.charge * 0.16) * (1 + Math.sin(fr * 0.6) * 0.1), fx);
+  if (m.genki && t <= st) {
+    const r = 10 + f.charge * 0.32, y = f.y - c.h - 18 - r; orb(f.x, y, r * 1.3, '#7fc8ff');
+    g.save(); g.strokeStyle = 'rgba(200,235,255,.8)'; g.lineWidth = 2;
+    for (let i = 0; i < 6; i++) { const a = i * TAU / 6 + fr * 0.05, d = r * (1.4 + ((fr * 0.04 + i / 6) % 1) * 2.2); g.beginPath(); g.moveTo(f.x + Math.cos(a) * d, y + Math.sin(a) * d); g.lineTo(f.x + Math.cos(a) * (d - 10), y + Math.sin(a) * (d - 10)); g.stroke(); }
+    g.restore();
+  }
+  if (m.rasen && t <= st + ac + 2) {
+    const x = f.x + f.facing * (t <= st ? 18 : 36) * s, y = f.y - 46 * s, r = (10 + f.charge * 0.1) * s * 1.2; orb(x, y, r * 1.5, fx);
+    g.save(); g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 2;
+    for (let i = 0; i < 3; i++) { const a = fr * 0.7 + i * TAU / 3; g.beginPath(); g.arc(x, y, r * (0.5 + i * 0.2), a, a + 2.2); g.stroke(); }
+    g.restore();
+  }
+  if (m.balloon) {
+    const k = t <= st ? t / st : t <= st + ac ? 1 : Math.max(0, 1 - (t - st - ac) / 5);
+    if (k > 0.05) {
+      const R = c.w * (0.55 + 0.5 * k), cy = f.y - c.h * 0.36;
+      g.save(); g.beginPath(); g.arc(f.x, cy, R, 0, TAU); g.fillStyle = f.col.skin; g.fill();
+      g.save(); g.clip(); g.fillStyle = f.col.body; g.fillRect(f.x - R, cy - R, R * 0.55, R * 2); g.fillRect(f.x + R * 0.45, cy - R, R * 0.55, R * 2); g.restore();
+      g.lineWidth = 3; g.strokeStyle = INK; g.beginPath(); g.arc(f.x, cy, R, 0, TAU); g.stroke();
+      g.fillStyle = INK; g.beginPath(); g.arc(f.x + f.facing * R * 0.05, cy + R * 0.25, 2.5, 0, TAU); g.fill(); g.restore();
+    }
+  }
+  if (m.stretch === 'arm') {
+    const e = t <= st ? 0 : t <= st + ac ? 1 : Math.max(0, 1 - (t - st - ac) / 6), tip = m.hb.reduce((p, h) => Math.abs(h.x) > Math.abs(p.x) ? h : p);
+    if (e > 0) rubber(g, f.x + f.facing * 8 * s, f.y - 52 * s, f.x + f.facing * (12 * s + (tip.x - 12 * s) * e), f.y + tip.y, f.col.skin, f.col.skin, c.limb);
+  }
+  if (m.rocket && t < st + 3) { const L = Math.min(1, t / Math.max(1, st - 2)) * 90 * s; for (const dx of [-6, 8]) rubber(g, f.x + dx, f.y - 56 * s, f.x + dx * 1.5, f.y - 56 * s - L, f.col.skin, f.col.skin, c.limb * 0.9); }
+  if (m.gatling && t > st && t <= st + ac) for (let i = 0; i < 5; i++) { const q = (fr * 7 + i * 13) % 37, x = f.x + f.facing * (40 + q) * s, y = f.y - (34 + ((fr * 5 + i * 11) % 30)) * s; rubber(g, f.x + f.facing * 8 * s, f.y - 52 * s, x, y, f.col.skin, f.col.skin, c.limb * 0.8); }
+}
 function drawAirFx(g, f) {
   // aerial effects at the active hitboxes, drawn from the move state so online guests see them too
   const m = f.move; if (f.state !== 'attack' || !m || !m.afx || !m.hb) return;
@@ -3892,6 +4177,14 @@ function drawAirFx(g, f) {
         g.strokeStyle = '#ff2a3d'; g.lineWidth = 3; g.beginPath(); g.arc(hx, hy, r * (0.6 + 0.3 * ((fr % 6) / 6)), 0, TAU); g.stroke();
         break;
       case 'psi': { const gr = g.createRadialGradient(hx, hy, 2, hx, hy, r); gr.addColorStop(0, 'rgba(255,255,255,.8)'); gr.addColorStop(0.5, hexA(f.col.fx, 0.45)); gr.addColorStop(1, 'rgba(255,140,230,0)'); g.fillStyle = gr; g.beginPath(); g.arc(hx, hy, r, 0, TAU); g.fill(); break; }
+      case 'ki': { g.globalCompositeOperation = 'lighter'; const gr = g.createRadialGradient(hx, hy, 2, hx, hy, r * 1.1); gr.addColorStop(0, 'rgba(255,255,255,.85)'); gr.addColorStop(0.5, hexA(f.col.fx, 0.5)); gr.addColorStop(1, hexA(f.col.fx, 0)); g.fillStyle = gr; g.beginPath(); g.arc(hx, hy, r * 1.1, 0, TAU); g.fill(); break; }
+      case 'stretch': {
+        const tip = m.hb.reduce((p, h) => Math.hypot(h.x, h.y + c.h * 0.5) > Math.hypot(p.x, p.y + c.h * 0.5) ? h : p);
+        if (hb !== tip) break;
+        const leg = hb.y > -c.h * 0.42;
+        rubber(g, f.x + (leg ? 0 : f.facing * 4), f.y - c.h * (leg ? 0.4 : 0.62), hx, hy, f.col.skin, leg ? '#8a5a2b' : f.col.skin, c.limb);
+        break;
+      }
       case 'tongue': {
         const tip = m.hb.reduce((p, h) => Math.abs(h.x) > Math.abs(p.x) ? h : p);
         if (hb !== tip) break;
@@ -4213,7 +4506,7 @@ function showResults() {
 
 /* ---------------- online ---------------- */
 const ST_LIST = ['idle', 'walk', 'run', 'crouch', 'land', 'jumpsquat', 'air', 'attack', 'shield', 'evade', 'airdodge', 'hitstun', 'helpless', 'knockdown', 'dizzy', 'ledge', 'holding', 'grabbed', 'respawn', 'shieldbreak', 'dead'];
-const PT_LIST = ['spark', 'shuriken', 'fire', 'ice', 'pipbomb', 'bombT', 'boom', 'wave', 'laser', 'fist', 'bubble', 'spear', 'blast', 'bananaT', 'batT', 'blasterT', 'puffstar', 'pkbolt', 'pkfire', 'pkthunder', 'pkflash', 'arrow', 'boomer', 'jolt', 'thunder', 'egg', 'rocket'];
+const PT_LIST = ['spark', 'shuriken', 'fire', 'ice', 'pipbomb', 'bombT', 'boom', 'wave', 'laser', 'fist', 'bubble', 'spear', 'blast', 'bananaT', 'batT', 'blasterT', 'puffstar', 'pkbolt', 'pkfire', 'pkthunder', 'pkflash', 'arrow', 'boomer', 'jolt', 'thunder', 'egg', 'rocket', 'kibeam', 'genki', 'clone', 'getsuga'];
 const MODE_LIST = ['match', 'gameover', 'results'];
 const LAVA_ST = ['idle', 'warn', 'rise', 'hold', 'fall'];
 const CTR_MOVE = { pose: 'smashF', start: 3, active: 4, end: 20, dur: 27, hb: [] };
@@ -4462,7 +4755,7 @@ function netRaw(c) {
 function snapF(f) {
   const ev = f.ev; let evk = 0, evd = 1;
   if (ev) { evk = ev.roll ? 1 : ev.tech ? 2 : ev.spot ? 3 : ev.climb ? 4 : 5; evd = (ev.vx < 0 || ev.tx < ev.fx ? -1 : 1) * (ev.face ? -1 : 1); }
-  const fl = (f.grounded ? 1 : 0) | (f.tumble ? 2 : 0) | (f.tumbleAnim ? 4 : 0) | (f.adDir ? 8 : 0) | (f.intang ? 16 : 0) | (f.item ? 32 : 0) | (f.out ? 64 : 0) | (f.star > 0 ? 128 : 0) | (f.feather > 0 ? 256 : 0) | (f.buried ? 512 : 0) | (f.punchStore >= 100 ? 1024 : 0);
+  const fl = (f.grounded ? 1 : 0) | (f.tumble ? 2 : 0) | (f.tumbleAnim ? 4 : 0) | (f.adDir ? 8 : 0) | (f.intang ? 16 : 0) | (f.item ? 32 : 0) | (f.out ? 64 : 0) | (f.star > 0 ? 128 : 0) | (f.feather > 0 ? 256 : 0) | (f.buried ? 512 : 0) | (f.punchStore >= 100 ? 1024 : 0) | (f.maskT > 0 ? 2048 : 0);
   const mk = f.move ? (f.move.netKey || 'ctr') : '';
   return [ST_LIST.indexOf(f.state), Math.round(f.x), Math.round(f.y), f.facing, mk, f.mt | 0, f.charge | 0, f.t | 0, fl, Math.round(f.percent * 10), f.stocks, Math.round(f.shieldHP), f.invuln | 0, f.hitlag | 0, f.frozen | 0, f.flash | 0, f.djT | 0,
     Math.round(f.runPh * 100) % 100000, Math.round(f.vx * 10), evk, evd, ev ? ev.dur : 0, f.stats.ko, f.stats.falls, Math.round(f.stats.dmg), f.elim | 0, f.item ? ITEM_LIST.indexOf(f.item.type) : -1, f.copy || '', Math.round((f.aim || 0) * 100), f.key];
@@ -4574,7 +4867,7 @@ function netFighter(f, r, nb, k, fresh) {
     f.move = st === 'attack' ? (mk === 'ctr' ? CTR_MOVE : (typeof mk === 'string' && Object.prototype.hasOwnProperty.call(f.M, mk) ? f.M[mk] : f.M.jab)) : null;
     f.mt = r[5] | 0; f.charge = r[6] | 0; f.t = r[7] | 0;
     const fl = r[8] | 0;
-    f.grounded = !!(fl & 1); f.tumble = !!(fl & 2); f.tumbleAnim = !!(fl & 4); f.adDir = !!(fl & 8); f.intang = !!(fl & 16); f.item = fl & 32 ? { type: ITEM_LIST[r[26]] || 'bomb' } : null; f.out = !!(fl & 64); f.star = fl & 128 ? 1 : 0; f.feather = fl & 256 ? 1 : 0; f.buried = !!(fl & 512); f.punchStore = fl & 1024 ? 100 : 0;
+    f.grounded = !!(fl & 1); f.tumble = !!(fl & 2); f.tumbleAnim = !!(fl & 4); f.adDir = !!(fl & 8); f.intang = !!(fl & 16); f.item = fl & 32 ? { type: ITEM_LIST[r[26]] || 'bomb' } : null; f.out = !!(fl & 64); f.star = fl & 128 ? 1 : 0; f.feather = fl & 256 ? 1 : 0; f.buried = !!(fl & 512); f.punchStore = fl & 1024 ? 100 : 0; f.maskT = fl & 2048 ? 1 : 0;
     f.percent = (r[9] | 0) / 10; f.stocks = r[10] | 0; f.shieldHP = r[11] | 0; f.invuln = r[12] | 0; f.hitlag = r[13] | 0; f.frozen = r[14] | 0; f.flash = r[15] | 0; f.djT = r[16] | 0;
     f.runPh = (r[17] | 0) / 100; f.vx = (r[18] | 0) / 10;
     const evk = r[19] | 0;
