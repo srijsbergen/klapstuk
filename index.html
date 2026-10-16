@@ -1315,7 +1315,7 @@ const SPECIALS = {
       tick: (f, t) => {
         const v = f.held; if (!v || v.holder !== f) { f.held = null; return f.endMove(); }
         if (t < 10) { f.vy = -9 + t * 0.6; f.vx = f.facing * 3.5; f.grounded = false; f.ground = null; } else { f.vy = Math.min(f.vy + 1.4, 20); f.vx = f.facing * 2.5; }
-        v.x = f.x + f.facing * 6; v.y = f.y - f.c.h * 0.95; v.px = v.x; v.py = v.y; v.facing = -f.facing;
+        easeTo(v, f.x + f.facing * 6, f.y - f.c.h * 0.95, 0.4); v.facing = -f.facing;
         if (t >= 80) slamHit(f, v);
       },
       onLand: f => { if (f.held) slamHit(f, f.held); else { f.move = null; f.lag = 12; f.setState('land'); } } }),
@@ -1625,7 +1625,7 @@ const SPECIALS = {
         if (f.grounded) { f.vx = approach(f.vx, f.ix * 2.6, 0.5); if (f.bf.jmp > 0) { f.cons('jmp'); f.vy = -9.5; f.grounded = false; f.ground = null; SFX.jump(); } }
         else f.vx = approach(f.vx, f.ix * 3, 0.3);
         if (f.ix) f.facing = f.ix;
-        v.x = f.x; v.y = f.y; v.px = v.x; v.py = v.y; v.vx = v.vy = 0; v.grounded = f.grounded; v.ground = f.ground;
+        if (t < 8) easeTo(v, f.x, f.y, 0.5); else { v.x = f.x; v.y = f.y; v.px = v.x; v.py = v.y; } v.vx = v.vy = 0; v.grounded = f.grounded; v.ground = f.ground;
         if (t >= 6 && ((f.ctrl.h.d && f.ctrl.age.d <= 1) || (f.cpu && t === 24 && Math.random() < 0.6))) return f.startMove(f.M.swallow);
         if ((t >= 12 && (f.cons('spc') || f.cons('atk'))) || t >= 100 - Math.min(60, f.mv.esc * 5)) f.startMove(f.M.spit);
       } }),
@@ -1914,7 +1914,7 @@ const SPECIALS = {
 };
 function slamHit(f, v) {
   f.held = null; v.holder = null;
-  v.x = f.x + f.facing * (f.c.w * 0.5 + v.c.w * 0.5 - 6); v.y = f.y; v.px = v.x; v.py = v.y; v.grounded = f.grounded; v.ground = f.ground;
+  v.px = v.x; v.py = v.y; v.grounded = false; v.ground = null;
   applyHit(f, v, { d: 16, a: 70, b: 55, g: 72 }, f.facing, v.x, v.y - 20, 1, { throw: true });
   dustFx(f.x, f.y, 12); G.shake = Math.max(G.shake, 10); SFX.boom();
   f.move = null; f.lag = 20; f.setState(f.grounded ? 'land' : 'air');
@@ -2007,7 +2007,7 @@ function fsRush(f, t) {
     f.vx = f.facing * 22; f.vy = 0; if (t % 2) ghostFx(f);
     const hx = f.x + f.facing * (f.c.w / 2 + 20);
     const hit = fsFoes(f).filter(v => Math.abs(v.x - hx) < 44 + v.c.w / 2 && v.y - v.c.h < f.y + 10 && v.y > f.y - f.c.h - 10);
-    if (hit.length) { f.mv.caught = fsFoes(f).filter(v => Math.abs(v.x - hx) < 120 + v.c.w / 2 && Math.abs(v.y - f.y) < 120); f.vx = 0; f.mt = 40; SFX.hit(12); G.shake = Math.max(G.shake, 12); }
+    if (hit.length) { f.mv.caught = fsFoes(f).filter(v => hit.includes(v) || (Math.abs(v.x - hx) < 60 + v.c.w / 2 && Math.abs(v.y - f.y) < 60)); f.vx = 0; f.mt = 40; SFX.hit(12); G.shake = Math.max(G.shake, 12); }
     return;
   }
   f.vx = 0; f.vy = 0;
@@ -2015,7 +2015,7 @@ function fsRush(f, t) {
   for (const v of f.mv.caught || []) {
     if (v.state === 'dead' || v.state === 'respawn') continue;
     if (t === 100) { fsHit(f, v, 15, 40, 64, 108, f.facing); continue; }
-    v.x = f.x + f.facing * (f.c.w / 2 + v.c.w / 2 + 14); v.y = f.y; v.px = v.x; v.py = v.y;
+    easeTo(v, f.x + f.facing * (f.c.w / 2 + v.c.w / 2 + 14), f.y, 0.35);
     if (t % 6 === 0) { fsHit(f, v, 2.5, 80, 0, 0, f.facing); sparkFx(v.x + rand(-14, 14), v.y - v.c.h / 2 + rand(-20, 20), f.col.fx, 4); }
     v.vx = v.vy = v.lvx = v.lvy = 0; v.hitstun = Math.max(v.hitstun, 20);
   }
@@ -2424,6 +2424,7 @@ class Fighter {
     else this.vx = this.t < e.dur - 4 ? e.vx : 0;
     if (this.t >= e.dur) {
       this.ev = null;
+      if (e.jumpOff) { this.facing = e.face; this.px = this.x; this.py = this.y; this.grounded = false; this.ground = null; this.vy = -this.c.jump * 1.02; this.vx = e.jumpOff * 1.5; this.setState('air'); this.ledgeCD = 24; this.invuln = Math.max(this.invuln, 4); SFX.jump(); return; }
       if (e.lerp) { this.grounded = true; this.ground = G.stage.main; this.y = G.stage.main.y; this.px = this.x; this.py = this.y; }
       if (e.face) this.facing = e.face;
       if (e.then) return this.startMove(e.then);
@@ -2450,8 +2451,9 @@ class Fighter {
     if (this.t < 8) return;
     const toward = side < 0 ? this.ix > 0 : this.ix < 0, away = side < 0 ? this.ix < 0 : this.ix > 0;
     if (this.bf.jmp > 0) {
-      this.cons('jmp'); this.x = ex - side * 6; this.y = m.y - 4; this.px = this.x; this.py = this.y;
-      this.vy = -this.c.jump * 1.02; this.vx = -side * 1.5; this.setState('air'); this.ledgeCD = 24; this.invuln = Math.max(this.invuln, 4); SFX.jump(); return;
+      this.cons('jmp'); this.setState('evade');
+      this.ev = { lerp: true, dur: 4, i0: 0, i1: 4, fx: this.x, fy: this.y, tx: ex - side * 6, ty: m.y - 4, face: -side, climb: true, jumpOff: -side };
+      return;
     }
     if (this.bf.atk > 0) { this.cons('atk'); return this.climb(this.M.getupAtk, 20); }
     if (this.bf.shd > 0) { this.cons('shd'); return this.climb(null, 30, 130); }
@@ -2665,9 +2667,14 @@ class Fighter {
     this.state = 'respawn'; this.invuln = 150; this.t = 0;
   }
 }
+// moves a fighter towards a spot: most of the way each frame, so a grab or carry pulls instead of teleporting
+function easeTo(v, tx, ty, k = 0.45) {
+  if (Math.hypot(tx - v.x, ty - v.y) > 12) { v.x += (tx - v.x) * k; v.y += (ty - v.y) * k; } else { v.x = tx; v.y = ty; }
+  v.px = v.x; v.py = v.y;
+}
 function placeHeld(a) {
   const v = a.held; if (!v) return;
-  v.facing = -a.facing; v.x = a.x + a.facing * (a.c.w * 0.5 + v.c.w * 0.5 - 4); v.y = a.y; v.px = v.x; v.py = v.y;
+  v.facing = -a.facing; easeTo(v, a.x + a.facing * (a.c.w * 0.5 + v.c.w * 0.5 - 4), a.y);
   v.grounded = a.grounded; v.ground = a.ground;
 }
 function doGrab(a, v) {
