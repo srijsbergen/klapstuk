@@ -4482,8 +4482,10 @@ function drawFighter(g, f, fr, z) {
   else if (f.frozen > 0 && !f.buried) filt = 'saturate(0.3) brightness(1.2) hue-rotate(160deg)';
   else if (f.ssj > 0 && f.key === 'draai') filt = 'sepia(0.45) saturate(2) hue-rotate(-14deg) brightness(1.06)';
   if (filt !== 'none' && 'filter' in g) g.filter = filt;
+  // Technoblade and Sleutel never put their blade away, except to throw or handle an item; Sleutel casts through his key
   const sword = f.key === 'techno' ? !f.item && !(f.state === 'attack' && f.move && (f.move.throw || ['cast', 'counter', 'throwItem', 'pick', 'bow', 'riptide'].includes(f.move.pose)))
-    : (f.key === 'sable' || f.key === 'lonk' || f.key === 'aardbei' || f.key === 'sleutel' || f.key === 'bot') && f.state === 'attack' && f.move && !f.move.throw && !['cast', 'counter', 'throwItem', 'pick', 'bow', 'lonkpull', 'maskOn', 'soulGrab'].includes(f.move.pose);
+    : f.key === 'sleutel' ? !f.item && !(f.state === 'attack' && f.move && (f.move.throw || ['throwItem', 'pick'].includes(f.move.pose)))
+    : (f.key === 'sable' || f.key === 'lonk' || f.key === 'aardbei' || f.key === 'bot') && f.state === 'attack' && f.move && !f.move.throw && !['cast', 'counter', 'throwItem', 'pick', 'bow', 'lonkpull', 'maskOn', 'soulGrab'].includes(f.move.pose);
   drawPuppet(g, f.key, f.key === 'rekker' && f.ssj > 0 ? Object.assign({}, f.col, { skin: '#f0908a' }) : f.col, P, { glow: f.key === 'bot' && f.state === 'attack' && f.move && f.move.special, mask: f.maskT > 0, ssj: f.ssj > 0 || (f.state === 'attack' && f.move && f.move.ssjUp && f.mt > 18 && f.mt % 4 < 2), grounded: f.grounded || f.state === 'land', fr: fr + f.id * 30, sword, held: f.item ? f.item.type : f.state === 'attack' && f.move && f.move.bat ? 'bat' : null, wings: f.feather > 0, xbow: f.key === 'techno' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, trident: f.key === 'techno' && f.state === 'attack' && f.move === f.M.upB, totem: f.key === 'techno' && f.state === 'attack' && f.move === f.M.downB, bow: f.key === 'lonk' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, pull: f.charge, jet: f.key === 'bliep' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 4, hurt: f.state === 'hitstun' || f.state === 'knockdown' || f.state === 'dizzy' || f.state === 'shieldbreak' || f.state === 'grabbed', ...(f.key === 'poef' ? poefFlags(f) : {}) });
   if ('filter' in g) g.filter = 'none';
   g.globalAlpha = 1; g.restore();
@@ -5003,7 +5005,7 @@ function drawPv(cnv, ch, alt, now, i) {
     const sc = H * 0.0072;
     g.translate(W / 2, H * 0.9); g.scale(sc, sc);
     g.fillStyle = 'rgba(10,6,20,.35)'; g.beginPath(); g.ellipse(0, 0, c.w * 0.7, 6, 0, 0, TAU); g.fill();
-    drawPuppet(g, ch, col, P, { grounded: true, fr: now / 16.7, sword: ch === 'sable' && cyc > 3 && cyc < 3.7 });
+    drawPuppet(g, ch, col, P, { grounded: true, fr: now / 16.7, sword: ch === 'sleutel' || ch === 'techno' || (ch === 'sable' && cyc > 3 && cyc < 3.7) });
   }
 }
 
