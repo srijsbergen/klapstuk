@@ -647,13 +647,13 @@ Object.assign(CHARS.pip, { zoner: 'side', hr: 0.19 });
 Object.assign(CHARS, {
   gloei: { name: 'Gloei', blurb: 'Vurige bokser. Vuuradem, een vlammengreep dwars door schilden en een vlamstijger.', weight: 104, run: 6.8, acc: 1.1, jump: 15, djump: 14, grav: 0.82, fall: 12.5, ffall: 17.5, air: 5, airAcc: 0.48, airJumps: 1, w: 42, h: 80, pow: 1.05, reach: 1, lag: 0, limb: 11, sideRec: true, hr: 0.15,
     col: { body: '#e8473b', dark: '#9e2220', acc: '#ffb72b', skin: '#f2b48a', fx: '#ffcf5a' }, alt: { body: '#3b7be8', dark: '#1f469e', acc: '#7df9ff', skin: '#f2b48a', fx: '#a8f0ff' } },
-  kwak: { name: 'Kwak', blurb: 'Springkikker. Zwevende bellen, een tong die van ver grijpt en een buikplons.', weight: 82, run: 5.8, acc: 1, jump: 17, djump: 14, grav: 0.86, fall: 12.5, ffall: 17.5, air: 4.8, airAcc: 0.45, airJumps: 1, w: 46, h: 66, pow: 0.95, reach: 1, lag: 0, limb: 10, zoner: true, hr: 0.2, arm: 0.15,
+  kwak: { name: 'Kwak', blurb: 'Springkikker. Zwevende bellen, een tong die van ver grijpt en een buikplons.', weight: 86, run: 6.4, acc: 1.1, jump: 17, djump: 14, grav: 0.86, fall: 12.5, ffall: 17.5, air: 5, airAcc: 0.47, airJumps: 1, w: 46, h: 66, pow: 1.02, reach: 1, lag: -1, limb: 10, zoner: true, hr: 0.2, arm: 0.15,
     col: { body: '#57c84d', dark: '#2f8a2c', acc: '#ff7ab0', skin: '#e9f7b0', fx: '#c6ff8a' }, alt: { body: '#e6c02f', dark: '#9c7f12', acc: '#3cc0ff', skin: '#fff3c2', fx: '#fff08a' } },
   bliep: { name: 'Bliep', blurb: 'Robot met laser, raketvuist, jetpack en een magneet die projectielen opslurpt.', weight: 112, run: 5.4, acc: 0.9, jump: 13.8, djump: 12.8, grav: 0.8, fall: 12, ffall: 17, air: 4.4, airAcc: 0.4, airJumps: 1, w: 50, h: 86, pow: 1.05, reach: 1, lag: 1, limb: 12, zoner: 'side', hr: 0.16, arm: 0.18,
     col: { body: '#d9dde6', dark: '#8a91a3', acc: '#ff4fd8', skin: '#2a2d3a', fx: '#ff9cf0' }, alt: { body: '#3a4152', dark: '#1d222e', acc: '#52ff8e', skin: '#0f1219', fx: '#a6ffc6' } },
   joep: { name: 'Joep', blurb: 'Jongen met pet en PSI-krachten. PK-vuur, PK-flits, PK-donder (stuur hem tegen jezelf om weg te schieten; of druk nog eens op speciaal plus een richting) en een PSI-schild dat projectielen opslurpt en je geneest.', weight: 94, run: 5.9, acc: 1, jump: 15, djump: 15.5, grav: 0.78, fall: 11.5, ffall: 16.5, air: 4.6, airAcc: 0.5, airJumps: 1, w: 40, h: 72, pow: 1, reach: 1, lag: 0, limb: 9, zoner: 'side', hr: 0.19, arm: 0.155,
     col: { body: '#f2c94c', dark: '#2f4fa8', acc: '#e23b3b', skin: '#f6cfa8', fx: '#7dd8ff' }, alt: { body: '#9be36b', dark: '#5a3d9e', acc: '#ff9f1c', skin: '#f6cfa8', fx: '#ffd36b' } },
-  poef: { name: 'Poef', blurb: 'Roze bolletje met vijf zweefsprongen. Zuigt vechters op en spuugt ze als ster uit of slikt ze door om hun neutrale aanval over te nemen, slaat met een hamer, snijdt omhoog en valt als een steen.', weight: 74, run: 5.6, acc: 1, jump: 13.5, djump: 10.5, grav: 0.6, fall: 9, ffall: 13.5, air: 4.4, airAcc: 0.42, airJumps: 5, w: 50, h: 60, pow: 0.95, reach: 0.95, lag: 0, limb: 9, pz: 1.55,
+  poef: { name: 'Poef', blurb: 'Roze bolletje met vijf zweefsprongen. Zuigt vechters op en spuugt ze als ster uit of slikt ze door om hun neutrale aanval over te nemen, slaat met een hamer, snijdt omhoog en valt als een steen.', weight: 78, run: 6.2, acc: 1.1, jump: 13.5, djump: 10.5, grav: 0.6, fall: 9, ffall: 13.5, air: 4.6, airAcc: 0.44, airJumps: 5, w: 50, h: 60, pow: 1.07, reach: 1, lag: 0, limb: 9, pz: 1.55,
     col: { body: '#ffa3c9', dark: '#e0609b', acc: '#e8243f', skin: '#ff6f9f', fx: '#ffe36b' }, alt: { body: '#a9dcff', dark: '#5b9fd6', acc: '#2a4fc9', skin: '#ff8fb3', fx: '#c9f2ff' } },
   klauw: { name: 'Klauw', blurb: 'Gepantserde drakenkoning. Vuuradem, een vliegende greep met smakker, een draaiend schild en een bom met zijn hele gewicht.', weight: 135, run: 5.3, acc: 0.8, jump: 14, djump: 12.5, grav: 0.86, fall: 13, ffall: 18.5, air: 4, airAcc: 0.34, airJumps: 1, w: 64, h: 100, pow: 1.28, reach: 1.08, lag: 2, limb: 18, hr: 0.17, arm: 0.19,
     col: { body: '#e5a93a', dark: '#3f8a3a', acc: '#e0452f', skin: '#f2dfa4', fx: '#ff9b3d' }, alt: { body: '#8a8fa3', dark: '#3a4a9a', acc: '#f0d84a', skin: '#d9dbe6', fx: '#9fd6ff' } },
@@ -797,10 +797,10 @@ const AIRS = {
   }),
   kwak: (M, H) => ({
     nair: M({ start: 4, active: 12, end: 10, pose: 'nair', aerial: true, afx: 'water', ll: 6, hb: [H(0, -34, 38, 9, 45, 28, 82, { nr: 1, f1: 4 }), H(0, -34, 34, 5, 45, 20, 70, { nr: 1, f0: 4 })] }),
-    fair: M({ start: 9, active: 3, end: 16, pose: 'tongue', aerial: true, afx: 'tongue', ll: 10, hb: [H(80, -68, 17, 10, 40, 30, 92), H(46, -68, 15, 6, 40, 20, 70)] }),
+    fair: M({ start: 7, active: 3, end: 14, pose: 'tongue', aerial: true, afx: 'tongue', ll: 9, hb: [H(80, -68, 17, 10, 40, 30, 92), H(46, -68, 15, 6, 40, 20, 70)] }),
     bair: M({ start: 6, active: 4, end: 14, pose: 'bair', aerial: true, ll: 9, hb: [H(-54, -20, 24, 13, 140, 36, 100), H(-28, -24, 18, 9, 145, 28, 90)] }),
-    uair: M({ start: 6, active: 6, end: 12, pose: 'clapUp', aerial: true, afx: 'water', ll: 8, hb: [H(0, -96, 31, 10, 88, 30, 95, { nr: 1 })] }),
-    dair: M({ start: 8, active: 5, end: 16, pose: 'stompD', aerial: true, ll: 12, hb: [H(0, 18, 27, 13, 275, 38, 86, { nr: 1 })] }),
+    uair: M({ start: 5, active: 6, end: 11, pose: 'clapUp', aerial: true, afx: 'water', ll: 7, hb: [H(0, -96, 31, 10, 88, 30, 95, { nr: 1 })] }),
+    dair: M({ start: 8, active: 5, end: 14, pose: 'stompD', aerial: true, ll: 10, hb: [H(0, 18, 27, 13, 275, 38, 86, { nr: 1 })] }),
   }),
   bliep: (M, H) => ({
     nair: M({ start: 6, active: 13, end: 12, pose: 'kongspin', aerial: true, afx: 'elec', ll: 8, hb: mh(H, 3, 4, 3, 0, -44, 40, 2, 80, 10, 0, { nr: 1 }).concat([H(0, -44, 44, 6, 45, 34, 80, { nr: 1, f0: 10, f1: 13, grp: 9 })]) }),
@@ -820,10 +820,10 @@ const AIRS = {
   }),
   poef: (M, H) => ({
     nair: M({ start: 4, active: 14, end: 10, pose: 'spinball', aerial: true, afx: 'star', ll: 6, hb: [H(0, -30, 36, 9, 45, 28, 82, { nr: 1, f1: 4 }), H(0, -30, 32, 5, 45, 20, 70, { nr: 1, f0: 4 })] }),
-    fair: M({ start: 6, active: 14, end: 14, pose: 'kick', aerial: true, ll: 10, hb: [H(40, -30, 22, 3, 60, 22, 25, { f1: 3, grp: 1, link: true }), H(40, -30, 22, 3, 60, 22, 25, { f0: 5, f1: 8, grp: 2, link: true }), H(44, -30, 25, 6, 40, 34, 85, { f0: 10, grp: 3 })] }),
+    fair: M({ start: 6, active: 14, end: 14, pose: 'kick', aerial: true, ll: 10, hb: [H(40, -30, 22, 3, 60, 22, 25, { f1: 3, grp: 1, link: true }), H(40, -30, 22, 3, 60, 22, 25, { f0: 5, f1: 8, grp: 2, link: true }), H(44, -30, 25, 7, 40, 36, 88, { f0: 10, grp: 3 })] }),
     bair: M({ start: 6, active: 4, end: 14, pose: 'bair', aerial: true, ll: 9, hb: [H(-48, -26, 25, 13, 145, 36, 102), H(-24, -28, 18, 9, 145, 30, 90)] }),
     uair: M({ start: 5, active: 5, end: 12, pose: 'uair', aerial: true, afx: 'slash', ll: 7, hb: [H(0, -82, 29, 9, 85, 30, 95, { nr: 1 })] }),
-    dair: M({ start: 9, active: 17, end: 14, pose: 'drillK', aerial: true, afx: 'drill', ll: 12, hb: mh(H, 5, 3, 2, 0, 12, 25, 2, 280, 12, 0, { nr: 1 }).concat([H(0, 14, 27, 4, 275, 32, 40, { nr: 1, f0: 15, f1: 17, grp: 9 })]) }),
+    dair: M({ start: 9, active: 17, end: 12, pose: 'drillK', aerial: true, afx: 'drill', ll: 9, hb: mh(H, 5, 3, 2, 0, 12, 25, 2, 280, 12, 0, { nr: 1 }).concat([H(0, 14, 27, 4, 275, 32, 40, { nr: 1, f0: 15, f1: 17, grp: 9 })]) }),
   }),
   klauw: (M, H) => ({
     nair: M({ start: 6, active: 14, end: 12, pose: 'shell', aerial: true, afx: 'spin', ll: 10, hb: [H(0, -46, 46, 11, 45, 34, 86, { nr: 1, f1: 6 }), H(0, -46, 42, 7, 45, 26, 74, { nr: 1, f0: 6 })] }),
@@ -1114,11 +1114,11 @@ const SPECIALS = {
   }),
   kwak: (M, H, s) => ({
     neutralB: M({ special: true, start: 10, active: 1, end: 16, pose: 'cast',
-      tick: (f, t) => { if (!f.grounded && f.vy > 1.5) f.vy = 1.5; if (t === 10) { spawnProj({ type: 'bubble', owner: f, x: f.x + f.facing * 34 * s, y: f.y - 46 * s, vx: f.facing * 4.2, r: 16, life: 130, hb: { d: 6, a: 80, b: 42, g: 40 }, tick: p => { p.vy = Math.sin(p.t * 0.12) * 0.7 - 0.15; } }); SFX.ice(); } } }),
-    sideB: M({ special: true, start: 9, active: 6, end: 22, pose: 'tongue',
+      tick: (f, t) => { if (!f.grounded && f.vy > 1.5) f.vy = 1.5; if (t === 10) { spawnProj({ type: 'bubble', owner: f, x: f.x + f.facing * 34 * s, y: f.y - 46 * s, vx: f.facing * 4.2, r: 16, life: 130, hb: { d: 7, a: 80, b: 42, g: 40 }, tick: p => { p.vy = Math.sin(p.t * 0.12) * 0.7 - 0.15; } }); SFX.ice(); } } }),
+    sideB: M({ special: true, start: 7, active: 6, end: 18, pose: 'tongue',
       onStart: f => { f.mv.g = f.grounded; },
-      hb: [H(96, -72, 20, 0, 0, 0, 0, { nr: 1, grab: true, when: (f, t) => f.mv.g && t > 9 && t <= 15 }), H(62, -70, 18, 0, 0, 0, 0, { nr: 1, grab: true, when: (f, t) => f.mv.g && t > 9 && t <= 15 }),
-        H(96, -72, 20, 7, 45, 35, 70, { nr: 1, when: (f, t) => !f.mv.g && t > 9 && t <= 15 })],
+      hb: [H(96, -72, 20, 0, 0, 0, 0, { nr: 1, grab: true, when: (f, t) => f.mv.g && t > 7 && t <= 13 }), H(62, -70, 18, 0, 0, 0, 0, { nr: 1, grab: true, when: (f, t) => f.mv.g && t > 7 && t <= 13 }),
+        H(96, -72, 20, 8, 45, 35, 70, { nr: 1, when: (f, t) => !f.mv.g && t > 7 && t <= 13 })],
       tick: f => { if (!f.grounded && f.vy > 1) f.vy = 1; } }),
     upB: M({ special: true, start: 6, active: 20, end: 10, pose: 'spring', helpless: true, ledgeOK: 10, drift: 0.9,
       hb: [H(0, -10, 30, 8, 85, 50, 62, { nr: 1, f1: 4 })],
@@ -1501,9 +1501,9 @@ const SPECIALS = {
         for (let i = 0; i < 6; i++) addP({ type: 'plus', x: f.x + rand(-20, 20), y: f.y - rand(20, f.c.h + 10), vy: -rand(1, 2), life: 26, max: 26, size: 8, color: f.col.fx });
         SFX.heal();
       } }),
-    sideB: M({ special: true, start: 14, active: 4, end: 22, pose: 'hammer', ll: 12,
+    sideB: M({ special: true, start: 11, active: 4, end: 20, pose: 'hammer', ll: 12,
       hb: [H(58, -34, 28, 15, 40, 45, 92, { nr: 1 }), H(34, -58, 22, 12, 50, 40, 86, { nr: 1 })],
-      tick: (f, t) => { if (!f.grounded && f.vy > 1) f.vy = 1; if (t === 14) { G.shake = Math.max(G.shake, 4); } } }),
+      tick: (f, t) => { if (!f.grounded && f.vy > 1) f.vy = 1; if (t === 11) { G.shake = Math.max(G.shake, 4); } } }),
     upB: M({ special: true, start: 6, active: 104, end: 0, dur: 112, pose: 'cutter', helpless: true, ledgeOK: 20, noDrift: true, ll: 16,
       hb: [H(34, -46, 26, 7, 85, 32, 60, { nr: 1, when: (f, t) => t > 6 && t <= 22 }), H(30, -8, 26, 6, 280, 26, 48, { nr: 1, grp: 1, when: (f, t) => t >= 30 && !f.grounded })],
       noGrav: (f, t) => t >= 6,
@@ -3070,14 +3070,16 @@ class AI {
     this.mem = o; return o;
   }
   recover(o) {
-    const f = this.f, m = G.stage.main, cx = (m.x1 + m.x2) / 2, under = f.x > m.x1 + 4 && f.x < m.x2 - 4 && f.y > m.y + 4;
-    // from under the stage, drift out past the ledge first; an up-B there only hits the bottom
-    const dir = (f.x < cx ? 1 : -1) * (under ? -1 : 1), ledgeX = f.x < cx ? m.x1 : m.x2, dx = Math.abs(f.x - ledgeX), fk = dir > 0 ? 'r' : 'l';
+    const f = this.f, m = G.stage.main, cx = (m.x1 + m.x2) / 2, hw = f.c.w / 2 + 2;
+    // below the stage the whole body has to clear the ledge, not just the middle: a wide fighter half under the lip
+    // bonks its jumps and up-B on the bottom. Drift out until clear (with a little slack before turning back in)
+    const out = f.x < cx ? m.x1 - f.x : f.x - m.x2, low = f.y > m.y + 4, under = low && out < hw, away = low && out < hw + 10;
+    const dir = (f.x < cx ? 1 : -1) * (away ? -1 : 1), ledgeX = f.x < cx ? m.x1 : m.x2, dx = Math.abs(f.x - ledgeX), fk = dir > 0 ? 'r' : 'l';
     o[fk] = true;
     if (f.state === 'attack' || f.state === 'helpless') { o.u = f.y > m.y - 60; this.mem = o; return o; }
     if (f.state !== 'air') { this.mem = o; return o; }
     const below = f.y - m.y;
-    if (f.jumps > 0 && f.vy > -1 && (below > -40 || dx > 260) && !this.mem.jmp) o.jmp = true;
+    if (f.jumps > 0 && f.vy > (under ? 4 : -1) && (below > -40 || dx > 260) && !this.mem.jmp) o.jmp = true;
     else if (f.jumps === 0 && !under && f.c.sideRec && !f.sideBUsed && dx > 200 && below < 60 && below > -120 && !this.mem.spc) o.spc = true;
     else if (f.jumps === 0 && !under && f.vy > -1 && below > -30 && !this.mem.spc && !(f.key === 'poef' && (dx > 150 || (f.x > m.x1 && f.x < m.x2)))) { o.u = true; o.spc = true; if (dx < 30) o.l = o.r = false; }
     this.mem = o; this.wait = 0; return o;
