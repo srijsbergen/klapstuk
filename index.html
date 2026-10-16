@@ -700,7 +700,7 @@ Object.assign(CHARS, {
 const CHAR_KEYS = Object.keys(CHARS).filter(k => !CHARS[k].hidden);
 // Joep's hand-made colourways: the magenta cap, black shirt and purple shorts of the classic look, and an all black-and-red one
 CHARS.joep.skins = [{ name: 'Roze pet', body: '#2a2830', dark: '#6a52a8', acc: '#d4458e', skin: '#f6cfa8', fx: '#ff9bd0' },
-  { name: 'Zwart-rood', body: '#1e1c22', dark: '#d0303a', acc: '#1e1c22', skin: '#f6cfa8', fx: '#ff5a5a' }];
+  { name: 'Zwart-rood', body: '#1e1c22', dark: '#a8262e', shorts: '#2a272f', acc: '#1e1c22', skin: '#f6cfa8', fx: '#ff5a5a' }];
 
 /* ---------------- skins: six colourways per fighter ---------------- */
 // 0 and 1 are the hand-made palettes; 2-5 are derived from the first: two turns round the colour wheel, a night
@@ -3483,7 +3483,7 @@ function drawPuppet(g, ck, col, P, o = {}) {
   const aB = limbPts(sh.x, sh.y + 3, P.aB[0] + lean, Math.abs(P.aB[1]), AL, AL), aF = limbPts(sh.x, sh.y + 3, P.aF[0] + lean, Math.abs(P.aF[1]), AL, AL);
   const handCol = { techno: col.body, ninja: col.dark, rat: col.body, lonk: '#8a5a2b', klauw: col.body, bongo: col.skin, brick: col.dark, sable: col.dark, volt: col.skin, gloei: col.acc, kwak: col.body, bliep: col.dark, schim: '#f4f4f4', eik: col.dark }[ck] || col.skin;
   // back limbs
-  const backCol = ck === 'klauw' ? shade(col.body, 0.78) : ck === 'lonk' ? '#cdc3aa' : ck === 'volt' ? shade(col.jacket, 0.78) : ck === 'techno' ? '#25202e' : col.dark;
+  const backCol = ck === 'klauw' ? shade(col.body, 0.78) : ck === 'lonk' ? '#cdc3aa' : ck === 'volt' ? shade(col.jacket, 0.78) : ck === 'techno' ? '#25202e' : ck === 'joep' ? col.shorts || col.dark : col.dark;
   strokeLimb(g, lB, backCol, lw); foot(g, ck, lB, lw, col);
   strokeLimb(g, aB, ck === 'rekker' ? shade(col.skin, 0.82) : backCol, lw * 0.9); dot(g, aB[4], aB[5], lw * (ck === 'gloei' ? 0.95 : ck === 'bongo' ? 0.8 : ck === 'klauw' ? 0.7 : 0.6), handCol);
   if (ck === 'lonk') drawShieldL(g, aB[4], aB[5], h);
@@ -3824,7 +3824,7 @@ function drawPuppet(g, ck, col, P, o = {}) {
   }
   g.restore();
   // front leg & arm
-  strokeLimb(g, lF, ck === 'pip' || ck === 'joep' || ck === 'rekker' || ck === 'bot' ? col.dark : ck === 'lonk' ? '#ece3cc' : ck === 'volt' ? col.jacket : ck === 'techno' ? '#3b3046' : col.body, lw); foot(g, ck, lF, lw, col);
+  strokeLimb(g, lF, ck === 'joep' ? col.shorts || col.dark : ck === 'pip' || ck === 'rekker' || ck === 'bot' ? col.dark : ck === 'lonk' ? '#ece3cc' : ck === 'volt' ? col.jacket : ck === 'techno' ? '#3b3046' : col.body, lw); foot(g, ck, lF, lw, col);
   if (ck === 'pip') { // robe overlaps front leg top
     g.save(); g.translate(hip.x, hip.y); g.rotate(lean);
     g.beginPath(); g.moveTo(-c.w * 0.24, -tl); g.lineTo(c.w * 0.24, -tl); g.lineTo(c.w * 0.56, hipH * 0.62); g.lineTo(-c.w * 0.1, hipH * 0.62); g.closePath();
