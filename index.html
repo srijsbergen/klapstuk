@@ -1824,8 +1824,8 @@ function genkiBoom(p) {
 function clonePoof(p) { for (let i = 0; i < 7; i++) addP({ type: 'smoke', x: p.x + rand(-16, 16), y: p.y + rand(-24, 24), life: 26, max: 26, size: 15, vy: -0.6 }); }
 function pkPillar(owner, x, y) {
   // holds long enough to run in from the far end of the bolt's range and grab; the last burst launches
-  spawnProj({ type: 'pkfire', owner, x, y, r: 24, life: 60, pierce: true, reflect: false, hb: { d: 1.5, a: 85, b: 16, g: 0, pin: true },
-    tick: p => { if (p.t % 9 === 0) p.hitSet = new Set(); if (p.t === 54) { p.hitSet = new Set(); p.hb = { d: 4, a: 60, b: 45, g: 55 }; } } });
+  spawnProj({ type: 'pkfire', owner, x, y, r: 24, life: 55, pierce: true, reflect: false, hb: { d: 1.5, a: 85, b: 16, g: 0, pin: true },
+    tick: p => { if (p.t % 9 === 0) p.hitSet = new Set(); if (p.t === 51) { p.hitSet = new Set(); p.hb = { d: 4, a: 60, b: 45, g: 55 }; } } });
   SFX.fire();
 }
 function pkThunderTick(p) {
@@ -4333,7 +4333,7 @@ function drawProj(g, p, fr) {
     g.beginPath(); g.moveTo(-16, -4); g.lineTo(-4, 4); g.lineTo(2, -4); g.lineTo(14, 3);
     g.strokeStyle = INK; g.lineWidth = 7; g.stroke(); g.strokeStyle = '#ffd04d'; g.lineWidth = 3.5; g.stroke();
   } else if (p.type === 'pkfire') {
-    g.globalCompositeOperation = 'lighter'; const H2 = p.r * 2.3, k = Math.min(1, p.life / 8);
+    g.globalCompositeOperation = 'lighter'; const H2 = p.r * 2.3, k = Math.min(1, p.life / 4);
     for (let i = 0; i < 6; i++) {
       const ph = p.t * 0.35 + i * 1.7, x = Math.sin(ph) * p.r * 0.45, hh = H2 * (0.55 + 0.45 * Math.abs(Math.sin(ph * 0.7 + i)));
       g.fillStyle = i % 2 ? hexA('#ff7b25', 0.55 * k) : hexA('#ffd34d', 0.5 * k);
