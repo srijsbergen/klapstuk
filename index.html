@@ -128,6 +128,13 @@ select{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
 .step output{font-family:var(--display);font-size:24px;min-width:1.4em;text-align:center;font-variant-numeric:tabular-nums}
 .tog{background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:6px 14px;min-width:76px}
 .tog[aria-pressed="true"]{background:var(--gold);color:var(--gold-ink);border-color:var(--gold);font-weight:700}
+.iset{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:6px;margin-top:-2px}
+.iset[hidden]{display:none}
+.ic{display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:4px 2px 6px;font-size:11px;line-height:1.15;color:var(--mute);text-align:center;cursor:pointer}
+.ic canvas{width:40px;height:40px}
+.ic[aria-pressed="true"]{border-color:var(--gold);color:var(--fg)}
+.ic[aria-pressed="false"] canvas{opacity:.3;filter:grayscale(1)}
+.ic:disabled{cursor:default}
 .go{font-family:var(--display);font-weight:400;font-size:30px;letter-spacing:.02em;background:var(--gold);color:var(--gold-ink);border:0;border-radius:14px;padding:14px 20px;box-shadow:0 6px 0 var(--gold-deep);transition:transform .08s,box-shadow .08s}
 .go:hover{filter:brightness(1.06)}
 .go:active{transform:translateY(4px);box-shadow:0 2px 0 var(--gold-deep)}
@@ -409,6 +416,7 @@ window.KlapP2P = (() => {
               <div class="step"><button id="stm" aria-label="Minder levens">−</button><output id="sto">3</output><button id="stp" aria-label="Meer levens">+</button></div>
             </div>
             <div class="opt"><span>Items</span><button class="tog" id="itm" aria-pressed="true">Aan</button></div>
+            <div class="iset" id="iset" role="group" aria-label="Welke items"></div>
             <div class="opt" id="cpuOpt" hidden><span>Lege plekken vullen met CPU's</span><button class="tog" id="netCpu" aria-pressed="false">Uit</button></div>
             <div class="opt"><span>Geluid</span><button class="tog" id="snd" aria-pressed="true">Aan</button></div>
           </div>
@@ -428,7 +436,7 @@ window.KlapP2P = (() => {
           <li><b>Omhoog + speciaal</b> is je herstelsprong: daarna kun je niets tot je landt of de rand pakt.</li>
           <li><b>Korte sprong</b>: tik springen kort aan, of druk springen en aanval (vrijwel) tegelijk, voor een lage sprong met meteen een luchtaanval. Houd springen vast voor een volle sprong. Land je tijdens of vlak na een luchtaanval, dan sta je bijna meteen weer klaar voor de volgende aanval.</li>
           <li><b>Luchtaanval omlaag of omhoog</b>: omlaag + aanval geeft een dair zonder dat je snel gaat vallen, en omhoog + aanval een uair zonder je tweede sprong te verbruiken. Tik omlaag nog eens om toch snel te vallen.</li>
-          <li><b>Items</b>: pak op met aanval of grijpen, gooi met grijpen (omlaag legt neer). Knuppel: aanval slaat, smash is een homerun. Straalpistool: aanval schiet, 10 schoten. Bananenschil: wie erover loopt, valt. Ster: even onkwetsbaar. Veer: twee extra sprongen. Kist: sla open voor items.</li>
+          <li><b>Items</b>: pak op met aanval of grijpen, gooi met grijpen (omlaag legt neer). Knuppel: aanval slaat, smash is een homerun. Straalpistool: aanval schiet, 10 schoten. Bananenschil: wie erover loopt, valt. Ster: even onkwetsbaar. Veer: twee extra sprongen. Kist: sla open voor items. <b>Klapbal</b>: zweeft rond; sla hem kapot en je volgende speciaal is je final smash. Welke items er komen, kies je onder Items.</li>
           <li><b>Grijpen</b> (of schild + aanval) pakt een tegenstander op de grond vast, ook door een schild heen. Druk of houd daarna een richting om te gooien; aanval of grijpen slaat. Rennend grijpen reikt verder. Rammel op knoppen om los te komen.</li>
           <li><b>Schild + richting</b> rolt weg, <b>schild + omlaag</b> ontwijkt op de plek, <b>schild in de lucht</b> is een luchtontwijking.</li>
           <li>Druk <b>schild vlak voor je neerkomt</b> na een klap om op te vangen (tech). Omlaag op een platform laat je erdoor vallen.</li>
@@ -494,7 +502,7 @@ let settings = {
     { type: 'cpu', ch: 'brick', lvl: 4 },
     { type: 'off', ch: 'sable', lvl: 5 },
     { type: 'off', ch: 'pip', lvl: 5 },
-  ], stage: 'ruins', stocks: 3, items: true, sound: true,
+  ], stage: 'ruins', stocks: 3, items: true, ioff: [], sound: true,
 };
 function save() { try { localStorage.setItem('klapstuk-v1', JSON.stringify(settings)); } catch (e) {} }
 function loadSaved() {
@@ -715,6 +723,17 @@ Object.assign(CHARS, {
     col: { body: '#2f5bb0', dark: '#1d2a52', acc: '#c8312f', skin: '#f0c9a0', fx: '#ffb347', hair: '#2c46a6' }, alt: { body: '#5a4632', dark: '#2b231c', acc: '#2f7d45', skin: '#e8bf95', fx: '#ffd45e', hair: '#d8d4c8' } },
 });
 const CHAR_KEYS = Object.keys(CHARS).filter(k => !CHARS[k].hidden);
+
+// final smashes: four kinds (a beam across the stage, a rush that catches and combos, a rain from the sky, a blast around you),
+// each fighter with its own name; the colour is the fighter's own effect colour
+const FINALS = {
+  volt: ['beam', 'Tankkanon'], brick: ['nova', 'Aardbevingsram'], sable: ['rush', 'Dodelijke Uithaal'], pip: ['storm', 'Meteorenregen'],
+  gloei: ['rush', 'Worstelring'], kwak: ['nova', 'Reuzenplons'], bliep: ['beam', 'Megalaser'], joep: ['storm', 'PK Sterrenregen'],
+  poef: ['rush', 'Superhamer'], klauw: ['nova', 'Gigaklauw'], bongo: ['rush', 'Junglerazernij'], lonk: ['rush', 'Drievoudslag'],
+  rat: ['storm', 'Donderstorm'], kakel: ['storm', 'Eierregen'], ninja: ['rush', 'Duizend Sneden'], techno: ['nova', 'Bloed voor de Bloedgod'],
+  schim: ['nova', 'Chaosexplosie'], gokko: ['beam', 'Superstraal'], rekker: ['rush', 'Rubberstorm'], draai: ['rush', 'Klonenleger'],
+  aardbei: ['beam', 'Zwarte Maansnede'], sleutel: ['storm', 'Sleutelregen'], bot: ['beam', 'Gasterkanon'], eik: ['rush', 'Grote Hemelsnede'],
+};
 // Joep's hand-made colourways: the magenta cap, black shirt and purple shorts of the classic look, and an all black-and-red one
 CHARS.joep.skins = [{ name: 'Roze pet', body: '#2a2830', dark: '#6a52a8', acc: '#d4458e', skin: '#f6cfa8', fx: '#ff9bd0' },
   { name: 'Zwart-rood', body: '#1e1c22', dark: '#a8262e', shorts: '#2a272f', acc: '#1e1c22', skin: '#f6cfa8', fx: '#ff5a5a' }];
@@ -1069,6 +1088,7 @@ function buildMoves(ck) {
     m.hb = m.hb.map(h => Math.abs(dist(h) - far) < 1 ? Object.assign({}, h, { sweet: true, d: Math.round(h.d * (SW ? 1.25 : 1.12) * 10) / 10, g: h.g * 1.05 }) : (SW ? Object.assign({}, h, { d: Math.round(h.d * 0.85 * 10) / 10 }) : h));
     m.hb.sort((a, b) => (a.sweet ? 1 : 0) - (b.sweet ? 1 : 0)); // the sweetspot only wins when nothing closer overlaps
   }
+  if (FINALS[ck]) mv.final = finalMove(M, ck);
   for (const k in mv) mv[k].netKey = k;
   Object.defineProperty(mv, '_mk', { value: { M, H, s } });
   return mv;
@@ -1922,6 +1942,108 @@ function thunderTick(p) {
   if (!f || f.state !== 'attack' || f.move !== f.M.downB || p.t < 2) return;
   if (p.y >= f.y - f.c.h - 6 && p.y <= f.y && Math.abs(p.x - f.x) < f.c.w * 0.6 + 10) { p.dead = true; f.startMove(f.M.thunderBurst); }
 }
+function finalMove(M, ck) {
+  const kind = FINALS[ck][0], base = { special: true, fs: kind, noDrift: true, keepVel: true, noGrav: () => true, intang: [0, 999] };
+  if (kind === 'beam') return M(Object.assign(base, { start: 24, active: 72, end: 14, pose: 'cast', tick: fsBeam }));
+  if (kind === 'nova') return M(Object.assign(base, { start: 40, active: 22, end: 18, pose: 'thunderBurst', tick: fsNova }));
+  if (kind === 'storm') return M(Object.assign(base, { start: 20, active: 112, end: 12, pose: 'pkthunder', tick: fsStorm }));
+  return M(Object.assign(base, { start: 10, active: 92, end: 12, pose: 'dashB', tick: fsRush }));
+}
+const fsFoes = f => G.fighters.filter(v => v !== f && v.state !== 'dead' && v.state !== 'respawn' && !v.intang);
+// final smash hits go through shields and counters
+function fsHit(f, v, d, a, b, g, dir) {
+  if (v.holder) { const h = v.holder; h.held = null; if (h.state === 'holding') h.setState('idle'); v.holder = null; }
+  applyHit(f, v, { d, a, b, g }, dir, v.x, v.y - v.c.h / 2, 1, { throw: true, proj: true, mk: 'final', use: f.moveUse }); }
+function fsStart(f) { G.flash = 6; G.shake = Math.max(G.shake, 10); SFX.star(); sparkFx(f.x, f.y - f.c.h / 2, f.col.fx, 14); }
+function fsBeam(f, t) {
+  f.vx = 0; f.vy = 0;
+  const y = f.y - 44 * f.c.h / 80;
+  if (t === 1) fsStart(f);
+  if (t < 24) { if (t % 2 === 0) { const a = rand(0, TAU); addP({ type: 'line', x: f.x + f.facing * 40 + Math.cos(a) * 70, y: y + Math.sin(a) * 70, vx: -Math.cos(a) * 6, vy: -Math.sin(a) * 6, life: 12, max: 12, size: 12, color: f.col.fx, drag: 0.9 }); } return; }
+  if (t === 24) { G.shake = Math.max(G.shake, 16); SFX.boom(); }
+  if (t > 96) return;
+  G.shake = Math.max(G.shake, 4);
+  for (const v of fsFoes(f)) {
+    const ahead = (v.x - f.x) * f.facing;
+    if (ahead < 0 || ahead > 1600 || Math.abs((v.y - v.c.h / 2) - y) > 66 + v.c.h / 2) continue;
+    if (t === 96) fsHit(f, v, 12, 35, 80, 110, f.facing);
+    else if (t % 4 === 0) { fsHit(f, v, 2, 0, 6, 0, f.facing); v.lvx = f.facing * 1.4; v.lvy = 0; v.hitstun = Math.max(v.hitstun, 10); }
+  }
+}
+function fsNova(f, t) {
+  f.vx *= 0.8; f.vy = 0;
+  const cy = f.y - f.c.h / 2;
+  if (t === 1) fsStart(f);
+  if (t < 40 && t % 2 === 0) { const a = rand(0, TAU), r = 150 - t * 2.5; addP({ type: 'ember', x: f.x + Math.cos(a) * r, y: cy + Math.sin(a) * r, vx: -Math.cos(a) * 3, vy: -Math.sin(a) * 3, life: 14, max: 14, size: 7, color: f.col.fx }); }
+  if (t === 40) {
+    G.shake = Math.max(G.shake, 22); G.flash = 8; boomFx(f.x, cy, 120);
+    for (const v of fsFoes(f)) if (Math.hypot(v.x - f.x, (v.y - v.c.h / 2) - cy) < 280) fsHit(f, v, 26, 50, 76, 115, v.x >= f.x ? 1 : -1);
+  }
+}
+function fsStorm(f, t) {
+  if (t === 1) fsStart(f);
+  f.vx *= 0.85; f.vy = t < 16 ? -2.5 : 0;
+  // the finale: one big star drops right onto every foe, the hit that can KO
+  if (t === 126) for (const v of fsFoes(f)) {
+    const tx = v.x + v.vx * 14, ty = v.y - v.c.h / 2;
+    spawnProj({ type: 'fsstar', owner: f, x: tx - 28, y: ty - 260, vx: 2, vy: 18, r: 36, life: 40, spin: 0.15, pierce: true, reflect: false, thru: true, hb: { d: 15, a: 55, b: 75, g: 110 },
+      onGround: p => { p.dead = true; sparkFx(p.x, p.y, f.col.fx, 14); G.shake = Math.max(G.shake, 12); } });
+  }
+  if (t < 20 || t >= 132 || t % 5) return;
+  const m = G.stage.main, foes = fsFoes(f), aim = foes.length && Math.random() < 0.7 ? foes[Math.random() * foes.length | 0] : null;
+  const x = aim ? aim.x + aim.vx * 50 + rand(-60, 60) : rand(m.x1 - 120, m.x2 + 120), egg = f.key === 'kakel';
+  spawnProj({ type: egg ? 'egg' : 'fsstar', owner: f, x: x - 140, y: m.y - 720, vx: 2.6, vy: 13, r: egg ? 16 : 22, life: 120, spin: 0.2, pierce: true, reflect: false, thru: true, hb: { d: 7, a: 75, b: 45, g: 80 },
+    onGround: p => { p.dead = true; sparkFx(p.x, p.y, f.col.fx, 6); } });
+  if (t % 15 === 0) SFX.zap();
+}
+// rush: dash forward; whoever it catches is held for a flurry of hits and then launched. A miss skips to the end
+function fsRush(f, t) {
+  const m = G.stage.main;
+  if (t === 1) { fsStart(f); f.mv.caught = []; }
+  if (t < 10) { f.vx *= 0.6; f.vy = 0; return; }
+  if (t < 40) {
+    const outward = (f.x < m.x1 - 30 && f.facing < 0) || (f.x > m.x2 + 30 && f.facing > 0);
+    if (t > 30 || outward) { f.vx *= 0.3; f.vy = 0; f.mt = 100; return; }
+    f.vx = f.facing * 22; f.vy = 0; if (t % 2) ghostFx(f);
+    const hx = f.x + f.facing * (f.c.w / 2 + 20);
+    const hit = fsFoes(f).filter(v => Math.abs(v.x - hx) < 44 + v.c.w / 2 && v.y - v.c.h < f.y + 10 && v.y > f.y - f.c.h - 10);
+    if (hit.length) { f.mv.caught = fsFoes(f).filter(v => Math.abs(v.x - hx) < 120 + v.c.w / 2 && Math.abs(v.y - f.y) < 120); f.vx = 0; f.mt = 40; SFX.hit(12); G.shake = Math.max(G.shake, 12); }
+    return;
+  }
+  f.vx = 0; f.vy = 0;
+  if (t > 100) return;
+  for (const v of f.mv.caught || []) {
+    if (v.state === 'dead' || v.state === 'respawn') continue;
+    if (t === 100) { fsHit(f, v, 15, 40, 64, 108, f.facing); continue; }
+    v.x = f.x + f.facing * (f.c.w / 2 + v.c.w / 2 + 14); v.y = f.y; v.px = v.x; v.py = v.y;
+    if (t % 6 === 0) { fsHit(f, v, 2.5, 80, 0, 0, f.facing); sparkFx(v.x + rand(-14, 14), v.y - v.c.h / 2 + rand(-20, 20), f.col.fx, 4); }
+    v.vx = v.vy = v.lvx = v.lvy = 0; v.hitstun = Math.max(v.hitstun, 20);
+  }
+}
+// the Klapbal floats around shyly; break it with attacks or projectiles and your next special is your final smash
+function ballTick(it) {
+  const m = G.stage.main;
+  if (it.t > 1500) { it.vy -= 0.25; it.x += it.vx; it.y += it.vy; if (it.y < m.y - 1500) it.dead = true; return; }
+  if (it.t % 50 === 1) { const a = rand(0, TAU), sp = rand(1.6, 3.2); it.tvx = Math.cos(a) * sp; it.tvy = Math.sin(a) * sp * 0.6; }
+  for (const f of G.fighters) {
+    if (f.state === 'dead' || f.state === 'respawn') continue;
+    const dx = it.x - f.x, dy = it.y - (f.y - f.c.h / 2), d = Math.hypot(dx, dy);
+    if (d < 150 && d > 1) { it.tvx += dx / d * 0.1; it.tvy += dy / d * 0.06; }
+  }
+  it.tvx = clamp(it.tvx || 0, -4, 4); it.tvy = clamp(it.tvy || 0, -3, 3);
+  it.vx = approach(it.vx, it.tvx, 0.12); it.vy = approach(it.vy, it.tvy, 0.12); it.x += it.vx; it.y += it.vy;
+  const x1 = m.x1 - 60, x2 = m.x2 + 60, y1 = m.y - 430, y2 = m.y - 70;
+  if (it.x < x1) { it.x = x1; it.tvx = Math.abs(it.tvx); } else if (it.x > x2) { it.x = x2; it.tvx = -Math.abs(it.tvx); }
+  if (it.y < y1) { it.y = y1; it.tvy = Math.abs(it.tvy); } else if (it.y > y2) { it.y = y2; it.tvy = -Math.abs(it.tvy); }
+}
+function ballHit(it, a, d, dir) {
+  if (it.dead || !a || a.key === 'bag') return;
+  it.hp -= d; it.vx = dir * 6; it.tvx = dir * 3; it.vy = -2.5; it.tvy = -1;
+  sparkFx(it.x, it.y, '#ffffff', Math.min(12, d)); SFX.hit(d);
+  if (it.hp > 0) return;
+  it.dead = true; a.fs = true; G.flash = 6; G.shake = Math.max(G.shake, 10); SFX.star();
+  for (let i = 0; i < 20; i++) { const an = rand(0, TAU), sp = rand(3, 10); addP({ type: 'line', x: it.x, y: it.y, vx: Math.cos(an) * sp, vy: Math.sin(an) * sp, life: 22, max: 22, size: 16, color: `hsl(${i * 18},100%,62%)`, drag: 0.9 }); }
+}
 function transformMove(M, to) {
   return M({ special: true, start: 10, active: 1, end: 8, pose: 'transform',
     tick: (f, t) => {
@@ -2197,6 +2319,7 @@ class Fighter {
   }
   special() {
     const ix = this.ix, iy = this.iy, M = this.M; let m;
+    if (this.fs && M.final) { this.fs = false; return this.startMove(M.final); }
     if (iy < 0) { if (this.pktHit) return; m = M.upB; this.upBUsed = true; }
     else if (iy > 0) m = M.downB;
     else if (ix) { if (!this.grounded && this.sideBUsed) m = M.neutralB; else { this.facing = ix; m = M.sideB; if (!this.grounded) this.sideBUsed = true; } }
@@ -2513,7 +2636,7 @@ class Fighter {
   ko() {
     G.kos.push({ x: this.x, y: this.y - this.c.h / 2, col: this.col.fx, pc: this.pc, t: 0 });
     for (let i = 0; i < 18; i++) { const a = rand(0, TAU), s = rand(4, 14); addP({ type: 'line', x: clamp(this.x, G.stage.blast.l + 40, G.stage.blast.r - 40), y: clamp(this.y, G.stage.blast.t + 40, G.stage.blast.b - 20), vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 26, max: 26, size: 22, color: this.col.fx, drag: 0.9 }); }
-    this.stocks--; this.stats.falls++;
+    this.stocks--; this.stats.falls++; this.fs = false;
     const k = this.lastHit && G.frame - this.lastHitT < 480 ? this.lastHit : null;
     if (k && k !== this) k.stats.ko++; else this.stats.sd++;
     if (this.held) { const v = this.held; v.holder = null; v.setState('air'); this.held = null; }
@@ -2587,6 +2710,7 @@ function processHits() {
       if (hb.grab) continue;
       const hx = a.x + hb.x * a.facing, hy = a.y + hb.y;
       for (const it of G.items) if (it.type === 'crate' && !it.dead && !it.holder && circleRect(hx, hy, hb.r, it.x - 22, it.y - 40, 44, 40)) breakCrate(it);
+      for (const it of G.items) if (it.type === 'smashball' && !it.dead && it.hitBy[a.id] !== a.moveUse && Math.hypot(hx - it.x, hy - it.y) < hb.r + 24) { it.hitBy[a.id] = a.moveUse; ballHit(it, a, hb.d * a.chargeMult(), a.facing); }
     }
   }
   for (const h of hits) if (h.grab && h.a.state === 'attack' && (h.v.state !== 'hitstun' || G.frame - (h.v.pinT ?? -99) <= 10) && h.v.state !== 'dead' && !h.v.holder) { doGrab(h.a, h.v); if (h.hb.cmd) h.a.startMove(h.a.M[h.hb.cmd]); }
@@ -2686,7 +2810,7 @@ function updateProjs() {
     p.t++; p.life--; p.rot += p.spin || 0;
     if (!p.rest) { p.vy += p.grav; p.x += p.vx; p.y += p.vy; }
     if (p.type !== 'boom' && p.type !== 'wave' && p.type !== 'thunder' && !p.rest) {
-      if (p.vy > 0) for (const s of S.surf) {
+      if (p.vy > 0 && !p.thru) for (const s of S.surf) {
         if (p.x >= s.x1 && p.x <= s.x2 && p.y - p.vy <= s.y && p.y >= s.y) {
           if (p.bounce > 0) { p.y = s.y; p.vy = -Math.abs(p.bv || 6); p.bounce--; }
           else if (p.sticky) { p.y = s.y; p.vy = 0; p.vx = 0; p.rest = s; }
@@ -2705,6 +2829,7 @@ function updateProjs() {
     if (p.dead) continue;
     if (p.ghost) continue;
     if (p.type !== 'pipbomb') for (const it of G.items) {
+      if (it.type === 'smashball') { if (!it.dead && p.hb && !p.ballHit && Math.hypot(p.x - it.x, p.y - it.y) < p.r + 24) { p.ballHit = true; ballHit(it, p.owner, p.hb.d, p.vx ? Math.sign(p.vx) : 1); if (!p.pierce && !p.explode) { p.dead = true; break; } } continue; }
       if (it.type !== 'crate' || it.dead || !circleRect(p.x, p.y, p.r, it.x - 22, it.y - 40, 44, 40)) continue;
       breakCrate(it); if (p.explode) { p.dead = true; p.explode(p); } else if (!p.pierce) p.dead = true;
       break;
@@ -2745,15 +2870,18 @@ function updateProjs() {
   G.projs = G.projs.filter(p => !p.dead);
 }
 function handPos(f) { return { x: f.x + f.facing * f.c.w * 0.5, y: f.y - f.c.h * 0.52 }; }
-const ITEMS = { bomb: { hold: 1, w: 16 }, heart: { touch: 1, w: 9 }, bat: { hold: 1, w: 12 }, blaster: { hold: 1, w: 12 }, banana: { hold: 1, w: 13 }, star: { touch: 1, w: 6 }, feather: { touch: 1, w: 10 }, crate: { w: 13 } };
+const ITEMS = { bomb: { hold: 1, w: 16 }, heart: { touch: 1, w: 9 }, bat: { hold: 1, w: 12 }, blaster: { hold: 1, w: 12 }, banana: { hold: 1, w: 13 }, star: { touch: 1, w: 6 }, feather: { touch: 1, w: 10 }, crate: { w: 13 }, smashball: { w: 8 } };
 const ITEM_LIST = Object.keys(ITEMS);
 function randItem(noCrate) {
-  const keys = ITEM_LIST.filter(k => !(noCrate && k === 'crate')); let r = Math.random() * keys.reduce((a, k) => a + ITEMS[k].w, 0);
+  // only items switched on; one Klapbal at a time, and none while someone holds or uses a final smash
+  const on = G.itemOn || ITEM_LIST, ball = G.items.some(i => i.type === 'smashball') || G.fighters.some(f => f.fs || (f.move && f.move.fs));
+  const keys = on.filter(k => !(noCrate && (k === 'crate' || k === 'smashball')) && !(k === 'smashball' && ball)); if (!keys.length) return null;
+  let r = Math.random() * keys.reduce((a, k) => a + ITEMS[k].w, 0);
   for (const k of keys) { r -= ITEMS[k].w; if (r <= 0) return k; }
   return keys[0];
 }
 function spawnItem(type, x, y, extra) {
-  const it = Object.assign({ type, x, y, vx: 0, vy: 0, grounded: null, holder: null, t: 0, ammo: type === 'blaster' ? 10 : 0, armed: false, dir: Math.random() < 0.5 ? -1 : 1 }, extra || {});
+  const it = Object.assign({ type, x, y, vx: 0, vy: 0, grounded: null, holder: null, t: 0, ammo: type === 'blaster' ? 10 : 0, hp: type === 'smashball' ? 24 : 0, hitBy: {}, armed: false, dir: Math.random() < 0.5 ? -1 : 1 }, extra || {});
   G.items.push(it); return it;
 }
 function trip(f) {
@@ -2772,13 +2900,14 @@ function breakCrate(it) {
   if (it.dead) return; it.dead = true; SFX.hit(8);
   for (let i = 0; i < 12; i++) addP({ type: 'ember', x: it.x + rand(-20, 20), y: it.y - rand(5, 35), vx: rand(-5, 5), vy: -rand(2, 7), grav: 0.4, life: 30, max: 30, size: 6, color: i % 2 ? '#b07a45' : '#7a4a24' });
   const n = 1 + (Math.random() < 0.5 ? 1 : 0);
-  for (let i = 0; i < n; i++) spawnItem(randItem(true), it.x + rand(-10, 10), it.y - 20, { vx: rand(-4, 4), vy: -rand(6, 9) });
+  for (let i = 0; i < n; i++) { const k = randItem(true); if (k) spawnItem(k, it.x + rand(-10, 10), it.y - 20, { vx: rand(-4, 4), vy: -rand(6, 9) }); }
 }
 function updateItems() {
   const S = G.stage;
   for (const it of G.items) {
     if (it.dead) continue;
     it.t++;
+    if (it.type === 'smashball') { ballTick(it); continue; }
     if (it.holder) {
       const f = it.holder;
       if (f.state === 'dead' || f.item !== it) it.holder = null;
@@ -2807,7 +2936,8 @@ function updateItems() {
   G.items = G.items.filter(i => !i.dead);
   if (G.useItems && --G.itemT <= 0) {
     G.itemT = rand(540, 900) | 0;
-    if (G.items.filter(i => !i.holder).length < 3) { const m = S.main; spawnItem(randItem(false), rand(m.x1 + 60, m.x2 - 60), -620); }
+    const k = G.items.filter(i => !i.holder).length < 3 ? randItem(false) : null, m = S.main;
+    if (k) spawnItem(k, rand(m.x1 + 60, m.x2 - 60), k === 'smashball' ? m.y - 360 : -620);
   }
 }
 function addP(o) { if (G.parts.length > 700) G.parts.shift(); G.parts.push(Object.assign({ vx: 0, vy: 0, life: 20, max: 20, size: 6, grav: 0, drag: 1 }, o)); }
@@ -2906,6 +3036,22 @@ class AI {
       if (it && f.grounded && adx > 140) {
         if (ITEMS[it.type].hold && it.grounded && Math.abs(it.x - f.x) < f.c.w / 2 + 20) { o.atk = true; return this.out(o, 4); }
         o[it.x > f.x ? 'r' : 'l'] = true; return this.out(o, 2);
+      }
+    }
+    // a final smash is used when it would land; a Klapbal nearby is worth chasing
+    if (f.fs && f.M.final) {
+      const k = f.M.final.fs, ok = k === 'storm' ? Math.random() < 0.06 : k === 'nova' ? adx < 210 && Math.abs(dy) < 120 : k === 'rush' ? adx < 320 && Math.abs(dy) < 50 : Math.abs(dy) < 70 && adx < 1200;
+      if (ok) { if (k !== 'storm' && k !== 'nova' && f.facing !== face) { o[fk] = true; return this.out(o, 0); } o.spc = true; return this.out(o, 4); }
+    }
+    const ball = !f.fs && G.items.find(i => i.type === 'smashball' && i.t <= 1500);
+    if (ball && Math.random() < 0.55 + L * 0.03) {
+      const bx = ball.x - f.x, by = ball.y - (f.y - f.c.h / 2), bd = Math.hypot(bx, by);
+      if (bd < 700) {
+        if (Math.abs(bx) > 24) o[bx > 0 ? 'r' : 'l'] = true;
+        if (bd < 64 + f.c.w * 0.5) { o.atk = true; if (by < -50) o.u = true; return this.out(o, 6); }
+        if (f.grounded && by < -90 && Math.abs(bx) < 170 && !this.mem.jmp) o.jmp = true;
+        else if (!f.grounded && by < -40 && f.jumps > 0 && f.vy > 0 && !this.mem.jmp && Math.random() < 0.3) o.jmp = true;
+        return this.out(o, 0);
       }
     }
     // the CPU Kakelninja picks a form: the ninja up close on the ground, the chicken at range with its eggs
@@ -3250,7 +3396,7 @@ function demoRoster() {
 }
 function startMatch(demo, custom, cfg) {
   const c = cfg || settings, sk = c.stage, sks = Object.keys(STAGES), S = makeStage(sk === 'random' || !STAGES[sk] ? sks[Math.random() * sks.length | 0] : sk);
-  Object.assign(G, { stage: S, projs: [], items: [], parts: [], kos: [], frame: 0, shake: 0, flash: 0, paused: false, endT: 0, useItems: c.items, itemT: 480,
+  Object.assign(G, { stage: S, projs: [], items: [], parts: [], kos: [], frame: 0, shake: 0, flash: 0, paused: false, endT: 0, useItems: c.items, itemT: 480, itemOn: ITEM_LIST.filter(k => !(c.ioff || []).includes(k)),
     training: false, mode: demo ? 'demo' : 'match', countdown: demo ? 0 : 200, stocks: demo ? 99 : c.stocks, net: null, netClient: false });
   const list = custom || (demo ? demoRoster() : activeSlots()), n = list.length;
   // pickChar turns hidden characters into a random one; the training bag is hidden but asked for on purpose
@@ -4454,6 +4600,7 @@ function drawAnimeProj(g, p, fr) {
 }
 function drawProj(g, p, fr) {
   g.save(); g.translate(p.x, p.y);
+  if (p.type === 'fsstar') { drawFsStar(g, p, fr); g.restore(); return; }
   if (p.type === 'kibeam' || p.type === 'genki' || p.type === 'getsuga' || p.type === 'clone' || p.type === 'gbeam' || p.type === 'gblaster' || p.type === 'bone') { drawAnimeProj(g, p, fr); g.restore(); return; }
   if (p.type === 'spark' || p.type === 'boom' || p.type === 'fire') {
     const col = p.type === 'spark' ? (p.owner ? p.owner.col.fx : '#9ff6ff') : '#ffb347';
@@ -4596,7 +4743,7 @@ function drawHeld(g, type, hx, hy, fa, h) {
   g.restore();
 }
 function drawItem(g, it, fr) {
-  if (it.type !== 'bomb' && it.type !== 'crate' && it.t > (it.type === 'star' ? 480 : 1380) && fr % 10 < 5) return;
+  if (it.type !== 'bomb' && it.type !== 'crate' && it.type !== 'smashball' && it.t > (it.type === 'star' ? 480 : 1380) && fr % 10 < 5) return;
   const x = it.x, y = it.y;
   switch (it.type) {
     case 'bomb': drawBomb(g, x, y, 13, it.t > 1080 && fr % 8 < 4); return;
@@ -4606,11 +4753,119 @@ function drawItem(g, it, fr) {
     case 'star': g.save(); g.translate(x, y - 16); g.rotate(fr * 0.08); g.fillStyle = `hsl(${fr * 6 % 360},95%,62%)`; star(g, 0, 0, 17); g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke(); g.restore(); return;
     case 'feather': g.save(); g.translate(x, y - 14 + Math.sin(fr * 0.08) * 3); g.rotate(-0.5); drawFeather(g); g.restore(); return;
     case 'crate': drawCrate(g, x, y); return;
+    case 'smashball': drawSmashBall(g, x, y, fr); return;
   }
   const b = Math.sin(fr * 0.1) * 3, hy = y - 18 + b;
   g.beginPath(); g.moveTo(x, hy + 12); g.bezierCurveTo(x - 22, hy - 2, x - 12, hy - 20, x, hy - 8); g.bezierCurveTo(x + 12, hy - 20, x + 22, hy - 2, x, hy + 12);
   g.fillStyle = '#ff4d6d'; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke();
   g.fillStyle = 'rgba(255,255,255,.6)'; g.beginPath(); g.arc(x - 7, hy - 6, 3, 0, TAU); g.fill();
+}
+function drawSmashBall(g, x, y, fr) {
+  const hue = fr * 3 % 360, r = 22;
+  g.save(); g.globalCompositeOperation = 'lighter';
+  const gl = g.createRadialGradient(x, y, 0, x, y, r * 2.2); gl.addColorStop(0, `hsla(${hue},100%,70%,.7)`); gl.addColorStop(1, `hsla(${hue},100%,60%,0)`);
+  g.fillStyle = gl; g.beginPath(); g.arc(x, y, r * 2.2, 0, TAU); g.fill(); g.restore();
+  const bg = g.createRadialGradient(x - 7, y - 8, 2, x, y, r); bg.addColorStop(0, '#ffffff'); bg.addColorStop(0.35, `hsl(${hue},95%,62%)`); bg.addColorStop(1, `hsl(${(hue + 60) % 360},90%,42%)`);
+  g.fillStyle = bg; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke();
+  // emblem: a ring with a lightning bolt through it
+  g.lineWidth = 3.2; g.strokeStyle = '#ffffff'; g.beginPath(); g.arc(x, y, 12, 0, TAU); g.stroke();
+  g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(x + 3, y - 17); g.lineTo(x - 6, y + 2); g.lineTo(x, y + 2); g.lineTo(x - 3, y + 17); g.lineTo(x + 7, y - 3); g.lineTo(x + 1, y - 3); g.closePath(); g.fill();
+}
+function drawFsStar(g, p, fr) {
+  const col = p.owner ? p.owner.col.fx : '#ffe14d';
+  g.save(); g.globalCompositeOperation = 'lighter';
+  const n = Math.hypot(p.vx, p.vy) || 1, tl = g.createLinearGradient(0, 0, -p.vx / n * 90, -p.vy / n * 90); tl.addColorStop(0, hexA(col, 0.8)); tl.addColorStop(1, hexA(col, 0));
+  g.strokeStyle = tl; g.lineWidth = p.r * 1.1; g.lineCap = 'round'; g.beginPath(); g.moveTo(0, 0); g.lineTo(-p.vx / n * 90, -p.vy / n * 90); g.stroke();
+  const rg = g.createRadialGradient(0, 0, 0, 0, 0, p.r * 1.8); rg.addColorStop(0, '#ffffff'); rg.addColorStop(0.4, col); rg.addColorStop(1, hexA(col, 0));
+  g.fillStyle = rg; g.beginPath(); g.arc(0, 0, p.r * 1.8, 0, TAU); g.fill(); g.restore();
+  g.rotate(p.rot); g.fillStyle = '#ffffff'; star(g, 0, 0, p.r * 0.9); g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
+}
+// a fighter holding a final smash glows in shifting colours, with a hint over the head
+function drawAuras(g, fr) {
+  for (const f of G.fighters) {
+    if (!f.fs || f.state === 'dead' || f.state === 'respawn') continue;
+    const cx = f.x, cy = f.y - f.c.h / 2, r = f.c.h * (0.85 + 0.08 * Math.sin(fr * 0.3)), hue = fr * 5 % 360;
+    g.save(); g.globalCompositeOperation = 'lighter';
+    const rg = g.createRadialGradient(cx, cy, f.c.h * 0.2, cx, cy, r); rg.addColorStop(0, `hsla(${hue},100%,65%,.55)`); rg.addColorStop(0.6, `hsla(${(hue + 90) % 360},100%,60%,.3)`); rg.addColorStop(1, `hsla(${hue},100%,60%,0)`);
+    g.fillStyle = rg; g.beginPath(); g.arc(cx, cy, r, 0, TAU); g.fill();
+    if (fr % 3 === 0) addP({ type: 'ember', x: cx + rand(-f.c.w * 0.6, f.c.w * 0.6), y: f.y - rand(0, f.c.h), vy: -rand(1, 3), life: 18, max: 18, size: 5, color: `hsl(${hue},100%,65%)` });
+    g.restore();
+  }
+}
+function drawFsHints(g, fr) {
+  for (const f of G.fighters) {
+    if (!f.fs || f.state === 'dead' || f.state === 'respawn' || f.cpu) continue;
+    const y = f.y - f.c.h - 34 + Math.sin(fr * 0.2) * 3;
+    g.font = "15px Impact, 'Arial Black', sans-serif"; g.textAlign = 'center'; g.lineJoin = 'round'; g.lineWidth = 5; g.strokeStyle = INK;
+    g.strokeText('SPECIAAL!', f.x, y); g.fillStyle = `hsl(${fr * 5 % 360},100%,68%)`; g.fillText('SPECIAAL!', f.x, y);
+  }
+}
+function drawFinals(g, fr) {
+  for (const f of G.fighters) {
+    if (f.state !== 'attack' || !f.move || !f.move.fs) continue;
+    const t = f.mt, kind = f.move.fs, col = f.col.fx, s = f.c.h / 80;
+    g.save(); g.globalCompositeOperation = 'lighter';
+    if (kind === 'beam') {
+      const y = f.y - 44 * s, x0 = f.x + f.facing * 36;
+      if (t < 24) {
+        const r = 10 + t * 1.7, rg = g.createRadialGradient(x0, y, 0, x0, y, r); rg.addColorStop(0, '#ffffff'); rg.addColorStop(0.4, col); rg.addColorStop(1, hexA(col, 0));
+        g.fillStyle = rg; g.beginPath(); g.arc(x0, y, r, 0, TAU); g.fill();
+      } else if (t <= 98) {
+        const k = Math.min(1, (t - 24) / 5) * (t > 90 ? Math.max(0.15, (98 - t) / 8) : 1), h = (62 + Math.sin(fr * 0.9) * 6) * k, x1 = x0 + f.facing * 1700;
+        const lg = g.createLinearGradient(0, y - h, 0, y + h); lg.addColorStop(0, hexA(col, 0)); lg.addColorStop(0.3, hexA(col, 0.85)); lg.addColorStop(0.5, '#ffffff'); lg.addColorStop(0.7, hexA(col, 0.85)); lg.addColorStop(1, hexA(col, 0));
+        g.fillStyle = lg; g.fillRect(Math.min(x0, x1), y - h, Math.abs(x1 - x0), h * 2);
+        const rg = g.createRadialGradient(x0, y, 0, x0, y, h * 1.4); rg.addColorStop(0, '#ffffff'); rg.addColorStop(0.5, col); rg.addColorStop(1, hexA(col, 0));
+        g.fillStyle = rg; g.beginPath(); g.arc(x0, y, h * 1.4, 0, TAU); g.fill();
+      }
+    } else if (kind === 'nova') {
+      const cy = f.y - f.c.h / 2;
+      if (t < 40) {
+        const r = f.c.h * 0.5 + t * 1.8 + Math.sin(fr * 0.8) * 4, rg = g.createRadialGradient(f.x, cy, 0, f.x, cy, r); rg.addColorStop(0, hexA(col, 0.1)); rg.addColorStop(0.7, hexA(col, 0.45)); rg.addColorStop(1, hexA(col, 0));
+        g.fillStyle = rg; g.beginPath(); g.arc(f.x, cy, r, 0, TAU); g.fill();
+      } else if (t < 66) {
+        const k = (t - 40) / 26, r = 40 + 260 * Math.sqrt(k);
+        g.strokeStyle = hexA(col, 1 - k); g.lineWidth = 34 * (1 - k) + 3; g.beginPath(); g.arc(f.x, cy, r, 0, TAU); g.stroke();
+        g.strokeStyle = `rgba(255,255,255,${(1 - k) * 0.9})`; g.lineWidth = 10 * (1 - k) + 1; g.beginPath(); g.arc(f.x, cy, r, 0, TAU); g.stroke();
+      }
+    } else if (kind === 'storm') {
+      const hy = f.y - f.c.h - 10, a = t < 20 ? t / 20 : t > 128 ? Math.max(0, (144 - t) / 16) : 1;
+      const lg = g.createLinearGradient(0, hy - 700, 0, hy); lg.addColorStop(0, hexA(col, 0)); lg.addColorStop(1, hexA(col, 0.45 * a));
+      g.fillStyle = lg; g.fillRect(f.x - 26, hy - 700, 52, 700);
+      const rg = g.createRadialGradient(f.x, hy, 0, f.x, hy, 46); rg.addColorStop(0, `rgba(255,255,255,${a})`); rg.addColorStop(0.5, hexA(col, 0.7 * a)); rg.addColorStop(1, hexA(col, 0));
+      g.fillStyle = rg; g.beginPath(); g.arc(f.x, hy, 46, 0, TAU); g.fill();
+    } else if (t >= 40 && t <= 100) {
+      // rush flurry: crossing slashes in front of the fighter
+      const cx = f.x + f.facing * (f.c.w / 2 + 34), cy = f.y - f.c.h / 2;
+      g.lineCap = 'round';
+      for (let i = 0; i < 3; i++) {
+        const a = (t * 0.9 + i * 2.1) % TAU, L = 70 + 20 * Math.sin(t + i), k = ((t + i * 2) % 6) / 6;
+        g.strokeStyle = hexA(col, 1 - k); g.lineWidth = 9 * (1 - k) + 2;
+        g.beginPath(); g.moveTo(cx - Math.cos(a) * L, cy - Math.sin(a) * L); g.lineTo(cx + Math.cos(a) * L, cy + Math.sin(a) * L); g.stroke();
+      }
+      if (t >= 96) { const rg = g.createRadialGradient(cx, cy, 0, cx, cy, 120); rg.addColorStop(0, '#ffffff'); rg.addColorStop(0.4, col); rg.addColorStop(1, hexA(col, 0)); g.fillStyle = rg; g.beginPath(); g.arc(cx, cy, 120, 0, TAU); g.fill(); }
+    }
+    g.restore();
+  }
+}
+const fsNow = () => G.fighters.find(f => f.state === 'attack' && f.move && f.move.fs);
+// the stage dims a little while a final smash runs
+function drawFsDim(g, V) {
+  const f = fsNow(); if (!f) return;
+  const m = f.move, t = f.mt, a = Math.min(1, t / 8) * Math.min(1, Math.max(0, m.dur - t) / 10) * 0.38;
+  setScreen(g, V); g.fillStyle = `rgba(10,6,20,${a})`; g.fillRect(0, 0, V.W, V.H);
+}
+function drawFsBanner(g, V) {
+  const f = fsNow(); if (!f || f.mt > 80 || !FINALS[f.key]) return;
+  const t = f.mt, k = Math.min(1, t / 8), fade = t > 64 ? 1 - (t - 64) / 16 : 1, sz = Math.min(56, V.W * 0.075), y = G.hudTop ? V.H * 0.34 : V.H * 0.2;
+  setScreen(g, V); g.save(); g.globalAlpha = Math.max(0, fade);
+  g.fillStyle = 'rgba(18,14,29,.72)'; g.fillRect(0, y - sz * 1.15, V.W, sz * 1.85);
+  g.fillStyle = f.col.fx; g.fillRect(0, y - sz * 1.15, V.W, 3); g.fillRect(0, y + sz * 0.7 - 3, V.W, 3);
+  g.translate((1 - k) * V.W * 0.5 * f.facing, 0);
+  g.textAlign = 'center'; g.lineJoin = 'round';
+  g.font = `700 ${Math.round(sz * 0.32)}px system-ui, 'Segoe UI', Arial, sans-serif`; g.fillStyle = '#f5f0e4'; g.fillText(f.c.name.toUpperCase(), V.W / 2, y - sz * 0.62);
+  g.font = `${sz}px Impact, 'Arial Black', sans-serif`; g.lineWidth = 8; g.strokeStyle = INK;
+  const nm = FINALS[f.key][1].toUpperCase() + '!'; g.strokeText(nm, V.W / 2, y + sz * 0.38); g.fillStyle = f.col.fx; g.fillText(nm, V.W / 2, y + sz * 0.38);
+  g.restore();
 }
 function drawParts(g, z) {
   for (const p of G.parts) {
@@ -5008,10 +5263,13 @@ function render() {
   const sh = reduceMotion ? G.shake * 0.25 : G.shake; V.sx = rand(-1, 1) * sh; V.sy = rand(-1, 1) * sh;
   const g = ctx, fr = G.frame, S = G.stage;
   drawBG(g, V, S, fr); drawStage(g, V, S, fr);
+  drawFsDim(g, V);
   setLayer(g, V, 1);
+  drawAuras(g, fr);
   for (const it of G.items) if (!it.holder) drawItem(g, it, fr);
   for (const f of G.fighters) if (f.state !== 'attack' || !f.move || !f.move.throw) drawFighter(g, f, fr, V.cam.z);
   for (const f of G.fighters) if (f.state === 'attack' && f.move && f.move.throw) drawFighter(g, f, fr, V.cam.z);
+  drawFinals(g, fr); drawFsHints(g, fr);
   if (S.lava) { setLayer(g, V, 1); drawLava(g, S.lava.y, fr); }
   drawHitboxes(g, fr);
   for (const p of G.projs) drawProj(g, p, fr);
@@ -5019,6 +5277,7 @@ function render() {
   drawKOs(g, V);
   if (G.showBoxes && G.training) { setLayer(g, V, 1); drawBoxes(g); }
   if (G.mode !== 'demo') { drawOffscreen(g, V); drawHUD(g, V); drawTraining(g, V); }
+  drawFsBanner(g, V);
   if (S.lava && S.lava.st === 'warn') {
     setScreen(g, V); const a = 0.18 + 0.12 * Math.sin(fr * 0.25), lg = g.createLinearGradient(0, V.H * 0.6, 0, V.H);
     lg.addColorStop(0, 'rgba(255,80,20,0)'); lg.addColorStop(1, `rgba(255,80,20,${a})`); g.fillStyle = lg; g.fillRect(0, V.H * 0.6, V.W, V.H * 0.4);
@@ -5073,6 +5332,18 @@ function pickForActive(k) {
   const s = settings.slots[activeSlot]; s.ch = k;
   if (s.type === 'off') s.type = 'cpu';
   refreshSlot(activeSlot); save(); SFX.ui(); restartDemoSoon();
+}
+const ITEM_NAMES = { bomb: 'Bom', heart: 'Hartje', bat: 'Knuppel', blaster: 'Straalpistool', banana: 'Bananenschil', star: 'Ster', feather: 'Veer', crate: 'Kist', smashball: 'Klapbal' };
+// one button per item: on or off; the picture is the item as drawn in the game
+function buildItemSet() {
+  const el = $('#iset');
+  el.innerHTML = ITEM_LIST.map(k => `<button class="ic" data-k="${k}" aria-pressed="true"><canvas width="96" height="96" aria-hidden="true"></canvas><span>${ITEM_NAMES[k] || k}</span></button>`).join('');
+  el.querySelectorAll('.ic').forEach(b => {
+    const k = b.dataset.k, g = b.querySelector('canvas').getContext('2d');
+    g.setTransform(1.5, 0, 0, 1.5, 0, 0);
+    drawItem(g, { type: k, x: 32, y: k === 'smashball' ? 32 : k === 'crate' ? 52 : 46, t: 0 }, 0);
+    b.addEventListener('click', () => { const off = new Set(optCfg().ioff); if (off.has(k)) off.delete(k); else off.add(k); setOpt('ioff', ITEM_LIST.filter(x => off.has(x))); SFX.ui(); restartDemoSoon(); });
+  });
 }
 const HOT_TAGS = ['', 'Gevaarlijk', 'Genadeloos', 'Onmenselijk'];
 function refreshSlot(i) {
@@ -5130,6 +5401,7 @@ function buildMenu() {
   $('#stm').onclick = () => { setOpt('stocks', Math.max(1, optCfg().stocks - 1)); SFX.ui(); };
   $('#stp').onclick = () => { setOpt('stocks', Math.min(9, optCfg().stocks + 1)); SFX.ui(); };
   $('#itm').onclick = () => { setOpt('items', !optCfg().items); SFX.ui(); restartDemoSoon(); };
+  buildItemSet();
   $('#netCpu').onclick = () => { setOpt('cpu', !optCfg().cpu); SFX.ui(); };
   $('#snd').onclick = () => { settings.sound = !settings.sound; syncOpts(); save(); SFX.init(); SFX.ui(); };
   syncOpts();
@@ -5138,8 +5410,8 @@ function buildMenu() {
 const online = () => UIM === 'online';
 let UIM = 'local';
 function optCfg() {
-  if (online() && NET.game) { if (NET.role === 'host') return NET.cfg; const c = lobbyOrder().cfg; return c ? { stage: c.stage, stocks: clamp(c.stocks | 0, 1, 9), items: !!c.items, cpu: !!c.cpu } : NET.cfg; }
-  return { stage: settings.stage, stocks: settings.stocks, items: settings.items, cpu: NET.cfg.cpu };
+  if (online() && NET.game) { if (NET.role === 'host') return NET.cfg; const c = lobbyOrder().cfg; return c ? { stage: c.stage, stocks: clamp(c.stocks | 0, 1, 9), items: !!c.items, ioff: Array.isArray(c.ioff) ? c.ioff.filter(k => ITEM_LIST.includes(k)) : [], cpu: !!c.cpu } : NET.cfg; }
+  return { stage: settings.stage, stocks: settings.stocks, items: settings.items, ioff: settings.ioff || [], cpu: NET.cfg.cpu };
 }
 function setOpt(k, v) {
   if (online() && NET.game) { if (NET.role !== 'host') return; NET.cfg[k] = v; hostLobbyPresence(); }
@@ -5154,6 +5426,8 @@ function syncOpts() {
   $('#snd').setAttribute('aria-pressed', String(settings.sound)); $('#snd').textContent = settings.sound ? 'Aan' : 'Uit';
   $('#stages').querySelectorAll('.stage').forEach(x => { x.setAttribute('aria-pressed', String(x.dataset.k === c.stage)); x.disabled = ro; });
   $('#stm').disabled = $('#stp').disabled = $('#itm').disabled = $('#netCpu').disabled = ro;
+  $('#iset').hidden = !c.items; const off = c.ioff || [];
+  $('#iset').querySelectorAll('.ic').forEach(b => { b.setAttribute('aria-pressed', String(!off.includes(b.dataset.k))); b.disabled = ro; });
   $('#cpuOpt').hidden = !online();
   const go = $('#go');
   if (!online()) { go.hidden = false; go.disabled = false; go.textContent = 'Vechten!'; }
@@ -5265,13 +5539,13 @@ function showResults() {
 
 /* ---------------- online ---------------- */
 const ST_LIST = ['idle', 'walk', 'run', 'crouch', 'land', 'jumpsquat', 'air', 'attack', 'shield', 'evade', 'airdodge', 'hitstun', 'helpless', 'knockdown', 'dizzy', 'ledge', 'holding', 'grabbed', 'respawn', 'shieldbreak', 'dead'];
-const PT_LIST = ['spark', 'shuriken', 'fire', 'ice', 'pipbomb', 'bombT', 'boom', 'wave', 'laser', 'fist', 'bubble', 'spear', 'blast', 'bananaT', 'batT', 'blasterT', 'puffstar', 'pkbolt', 'pkfire', 'pkthunder', 'pkflash', 'arrow', 'boomer', 'jolt', 'thunder', 'egg', 'rocket', 'kibeam', 'genki', 'clone', 'getsuga', 'gblaster', 'gbeam', 'bone', 'erupt'];
+const PT_LIST = ['spark', 'shuriken', 'fire', 'ice', 'pipbomb', 'bombT', 'boom', 'wave', 'laser', 'fist', 'bubble', 'spear', 'blast', 'bananaT', 'batT', 'blasterT', 'puffstar', 'pkbolt', 'pkfire', 'pkthunder', 'pkflash', 'arrow', 'boomer', 'jolt', 'thunder', 'egg', 'rocket', 'kibeam', 'genki', 'clone', 'getsuga', 'gblaster', 'gbeam', 'bone', 'erupt', 'fsstar'];
 const MODE_LIST = ['match', 'gameover', 'results'];
 const LAVA_ST = ['idle', 'warn', 'rise', 'hold', 'fall'];
 const CTR_MOVE = { pose: 'smashF', start: 3, active: 4, end: 20, dur: 27, hb: [] };
 const CODE_CH = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const NET = { ready: false, sk: 0, room: null, user: null, game: null, role: null, code: '', me: null, mid: 0, ord: [], ro: null, unsubs: [],
-  cfg: { stage: 'ruins', stocks: 3, items: true, cpu: false }, ch: 'volt', src: isTouch ? 'touch' : 'kb1',
+  cfg: { stage: 'ruins', stocks: 3, items: true, ioff: [], cpu: false }, ch: 'volt', src: isTouch ? 'touch' : 'kb1',
   snaps: [], disp: -1, prevSnap: null, inCnt: {}, inPrev: blank(), lastIn: '', peerMap: new Map(), misses: 0, joinedOk: false, sentResults: false, rtok: 0, seq: 0, p2p: false, nm: '' };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const netMsg = t => { $('#netMsg').textContent = t || ''; };
@@ -5354,7 +5628,7 @@ async function netHost() {
     await sleep(500);
     if (g.peers().some(p => !p.sameTab && p.presence && p.presence.role === 'host')) { g.leave().catch(() => {}); continue; }
     Object.assign(NET, { game: g, role: 'host', code, ord: [], mid: 0, ro: null, sentResults: false });
-    NET.cfg = { stage: settings.stage, stocks: settings.stocks, items: settings.items, cpu: NET.cfg.cpu };
+    NET.cfg = { stage: settings.stage, stocks: settings.stocks, items: settings.items, ioff: settings.ioff || [], cpu: NET.cfg.cpu };
     attachGame(g); hostLobbyPresence(); showLobby(); renderLobby(); netMsg(''); $('#netHost').disabled = false; return;
   }
   $('#netHost').disabled = false; netMsg('Kon geen spel aanmaken. Probeer het opnieuw.');
@@ -5483,7 +5757,7 @@ function netStartMatch() {
   if (list.length < 2) { netMsg('Wacht op een tweede speler, of zet CPU\'s aan.'); return; }
   SFX.init(); netMsg('');
   NET.mid += 1; NET.sentResults = false;
-  startMatch(false, list, { stage: NET.cfg.stage, stocks: NET.cfg.stocks, items: NET.cfg.items });
+  startMatch(false, list, { stage: NET.cfg.stage, stocks: NET.cfg.stocks, items: NET.cfg.items, ioff: NET.cfg.ioff });
   G.net = { role: 'host' };
   NET.ro = G.fighters.map((f, i) => [f.slot, f.key, f.skin, f.cpu ? 1 : 0, f.lvl, list[i].peer || '']);
   if (NET.room) NET.room.presence({ open: null }).catch(() => {});
@@ -5520,7 +5794,7 @@ function netRaw(c) {
 function snapF(f) {
   const ev = f.ev; let evk = 0, evd = 1;
   if (ev) { evk = ev.roll ? 1 : ev.tech ? 2 : ev.spot ? 3 : ev.climb ? 4 : 5; evd = (ev.vx < 0 || ev.tx < ev.fx ? -1 : 1) * (ev.face ? -1 : 1); }
-  const fl = (f.grounded ? 1 : 0) | (f.tumble ? 2 : 0) | (f.tumbleAnim ? 4 : 0) | (f.adDir ? 8 : 0) | (f.intang ? 16 : 0) | (f.item ? 32 : 0) | (f.out ? 64 : 0) | (f.star > 0 ? 128 : 0) | (f.feather > 0 ? 256 : 0) | (f.buried ? 512 : 0) | (f.punchStore >= 100 ? 1024 : 0) | (f.maskT > 0 ? 2048 : 0) | (f.ssj > 0 ? 4096 : 0);
+  const fl = (f.grounded ? 1 : 0) | (f.tumble ? 2 : 0) | (f.tumbleAnim ? 4 : 0) | (f.adDir ? 8 : 0) | (f.intang ? 16 : 0) | (f.item ? 32 : 0) | (f.out ? 64 : 0) | (f.star > 0 ? 128 : 0) | (f.feather > 0 ? 256 : 0) | (f.buried ? 512 : 0) | (f.punchStore >= 100 ? 1024 : 0) | (f.maskT > 0 ? 2048 : 0) | (f.ssj > 0 ? 4096 : 0) | (f.fs ? 8192 : 0);
   const mk = f.move ? (f.move.netKey || 'ctr') : '';
   return [ST_LIST.indexOf(f.state), Math.round(f.x), Math.round(f.y), f.facing, mk, f.mt | 0, f.charge | 0, f.t | 0, fl, Math.round(f.percent * 10), f.stocks, Math.round(f.shieldHP), f.invuln | 0, f.hitlag | 0, f.frozen | 0, f.flash | 0, f.djT | 0,
     Math.round(f.runPh * 100) % 100000, Math.round(f.vx * 10), evk, evd, ev ? ev.dur : 0, f.stats.ko, f.stats.falls, Math.round(f.stats.dmg), f.elim | 0, f.item ? ITEM_LIST.indexOf(f.item.type) : -1, f.copy || '', Math.round((f.aim || 0) * 100), f.key, Math.round(f.ki || 0)];
@@ -5633,7 +5907,7 @@ function netFighter(f, r, nb, k, fresh) {
     f.move = st === 'attack' ? (mk === 'ctr' ? CTR_MOVE : (typeof mk === 'string' && Object.prototype.hasOwnProperty.call(f.M, mk) ? f.M[mk] : f.M.jab)) : null;
     f.mt = r[5] | 0; f.charge = r[6] | 0; f.t = r[7] | 0;
     const fl = r[8] | 0;
-    f.grounded = !!(fl & 1); f.tumble = !!(fl & 2); f.tumbleAnim = !!(fl & 4); f.adDir = !!(fl & 8); f.intang = !!(fl & 16); f.item = fl & 32 ? { type: ITEM_LIST[r[26]] || 'bomb' } : null; f.out = !!(fl & 64); f.star = fl & 128 ? 1 : 0; f.feather = fl & 256 ? 1 : 0; f.buried = !!(fl & 512); f.punchStore = fl & 1024 ? 100 : 0; f.maskT = fl & 2048 ? 1 : 0; f.ssj = fl & 4096 ? 1 : 0;
+    f.grounded = !!(fl & 1); f.tumble = !!(fl & 2); f.tumbleAnim = !!(fl & 4); f.adDir = !!(fl & 8); f.intang = !!(fl & 16); f.item = fl & 32 ? { type: ITEM_LIST[r[26]] || 'bomb' } : null; f.out = !!(fl & 64); f.star = fl & 128 ? 1 : 0; f.feather = fl & 256 ? 1 : 0; f.buried = !!(fl & 512); f.punchStore = fl & 1024 ? 100 : 0; f.maskT = fl & 2048 ? 1 : 0; f.ssj = fl & 4096 ? 1 : 0; f.fs = !!(fl & 8192);
     f.percent = (r[9] | 0) / 10; f.stocks = r[10] | 0; f.shieldHP = r[11] | 0; f.invuln = r[12] | 0; f.hitlag = r[13] | 0; f.frozen = r[14] | 0; f.flash = r[15] | 0; f.djT = r[16] | 0;
     f.runPh = (r[17] | 0) / 100; f.vx = (r[18] | 0) / 10;
     const evk = r[19] | 0;
