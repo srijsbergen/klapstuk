@@ -1409,7 +1409,7 @@ const SPECIALS = {
         if (t > 10) { const b = f.mv.ball; if (!b || b.dead) return f.startMove(f.M.flashEnd); if (t > 18 && (!f.ctrl.h.spc || t > 100)) b.life = Math.min(b.life, 1); }
       } }),
     flashEnd: M({ special: true, start: 1, active: 1, end: 18, pose: 'pkflash' }),
-    sideB: M({ special: true, start: 10, active: 1, end: 22, pose: 'cast',
+    sideB: M({ special: true, start: 10, active: 1, end: 18, pose: 'cast',
       tick: (f, t) => {
         if (!f.grounded && f.vy > 1.5) f.vy = 1.5;
         if (t !== 10) return;
@@ -1823,8 +1823,9 @@ function genkiBoom(p) {
 }
 function clonePoof(p) { for (let i = 0; i < 7; i++) addP({ type: 'smoke', x: p.x + rand(-16, 16), y: p.y + rand(-24, 24), life: 26, max: 26, size: 15, vy: -0.6 }); }
 function pkPillar(owner, x, y) {
-  spawnProj({ type: 'pkfire', owner, x, y, r: 24, life: 48, pierce: true, reflect: false, hb: { d: 1.5, a: 85, b: 16, g: 0, pin: true },
-    tick: p => { if (p.t % 7 === 0) p.hitSet = new Set(); if (p.t === 42) { p.hitSet = new Set(); p.hb = { d: 4, a: 60, b: 45, g: 55 }; } } });
+  // holds long enough to run in from the far end of the bolt's range and grab; the last burst launches
+  spawnProj({ type: 'pkfire', owner, x, y, r: 24, life: 60, pierce: true, reflect: false, hb: { d: 1.5, a: 85, b: 16, g: 0, pin: true },
+    tick: p => { if (p.t % 9 === 0) p.hitSet = new Set(); if (p.t === 54) { p.hitSet = new Set(); p.hb = { d: 4, a: 60, b: 45, g: 55 }; } } });
   SFX.fire();
 }
 function pkThunderTick(p) {
