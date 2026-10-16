@@ -658,7 +658,7 @@ Object.assign(CHARS, {
     col: { body: '#e5a93a', dark: '#3f8a3a', acc: '#e0452f', skin: '#f2dfa4', fx: '#ff9b3d' }, alt: { body: '#8a8fa3', dark: '#3a4a9a', acc: '#f0d84a', skin: '#d9dbe6', fx: '#9fd6ff' } },
   bongo: { name: 'Bongo', blurb: 'Sterke gorilla met lange armen. Een reuzenstoot die je kunt opsparen, een kopstoot die je de grond in slaat, een draaiende armzwaai en klappen op de grond.', weight: 128, run: 6.6, acc: 1, jump: 15, djump: 14, grav: 0.84, fall: 12.5, ffall: 17.5, air: 4.6, airAcc: 0.42, airJumps: 1, w: 60, h: 92, pow: 1.2, reach: 1.15, lag: 1, limb: 17, hr: 0.16, arm: 0.24,
     col: { body: '#7a4a2a', dark: '#4f2d17', acc: '#d8262f', skin: '#e8b98a', fx: '#ffd36b' }, alt: { body: '#45454f', dark: '#2a2a31', acc: '#3d8bff', skin: '#c9a98a', fx: '#9fd6ff' } },
-  lonk: { name: 'Lonk', blurb: 'Zwaardvechter met schild en puntmuts. Een boog met oplaadbare pijlen, een boemerang die terugkomt, een draaiaanval en bommen die je vasthoudt en gooit.', weight: 104, run: 5.6, acc: 0.95, jump: 14.5, djump: 13.5, grav: 0.86, fall: 12.8, ffall: 17.5, air: 4.1, airAcc: 0.4, airJumps: 1, w: 42, h: 80, pow: 1.08, reach: 1.25, lag: 1, limb: 10, zoner: 'side', hr: 0.16,
+  lonk: { name: 'Lonk', blurb: 'Zwaardvechter met schild en puntmuts. Een boog met oplaadbare pijlen, een boemerang die terugkomt, een draaiaanval en bommen die je vasthoudt en gooit. Zijn schild houdt projectielen van voren tegen zolang hij stilstaat, loopt of bukt.', weight: 104, run: 6.2, acc: 0.95, jump: 14.5, djump: 13.5, grav: 0.86, fall: 12.8, ffall: 17.5, air: 4.5, airAcc: 0.45, airJumps: 1, w: 42, h: 80, pow: 1.08, reach: 1.25, lag: 0, limb: 10, zoner: 'side', hr: 0.16,
     col: { body: '#3f9a3a', dark: '#2b6b28', acc: '#e8c547', skin: '#f6cfa8', fx: '#9ff0ff' }, alt: { body: '#c8402f', dark: '#8a2a1f', acc: '#e8c547', skin: '#f6cfa8', fx: '#ffb36b' } },
   rat: { name: 'Bliksemrat', blurb: 'Kleine, snelle elektrische rat. Stroomballen over de grond, een oplaadbare kopstoot, een zigzaggende flitssprong en een bliksem uit de lucht.', weight: 79, run: 7.2, acc: 1.1, jump: 15, djump: 13.5, grav: 0.85, fall: 12, ffall: 17.5, air: 4.8, airAcc: 0.5, airJumps: 1, w: 40, h: 60, pow: 0.95, reach: 0.95, lag: -1, limb: 9, zoner: true, sideRec: true, hr: 0.25, arm: 0.14,
     col: { body: '#ffd84a', dark: '#d9a514', acc: '#e8323c', skin: '#ffe98a', fx: '#fff27a' }, alt: { body: '#ffb34a', dark: '#c77a14', acc: '#ff6b9a', skin: '#ffd08a', fx: '#ffe08a' } },
@@ -839,11 +839,11 @@ const AIRS = {
     dair: M({ start: 11, active: 5, end: 20, pose: 'stompD', aerial: true, ll: 16, hb: [H(0, 22, 31, 14, 270, 42, 90, { nr: 1 })] }),
   }),
   lonk: (M, H) => ({
-    nair: M({ start: 5, active: 14, end: 10, pose: 'kick', aerial: true, ll: 7, hb: [H(18, -30, 27, 10, 45, 28, 84, { f1: 4 }), H(18, -30, 24, 6, 45, 20, 72, { f0: 4 })] }),
-    fair: M({ start: 8, active: 12, end: 16, pose: 'axe', aerial: true, afx: 'slash', ll: 11, hb: [H(52, -50, 26, 7, 70, 28, 40, { f1: 3, grp: 1, link: true }), H(56, -44, 28, 12, 40, 36, 96, { f0: 7, grp: 2 })] }),
+    nair: M({ start: 4, active: 14, end: 10, pose: 'kick', aerial: true, ll: 7, hb: [H(18, -30, 27, 10, 45, 28, 84, { f1: 4 }), H(18, -30, 24, 6, 45, 20, 72, { f0: 4 })] }),
+    fair: M({ start: 7, active: 12, end: 14, pose: 'axe', aerial: true, afx: 'slash', ll: 10, hb: [H(52, -50, 26, 7, 70, 28, 40, { f1: 3, grp: 1, link: true }), H(56, -44, 28, 12, 40, 36, 96, { f0: 7, grp: 2 })] }),
     bair: M({ start: 6, active: 10, end: 12, pose: 'dkick', aerial: true, ll: 9, hb: [H(-44, -34, 22, 5, 150, 24, 30, { f1: 3, grp: 1, link: true }), H(-48, -34, 24, 8, 145, 30, 90, { f0: 6, grp: 2 })] }),
-    uair: M({ start: 9, active: 20, end: 14, pose: 'stabUp', aerial: true, ll: 10, hb: [H(0, -122, 22, 14, 88, 34, 98, { nr: 1, f1: 5 }), H(0, -118, 20, 9, 88, 26, 85, { nr: 1, f0: 5 })] }),
-    dair: M({ start: 12, active: 24, end: 20, pose: 'stabDown', aerial: true, ll: 18, hb: [H(0, 36, 20, 16, 270, 44, 90, { nr: 1, f1: 4 }), H(0, 32, 18, 10, 80, 30, 70, { nr: 1, f0: 4 })] }),
+    uair: M({ start: 7, active: 20, end: 12, pose: 'stabUp', aerial: true, ll: 10, hb: [H(0, -122, 22, 14, 88, 34, 98, { nr: 1, f1: 5 }), H(0, -118, 20, 9, 88, 26, 85, { nr: 1, f0: 5 })] }),
+    dair: M({ start: 10, active: 24, end: 16, pose: 'stabDown', aerial: true, ll: 12, hb: [H(0, 36, 20, 16, 270, 44, 90, { nr: 1, f1: 4 }), H(0, 32, 18, 10, 80, 30, 70, { nr: 1, f0: 4 })] }),
   }),
   rat: (M, H) => ({
     nair: M({ start: 4, active: 10, end: 10, pose: 'spinball', aerial: true, afx: 'elec', ll: 6, hb: [H(0, -30, 33, 8, 50, 26, 80, { nr: 1, f1: 4 }), H(0, -30, 30, 5, 50, 20, 68, { nr: 1, f0: 4 })] }),
@@ -1233,10 +1233,10 @@ const SPECIALS = {
       } }),
   }),
   lonk: (M, H, s) => ({
-    neutralB: M({ special: true, start: 14, active: 1, end: 16, pose: 'bow', charge: true, chargeKey: 'spc', chargeAt: 10, chargeMax: 75, chargeBoost: 0.0001,
+    neutralB: M({ special: true, start: 11, active: 1, end: 14, pose: 'bow', charge: true, chargeKey: 'spc', chargeAt: 8, chargeMax: 75, chargeBoost: 0.0001,
       tick: (f, t) => {
         if (!f.grounded && f.vy > 1.5) f.vy = 1.5;
-        if (t !== 14) return;
+        if (t !== 11) return;
         const c = f.charge / 75;
         spawnProj({ type: 'arrow', owner: f, x: f.x + f.facing * 30 * s, y: f.y - 46 * s, vx: f.facing * (4.5 + c * 18), vy: -1.2 + c * 0.9, grav: 0.3 - c * 0.27, r: 7, life: 50 + c * 60, hb: { d: Math.round((2 + c * 11) * 10) / 10, a: 30 + c * 10, b: 4 + c * 36, g: 10 + c * 75 } });
         SFX.shoot();
@@ -1257,8 +1257,8 @@ const SPECIALS = {
       noGrav: (f, t) => f.mv.air && t >= 6 && t < 34,
       tick: (f, t) => {
         if (t < 6) { f.vx *= 0.8; if (f.vy > 0) f.vy *= 0.5; return; }
-        if (t === 6) { SFX.swing(); if (f.mv.air) f.vy = -11; }
-        if (f.mv.air) { f.vy = Math.min(f.vy + 0.42, 2.5); f.vx = approach(f.vx, f.ix * 3, 0.3); }
+        if (t === 6) { SFX.swing(); if (f.mv.air) f.vy = -13; }
+        if (f.mv.air) { f.vy = Math.min(f.vy + 0.42, 2.5); f.vx = approach(f.vx, f.ix * 3.6, 0.35); }
         else { f.vx = approach(f.vx, f.ix * 2.5, 0.4); if (t > 14) f.mt = Math.max(f.mt, 36); }
       } }),
     downB: M({ special: true, start: 8, active: 1, end: 12, pose: 'lonkpull',
@@ -2588,6 +2588,10 @@ function updateProjs() {
       if (p.reflect && v !== p.owner && v.state === 'attack' && vm && vm.reflect && v.mt >= vm.reflect[0] && v.mt <= vm.reflect[1]) {
         p.vx = p.vx ? -p.vx * 1.25 : v.facing * 8; p.vy = -Math.abs(p.vy) * 0.5; p.owner = v; p.hb = Object.assign({}, p.hb, { d: p.hb.d * 1.3 });
         p.life = Math.max(p.life, 50); p.hitSet = new Set(); sparkFx(p.x, p.y, v.col.fx, 4); SFX.shield(); break;
+      }
+      // Lonk's shield stops ordinary projectiles from the front while he stands, walks or crouches
+      if (v.key === 'lonk' && v !== p.owner && (v.state === 'idle' || v.state === 'walk' || v.state === 'crouch') && !p.pierce && !p.explode && p.vx && Math.sign(p.vx) === -v.facing) {
+        p.dead = true; v.vx = -v.facing * 1.2; v.flash = 4; addP({ type: 'ring', x: p.x, y: p.y, life: 12, max: 12, size: 16, color: '#9ff0ff' }); SFX.shield(); break;
       }
       if (v.intang) continue;
       if (p.explode) { p.dead = true; p.explode(p); break; }
