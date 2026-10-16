@@ -95,6 +95,23 @@ select{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
 .lvl{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mute)}
 .lvl input{flex:1;min-width:0;accent-color:var(--pc)}
 .lvl output{font-family:var(--display);color:var(--fg);min-width:1.2em;text-align:right;font-variant-numeric:tabular-nums}
+/* CPU levels 10-12 look more dangerous with every step */
+.lvl{border-radius:8px;transition:background .2s,box-shadow .2s}
+.lvl .hot{display:none;font-family:var(--display);font-size:12px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.lvl:not([data-hot="0"]) .hot{display:inline}
+.lvl:not([data-hot="0"]) .lbl{display:none}
+.lvl label{min-width:5.6em}
+.lvl[data-hot="1"]{background:rgba(255,110,40,.1);box-shadow:0 0 0 5px rgba(255,110,40,.1)}
+.lvl[data-hot="1"] input{accent-color:#ff7a2e}
+.lvl[data-hot="1"] output,.lvl[data-hot="1"] .hot{color:#ff8a3d;text-shadow:0 0 8px rgba(255,120,40,.55)}
+.lvl[data-hot="2"]{background:rgba(255,40,40,.16);box-shadow:0 0 0 5px rgba(255,40,40,.16),0 0 16px rgba(255,40,40,.28)}
+.lvl[data-hot="2"] input{accent-color:#ff3b3b}
+.lvl[data-hot="2"] output,.lvl[data-hot="2"] .hot{color:#ff5050;text-shadow:0 0 10px rgba(255,60,60,.8)}
+.lvl[data-hot="3"]{color:#ffd6d6;background:repeating-linear-gradient(-45deg,rgba(255,30,30,.24) 0 8px,rgba(30,0,0,.4) 8px 16px);box-shadow:0 0 0 5px rgba(200,20,20,.3),0 0 22px rgba(255,30,30,.45);animation:hotPulse .8s ease-in-out infinite alternate}
+.lvl[data-hot="3"] input{accent-color:#ff1e1e}
+.lvl[data-hot="3"] output,.lvl[data-hot="3"] .hot{color:#fff;text-shadow:0 0 6px #ff2020,0 0 14px #ff2020}
+@keyframes hotPulse{from{box-shadow:0 0 0 5px rgba(200,20,20,.3),0 0 14px rgba(255,30,30,.35)}to{box-shadow:0 0 0 5px rgba(230,30,30,.45),0 0 30px rgba(255,30,30,.7)}}
+@media (prefers-reduced-motion:reduce){.lvl[data-hot="3"]{animation:none}}
 .row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:12px}
 @media (max-width:780px){.row{grid-template-columns:minmax(0,1fr)}}
 .stages{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
@@ -645,7 +662,7 @@ const CHARS = {
     col: { body: '#8f5cf2', dark: '#5e33b5', acc: '#7df2b2', skin: '#ffd7b8', fx: '#d2b6ff' }, alt: { body: '#2fa86b', dark: '#1d6b44', acc: '#ffcf3f', skin: '#ffd7b8', fx: '#b4ffd0' } },
 };
 
-Object.assign(CHARS.volt, { zoner: true, sideRec: true });
+Object.assign(CHARS.volt, { zoner: true, sideRec: true, aimRec: true });
 Object.assign(CHARS.brick, { sideRec: true, hr: 0.14, arm: 0.2 });
 Object.assign(CHARS.sable, { zoner: true, sideRec: true });
 Object.assign(CHARS.pip, { zoner: 'side', hr: 0.19 });
@@ -3193,7 +3210,13 @@ class AI {
     const out = f.x < cx ? m.x1 - f.x : f.x - m.x2, low = f.y > m.y + 4, under = low && out < hw, away = low && out < hw + 10;
     const dir = (f.x < cx ? 1 : -1) * (away ? -1 : 1), ledgeX = f.x < cx ? m.x1 : m.x2, dx = Math.abs(f.x - ledgeX), fk = dir > 0 ? 'r' : 'l';
     o[fk] = true;
-    if (f.state === 'attack' || f.state === 'helpless') { o.u = f.y > m.y - 60; this.mem = o; return o; }
+    if (f.state === 'attack' || f.state === 'helpless') {
+      o.u = f.y > m.y - 60;
+      // an up-B aimed in one of eight directions: from deep under the ledge the diagonal runs into the
+      // underside of the stage, so go straight up until the diagonal would clear the lip
+      if (f.c.aimRec && f.state === 'attack' && f.move === f.M.upB && !away && f.y - m.y > out - hw + 10) o.l = o.r = false;
+      this.mem = o; return o;
+    }
     if (f.state !== 'air') { this.mem = o; return o; }
     const below = f.y - m.y;
     if (f.jumps > 0 && f.vy > (under ? 4 : -1) && (below > -40 || dx > 260) && !this.mem.jmp) o.jmp = true;
@@ -5046,6 +5069,7 @@ function pickForActive(k) {
   if (s.type === 'off') s.type = 'cpu';
   refreshSlot(activeSlot); save(); SFX.ui(); restartDemoSoon();
 }
+const HOT_TAGS = ['', 'Gevaarlijk', 'Genadeloos', 'Onmenselijk'];
 function refreshSlot(i) {
   const s = settings.slots[i], el = document.getElementById('slot' + i);
   el.className = 'slot ' + (s.type === 'off' ? 'off' : 'on') + (i === activeSlot ? ' active' : '');
@@ -5054,6 +5078,7 @@ function refreshSlot(i) {
   document.getElementById('cb' + i).textContent = charBlurb(s.ch);
   document.getElementById('lvw' + i).hidden = s.type !== 'cpu';
   document.getElementById('lv' + i).value = s.lvl; document.getElementById('lo' + i).textContent = s.lvl;
+  const hot = clamp(s.lvl - 9, 0, 3); document.getElementById('lvw' + i).dataset.hot = hot; document.getElementById('lt' + i).textContent = HOT_TAGS[hot];
   renderSwatches(document.getElementById('sw' + i), s.ch, s.sk | 0, k => setSkin(i, k));
   refreshGrid();
 }
@@ -5082,7 +5107,7 @@ function buildMenu() {
       <canvas class="pv" id="pv${i}" width="360" height="320" aria-label="Speler ${i + 1}: klik om voor deze speler te kiezen" tabindex="0"></canvas>
       <div class="skins" id="sw${i}" role="group" aria-label="Kleur van speler ${i + 1}"></div>
       <div class="cn"><b id="cn${i}"></b><small id="cb${i}"></small></div>
-      <div class="lvl" id="lvw${i}"><label for="lv${i}">CPU-niveau</label><input type="range" id="lv${i}" min="1" max="12"><output id="lo${i}"></output></div>`;
+      <div class="lvl" id="lvw${i}"><label for="lv${i}"><span class="lbl">CPU-niveau</span><span class="hot" id="lt${i}"></span></label><input type="range" id="lv${i}" min="1" max="12"><output id="lo${i}"></output></div>`;
     wrap.appendChild(el);
     el.addEventListener('click', e => { if (e.target.closest('select,input,label,.skins')) return; setActiveSlot(i); });
     el.querySelector('.pv').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveSlot(i); document.querySelector('#cgrid .cg').focus(); } });
