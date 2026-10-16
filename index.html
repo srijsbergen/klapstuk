@@ -1542,9 +1542,11 @@ const SPECIALS = {
       } }),
     pkt2: M({ special: true, start: 1, active: 26, end: 0, dur: 30, pose: 'pkt2', helpless: true, noDrift: true, keepVel: true, ledgeOK: 1, ll: 18,
       hb: [H(0, -36, 34, 20, 45, 40, 90, { nr: 1, f1: 6 }), H(0, -36, 30, 10, 45, 30, 70, { nr: 1, f0: 6 })],
-      onStart: f => { const d = f.pkt || { x: 0, y: -1 }; f.mv.dx = d.x; f.mv.dy = d.y; if (Math.abs(d.x) > 0.2) f.facing = Math.sign(d.x); if (d.y < 0) { f.grounded = false; f.ground = null; } sparkFx(f.x, f.y - f.c.h / 2, f.col.fx, 10); SFX.boom(); },
+      onStart: f => { const d = f.pkt || { x: 0, y: -1 }; f.mv.dx = d.x; f.mv.dy = d.y; f.mv.t0 = G.frame; if (Math.abs(d.x) > 0.2) f.facing = Math.sign(d.x); if (d.y < 0) { f.grounded = false; f.ground = null; } sparkFx(f.x, f.y - f.c.h / 2, f.col.fx, 10); SFX.boom(); },
       noGrav: (f, t) => t < 28,
-      tick: (f, t) => { if (t < 27) { f.vx = f.mv.dx * 17; f.vy = f.mv.dy * 17; if (t % 2) ghostFx(f); } else if (t === 27) { f.vx *= 0.35; f.vy *= 0.35; } } }),
+      tick: (f, t) => {
+        if (G.fighters.some(v => v !== f && v.lastHit === f && v.lastHitT > f.mv.t0)) { f.vx *= 0.35; f.vy *= 0.35; f.pktHit = true; f.move = null; f.airEnd = G.frame; f.setState(f.grounded ? 'idle' : 'air'); return; }
+        if (t < 27) { f.vx = f.mv.dx * 17; f.vy = f.mv.dy * 17; if (t % 2) ghostFx(f); } else if (t === 27) { f.vx *= 0.35; f.vy *= 0.35; } } }),
     downB: M({ special: true, start: 2, active: 400, end: 0, dur: 420, pose: 'magnet', absorb: [2, 999], noDrift: true,
       hb: [H(0, -38, 36, 4, 80, 40, 20, { nr: 1, f1: 2 })],
       // in the air the shield freezes Joep's momentum for a moment, once per airtime
@@ -2178,7 +2180,7 @@ class Fighter {
   }
   special() {
     const ix = this.ix, iy = this.iy, M = this.M; let m;
-    if (iy < 0) { m = M.upB; this.upBUsed = true; }
+    if (iy < 0) { if (this.pktHit) return; m = M.upB; this.upBUsed = true; }
     else if (iy > 0) m = M.downB;
     else if (ix) { if (!this.grounded && this.sideBUsed) m = M.neutralB; else { this.facing = ix; m = M.sideB; if (!this.grounded) this.sideBUsed = true; } }
     else m = M.neutralB;
@@ -2433,7 +2435,7 @@ class Fighter {
       }
     }
   }
-  resetAir() { this.jumps = this.c.airJumps + (this.feather > 0 ? 2 : 0); this.magStall = false; this.airdodged = false; this.sideBUsed = false; this.upBUsed = false; }
+  resetAir() { this.jumps = this.c.airJumps + (this.feather > 0 ? 2 : 0); this.magStall = false; this.airdodged = false; this.sideBUsed = false; this.upBUsed = false; this.pktHit = false; }
   land(p) {
     const s = this.state;
     if (s === 'hitstun' && this.tumble) {
@@ -2637,7 +2639,7 @@ function applyHit(a, v, hb, dir, hx, hy, mult = 1, o = {}) {
   if (v.lvy < -0.5 && v.grounded) { v.grounded = false; v.ground = null; }
   if (v.grounded) v.lvy = 0;
   v.move = null; v.ev = null; v.hitstun = Math.floor(kb * 0.4); v.tumble = kb > 80; v.fastfall = false;
-  v.upBUsed = false; v.sideBUsed = false; v.airdodged = false;
+  v.upBUsed = false; v.sideBUsed = false; v.airdodged = false; v.pktHit = false;
   if (hb.freeze) { v.frozen = hb.freeze; v.hitstun = Math.max(v.hitstun, hb.freeze); }
   if (hb.bury && wasGround) { v.buried = true; v.frozen = Math.min(120, Math.round(45 + v.percent * 0.35)); v.hitstun = v.frozen; v.grounded = true; v.ground = wasGround; v.y = wasGround.y; v.lvx = v.lvy = 0; v.tumble = false; dustFx(v.x, v.y, 8); }
   v.setState('hitstun');
