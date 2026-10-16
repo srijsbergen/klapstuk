@@ -1564,7 +1564,9 @@ const SPECIALS = {
         if (!f.grounded && f.vy > 1.5) f.vy = 1.5;
         if (t !== 10) return;
         const air = !f.grounded;
-        spawnProj({ type: 'pkbolt', owner: f, x: f.x + f.facing * 26 * s, y: f.y - 40 * s, vx: f.facing * (air ? 9.5 : 11), vy: air ? 5.5 : 0, r: 9, life: 24, hb: { d: 2, a: 80, b: 12, g: 0, pin: true },
+        // in the air the bolt starts higher and drops less steeply, so it lands further away, and Joep is pushed back a little
+        if (air) f.vx = -f.facing * 3;
+        spawnProj({ type: 'pkbolt', owner: f, x: f.x + f.facing * 26 * s, y: f.y - (air ? 52 : 40) * s, vx: f.facing * (air ? 9.5 : 11), vy: air ? 4.6 : 0, r: 9, life: air ? 40 : 24, hb: { d: 2, a: 80, b: 12, g: 0, pin: true },
           onGround: (p, s2) => { p.dead = true; pkPillar(p.owner, p.x, s2.y - 24); }, afterHit: p => pkPillar(p.owner, p.x, p.y) });
         SFX.fire();
       } }),
