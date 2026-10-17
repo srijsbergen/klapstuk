@@ -1050,7 +1050,7 @@ Object.assign(CHARS, {
     col: { body: '#7a4a2a', dark: '#4f2d17', acc: '#d8262f', skin: '#e8b98a', fx: '#ffd36b' }, alt: { body: '#45454f', dark: '#2a2a31', acc: '#3d8bff', skin: '#c9a98a', fx: '#9fd6ff' } },
   lonk: { name: 'Lonk', blurb: 'Zwaardvechter met schild en puntmuts. Een boog met oplaadbare pijlen, een boemerang die terugkomt, een draaiaanval en bommen die je vasthoudt en gooit. Zijn schild houdt projectielen van voren tegen zolang hij stilstaat, loopt of bukt.', weight: 104, run: 6.2, acc: 0.95, jump: 14.5, djump: 13.5, grav: 0.86, fall: 12.8, ffall: 17.5, air: 4.5, airAcc: 0.45, airJumps: 1, w: 42, h: 80, pow: 1.08, reach: 1.25, lag: 0, limb: 10, zoner: 'side', hr: 0.16,
     col: { body: '#3f9a3a', dark: '#2b6b28', acc: '#e8c547', skin: '#f6cfa8', fx: '#9ff0ff' }, alt: { body: '#c8402f', dark: '#8a2a1f', acc: '#e8c547', skin: '#f6cfa8', fx: '#ffb36b' } },
-  rat: { name: 'Bliksemrat', blurb: 'Kleine, snelle elektrische rat. Stroomballen over de grond, een oplaadbare kopstoot, een zigzaggende flitssprong en een bliksem uit de lucht.', weight: 79, run: 7.2, acc: 1.1, jump: 15, djump: 13.5, grav: 0.85, fall: 12, ffall: 17.5, air: 4.8, airAcc: 0.5, airJumps: 1, w: 40, h: 60, pow: 0.95, reach: 0.95, lag: -1, limb: 9, zoner: true, sideRec: true, hr: 0.25, arm: 0.14,
+  rat: { name: 'Bliksemrat', blurb: 'Kleine, snelle elektrische rat. Stroomballen over de grond, een oplaadbare kopstoot, een zigzaggende flitssprong en een bliksem uit de lucht.', weight: 79, run: 7.2, acc: 1.1, jump: 15, djump: 13.5, grav: 0.85, fall: 12, ffall: 17.5, air: 4.8, airAcc: 0.5, airJumps: 1, w: 40, h: 60, pow: 0.95, reach: 0.95, lag: -1, limb: 9, zoner: true, sideRec: true, hr: 0.25, arm: 0.1, leg: 0.13,
     col: { body: '#ffd84a', dark: '#d9a514', acc: '#e8323c', skin: '#ffe98a', fx: '#fff27a' }, alt: { body: '#ffb34a', dark: '#c77a14', acc: '#ff6b9a', skin: '#ffd08a', fx: '#ffe08a' } },
   kakel: { name: 'Kakelninja', blurb: 'Kip die in een ninja verandert. De kip is licht en sterk in de lucht: vier sprongetjes, eieren van afstand en een fladderend herstel. De ninja is snel en sterk op de grond, met een jodelgolf (te kantelen), een rookdash en een bladerwervel, maar komt slechter terug. Speciaal omlaag wisselt van vorm.', weight: 74, run: 5.9, acc: 1, jump: 13, djump: 7.5, grav: 0.45, fall: 6.5, ffall: 10, air: 5.2, airAcc: 0.52, airJumps: 4, w: 40, h: 62, pow: 1, reach: 1, lag: 0, limb: 8, zoner: true, pz: 2.0,
     col: { body: '#f7f3ea', dark: '#c9c2b0', acc: '#e0302f', skin: '#f2b632', fx: '#fff1b0' }, alt: { body: '#b5713a', dark: '#7d4a22', acc: '#e0302f', skin: '#f2b632', fx: '#ffd08a' } },
@@ -4686,7 +4686,7 @@ function nevelBlade(g, a, L, blade, edge, glow) {
 }
 function drawPuppetBase(g, ck, col, P, o = {}) {
   const c = CHARS[ck], h = c.h, lw = c.limb, cr = P.crouch || 0, fr = o.fr || 0, lean = P.lean || 0;
-  const hipH = h * 0.42 * (1 - cr * 0.38), LL = h * 0.22, AL = h * (c.arm || 0.165), tl = h * 0.3 * (1 - cr * 0.12);
+  const LL = h * (c.leg || 0.22), hipH = LL * 1.91 * (1 - cr * 0.38), AL = h * (c.arm || 0.165), tl = h * 0.3 * (1 - cr * 0.12);
   const hr = h * (c.hr || 0.155);
   g.save(); g.lineCap = 'round'; g.lineJoin = 'round';
   g.translate(0, P.dy || 0);
