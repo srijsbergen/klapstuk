@@ -39,9 +39,10 @@ python -m http.server 8000
 
 Ga daarna naar http://localhost:8000.
 
-## Training en toetsen
+## Training, replays en toetsen
 
 - **Training: bokszak** (in het menu) zet je eerste menselijke speler tegenover een bokszak die niets doet, met onbeperkt levens. Linksboven staan je combo, de beste combo, de laatste klap en welke aanvallen verzwakt zijn door herhaling. Met **R** zet je de zak terug en met **H** toon je raakvlakken (ook via het pauzemenu).
+- **Replays.** Elk gevecht wordt opgenomen, ook online. Op het uitslagscherm kies je **Terugkijken** of **Bewaar replay**; dat laatste slaat een klein `.klap`-bestand op (een paar honderd kB voor een gevecht van drie minuten). Met **Replay openen** in het menu speel je zo'n bestand later weer af, met pauze, spoelen en halve of dubbele snelheid. Een replay bewaart wat er gebeurde, geen video: als een vechter later anders getekend wordt, zie je dat ook in oude replays.
 - Onder **Beeld** (onderaan het menu) zet je **Detail** aan of uit: schaduw, fijnere lijnen, vuisten en schoenen op de vechters. Op telefoons en tablets staat het standaard uit; zet het ook uit als het spel hapert. Daar zet je ook een teller aan die tijdens een gevecht onder de pauzeknop laat zien hoeveel beelden per seconde het spel haalt.
 - Onder **Besturing en technieken** kun je de toetsen van beide toetsenbord-indelingen aanpassen: klik op een toets en druk de nieuwe. Je instellingen blijven bewaard in je browser.
 

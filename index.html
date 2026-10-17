@@ -207,6 +207,13 @@ button:focus-visible,select:focus-visible,input:focus-visible,canvas:focus-visib
 .res .nm{font-weight:700;font-size:17px}
 .res .st{color:var(--mute);font-size:13px;font-variant-numeric:tabular-nums}
 #fps{position:absolute;top:calc(56px + env(safe-area-inset-top,0px));right:12px;width:42px;text-align:center;font:600 11px/1 ui-monospace,Consolas,monospace;color:rgba(255,255,255,.75);text-shadow:0 1px 2px rgba(0,0,0,.8);pointer-events:none}
+#rbar{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);width:min(640px,calc(100% - 24px));display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:12px;background:rgba(18,14,29,.78);border:1px solid rgba(255,255,255,.2)}
+#rbar[hidden],#rpBtns[hidden]{display:none}
+#rbar button{flex:none;min-width:40px;height:36px;padding:0 10px;border-radius:9px;background:var(--panel-2);border:1px solid var(--line);font-weight:700}
+#rbar input{flex:1;min-width:40px;accent-color:var(--gold)}
+#rbar .rl{font-family:var(--display);color:var(--gold);font-size:18px;letter-spacing:.03em;padding-left:4px}
+#rbar .rt{font:600 12.5px/1 ui-monospace,Consolas,monospace;color:var(--mute);white-space:nowrap}
+@media (max-width:480px){#rbar .rl{display:none}}
 #pbtn{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:12px;width:42px;height:42px;border-radius:10px;background:rgba(18,14,29,.6);border:1px solid rgba(255,255,255,.25);font-weight:700;letter-spacing:-.05em}
 #touch{position:absolute;inset:0;pointer-events:none}
 #dpad{position:absolute;left:calc(18px + env(safe-area-inset-left,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));width:148px;height:148px;border-radius:50%;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.22);pointer-events:auto;touch-action:none}
@@ -444,6 +451,7 @@ window.KlapP2P = (() => {
           </div>
           <button class="go" id="go">Vechten!</button>
           <button class="btn" id="train">Training: bokszak</button>
+          <button class="btn" id="rpOpen">Replay openen</button><input type="file" id="rpFile" accept=".klap,.json,.gz" hidden>
           <p class="hint" id="netHint" hidden></p>
           <p class="msg" id="msg" role="status"></p>
         </section>
@@ -456,6 +464,7 @@ window.KlapP2P = (() => {
         <button class="btn small" id="kbReset">Standaardtoetsen herstellen</button>
         <ul class="tips">
           <li><b>Muziek</b>: druk <b>N</b> om de muziek aan of uit te zetten, ook tijdens een gevecht. In het menu en in het pauzescherm stel je met twee schuifjes de verhouding tussen muziek en effecten in.</li>
+          <li><b>Replays</b>: elk gevecht wordt opgenomen. Op het uitslagscherm kijk je het terug of bewaar je het als .klap-bestand (ook bij online spelen); met <b>Replay openen</b> in het menu speel je zo'n bestand later weer af. Tijdens een replay pauzeert spatie, spoelen pijltjes links en rechts 5 seconden, veranderen omhoog en omlaag de snelheid en sluit Esc.</li>
           <li><b>Omhoog + speciaal</b> is je herstelsprong: daarna kun je niets tot je landt of de rand pakt.</li>
           <li><b>Korte sprong</b>: tik springen kort aan, of druk springen en aanval (vrijwel) tegelijk, voor een lage sprong met meteen een luchtaanval. Houd springen vast voor een volle sprong. Land je tijdens of vlak na een luchtaanval, dan sta je bijna meteen weer klaar voor de volgende aanval.</li>
           <li><b>Luchtaanval omlaag of omhoog</b>: omlaag + aanval geeft een dair zonder dat je snel gaat vallen, en omhoog + aanval een uair zonder je tweede sprong te verbruiken. Tik omlaag nog eens om toch snel te vallen.</li>
@@ -494,10 +503,12 @@ window.KlapP2P = (() => {
       <h2 id="resTitle"></h2>
       <ol class="res" id="resList"></ol>
       <div class="btns"><button class="btn main" id="again">Revanche</button><button class="btn" id="toMenu">Menu</button></div>
+      <div class="btns" id="rpBtns"><button class="btn" id="rpWatch">Terugkijken</button><button class="btn" id="rpSave">Bewaar replay</button></div>
     </div>
   </div>
 
   <button id="pbtn" hidden aria-label="Pauze">II</button>
+  <div id="rbar" hidden role="group" aria-label="Replay"><span class="rl">Replay</span><button id="rpPlay" aria-label="Pauze">❚❚</button><input type="range" id="rpPos" min="0" max="1000" value="0" aria-label="Positie in de replay"><span class="rt" id="rpTime">0:00 / 0:00</span><button id="rpSpeed" aria-label="Snelheid">1×</button><button id="rpClose" aria-label="Replay sluiten">✕</button></div>
   <div id="fps" hidden aria-hidden="true"></div>
   <div id="touch" hidden>
     <div id="dpad" aria-label="Richting"><span id="knob"></span></div>
@@ -516,7 +527,7 @@ window.KlapP2P = (() => {
 'use strict';
 const $ = s => document.querySelector(s);
 const app = $('#app'), cv = $('#cv'), ctx = cv.getContext('2d');
-const menuEl = $('#menu'), pauseEl = $('#pause'), resEl = $('#results'), pbtn = $('#pbtn'), touchEl = $('#touch');
+const menuEl = $('#menu'), pauseEl = $('#pause'), resEl = $('#results'), pbtn = $('#pbtn'), touchEl = $('#touch'), rbar = $('#rbar');
 const TAU = Math.PI * 2, INK = '#15111f';
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -4330,6 +4341,8 @@ function startMatch(demo, custom, cfg) {
     f.reset(x, S.main.y); f.grounded = true; f.ground = S.main; f.state = 'idle'; f.facing = x <= 0 ? 1 : -1;
     return f;
   });
+  G.replay = null; rbar.hidden = true;
+  G.rec = demo ? null : recNew(S.key, G.musicId, recRoster());
   updateCam(true);
 }
 function checkEnd() {
@@ -4353,11 +4366,12 @@ function sim() {
   G.shake *= 0.86; if (G.flash > 0) G.flash--;
 }
 function tick() {
+  if (G.replay) return replayTick();
   if (G.netClient) return netClientTick();
   if (G.mode === 'results') { if (G.net && !NET.sentResults) { NET.sentResults = true; netHostSend(); } return; }
   if (G.mode === 'none') return;
-  if (G.mode === 'gameover') { G.endT++; if (G.endT > 150) { showResults(); return; } if (G.endT % 3) { if (G.net) netHostSend(); return; } }
-  sim();
+  if (G.mode === 'gameover') { G.endT++; if (G.endT > 150) { showResults(); return; } if (G.endT % 3) { recTick(false); if (G.net) netHostSend(); return; } }
+  sim(); recTick(true);
   if (G.net) netHostSend();
 }
 
@@ -7098,7 +7112,7 @@ function syncOpts() {
   else if (!NET.game) go.hidden = true;
   else if (NET.role === 'host') { go.hidden = false; go.disabled = false; go.textContent = 'Start!'; }
   else { go.hidden = false; go.disabled = true; go.textContent = 'Wachten op host…'; }
-  $('#train').hidden = online(); $('#netHint').hidden = !online() || !NET.game;
+  $('#train').hidden = $('#rpOpen').hidden = online(); $('#netHint').hidden = !online() || !NET.game;
 }
 function setMode(m) {
   if (m === UIM && m === 'online') { if (NET.game) { showLobby(); renderLobby(); } else showNetStart(); syncOpts(); return; }
@@ -7210,7 +7224,118 @@ function showResults() {
   const ag = $('#again'), tm = $('#toMenu');
   if (G.net && NET.role === 'guest') { ag.disabled = true; ag.textContent = 'Wachten op host…'; tm.textContent = 'Spel verlaten'; }
   else { ag.disabled = false; ag.textContent = 'Revanche'; tm.textContent = G.net ? 'Naar lobby' : 'Menu'; }
+  $('#rpBtns').hidden = !recOk(); $('#rpWatch').hidden = !!G.net; $('#rpSave').textContent = 'Bewaar replay';
   resEl.hidden = false; (ag.disabled ? tm : ag).focus();
+}
+
+/* ---------------- replays ---------------- */
+// A match is recorded as the same snapshots online guests play from: one per simulated frame, kept as JSON text so a
+// long match stays small. Watching it again goes through netApply, just like a guest, so sounds and hit sparks come back too.
+const REC_MAX = 60 * 60 * 30;
+const recRoster = () => G.fighters.map(f => [f.slot, f.baseKey, f.skin, f.cpu ? 1 : 0, f.lvl]);
+const recOk = () => !!(G.rec && G.rec.s.length > 1);
+function recNew(st, mu, ro) { return { st, mu: mu == null ? null : mu, ro, d: new Date().toISOString(), t: 0, s: [] }; }
+function recTick(ran) {
+  const R = G.rec; if (!R || G.training) return;
+  R.t++; if (ran && R.s.length < REC_MAX) R.s.push(JSON.stringify(Object.assign({ q: R.t }, gameSnap())));
+}
+async function recSave() {
+  if (!recOk()) return;
+  const R = G.rec, d = new Date(R.d), p = n => String(n).padStart(2, '0'), b = $('#rpSave');
+  const txt = '{"klapstuk":"replay","v":1,"d":' + JSON.stringify(R.d) + ',"st":' + JSON.stringify(R.st) + ',"mu":' + JSON.stringify(R.mu) + ',"ro":' + JSON.stringify(R.ro) + ',"s":[' + R.s.join(',') + ']}';
+  let blob = new Blob([txt], { type: 'application/json' });
+  try { if (typeof CompressionStream === 'function') blob = await new Response(blob.stream().pipeThrough(new CompressionStream('gzip'))).blob(); } catch (e) {}
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([blob], { type: 'application/octet-stream' }));
+  a.download = `klapstuk-${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}-${R.ro.map(r => r[1]).join('-')}.klap`;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+  b.textContent = 'Bewaard'; setTimeout(() => { b.textContent = 'Bewaar replay'; }, 1600);
+}
+async function recLoad(file) {
+  const msg = $('#msg');
+  try {
+    let buf = new Uint8Array(await file.arrayBuffer());
+    if (buf[0] === 0x1f && buf[1] === 0x8b) buf = new Uint8Array(await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer());
+    const o = JSON.parse(new TextDecoder().decode(buf));
+    const ro = Array.isArray(o.ro) ? o.ro.slice(0, 4) : [], s = Array.isArray(o.s) ? o.s.filter(x => x && typeof x.q === 'number' && Array.isArray(x.F) && x.m !== 2) : [];
+    if (o.klapstuk !== 'replay' || !ro.length || !ro.every(Array.isArray) || s.length < 2) throw new Error('geen replay');
+    s.sort((a, b) => a.q - b.q); msg.textContent = '';
+    replayStart({ st: o.st, mu: o.mu, ro, s }, null);
+  } catch (e) { msg.textContent = 'Dit bestand is geen Klapstuk-replay, of het is beschadigd.'; }
+}
+function replayWatch() {
+  if (!recOk() || G.net) return;
+  // keep the finished match, so closing the replay goes back to this results screen
+  const back = {}; for (const k of ['stage', 'fighters', 'projs', 'items', 'parts', 'kos', 'frame', 'mode', 'musicId', 'countdown', 'endT', 'winner', 'stocks', 'useItems', 'shake', 'flash']) back[k] = G[k];
+  const R = G.rec; replayStart({ st: R.st, mu: R.mu, ro: R.ro, s: R.s.map(x => JSON.parse(x)) }, back);
+}
+function replayStart(rp, back) {
+  const S = makeStage(STAGES[rp.st] ? rp.st : 'ruins');
+  Object.assign(G, { stage: S, projs: [], items: [], parts: [], kos: [], frame: 0, shake: 0, flash: 0, paused: false, endT: 0, mode: 'match', countdown: 0, stocks: 3, useItems: false, training: false, net: null, netClient: false, hudTop: false });
+  G.fighters = rp.ro.map(r => {
+    const ck = CHARS[r[1]] ? r[1] : 'volt', f = new Fighter(clamp(r[0] | 0, 0, 3), ck, 'none', clamp(r[4] | 0, 1, 12), clamp(r[2] | 0, 0, SKINS - 1));
+    f.cpu = !!r[3]; f.state = 'idle'; f.grounded = true; f.ground = S.main; return f;
+  });
+  G.musicId = MUSIC.valid(rp.mu) ? rp.mu : null;
+  const s = rp.s;
+  G.replay = { s, q0: s[0].q, end: s[s.length - 1].q, t: s[0].q, i: 0, speed: 1, paused: false, drag: false, back, ui: 0 };
+  menuEl.hidden = true; resEl.hidden = true; pauseEl.hidden = true; pbtn.hidden = true; touchEl.hidden = true; rbar.hidden = false;
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  SFX.init(); replayShow(true); replayUI();
+}
+function replayClose() {
+  const R = G.replay; if (!R) return;
+  G.replay = null; rbar.hidden = true;
+  if (R.back) { Object.assign(G, R.back); showResults(); } else showMenu();
+}
+function replayShow(seek) {
+  const R = G.replay, S = R.s;
+  let i = R.i;
+  if (seek || S[i].q > R.t) { let lo = 0, hi = S.length - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (S[m].q <= R.t) lo = m; else hi = m - 1; } i = lo; }
+  else while (i + 1 < S.length && S[i + 1].q <= R.t) i++;
+  R.i = i;
+  const a = S[i], b = S[i + 1] || null, k = b ? clamp((R.t - a.q) / Math.max(1, b.q - a.q), 0, 1) : 0;
+  if (seek) {
+    // a jump should not sound like every hit and KO in between: start from the state it lands on
+    NET.prevSnap = null; G.parts = []; G.kos = []; G.shake = 0; G.flash = 0;
+    G.countdown = clamp(a.cd | 0, 0, 999); G.mode = MODE_LIST[a.m] || 'match';
+    a.F.forEach((r, j) => { const f = G.fighters[j]; if (f && Array.isArray(r)) { f.state = ST_LIST[r[0]] || 'idle'; f.percent = (r[9] | 0) / 10; } });
+  }
+  netApply(a, b, k);
+  if (!seek) hazardFx(G.stage);
+  updateParts(); updateCam(seek); G.shake *= 0.86; if (G.flash > 0) G.flash--;
+}
+function replayTick() {
+  const R = G.replay;
+  if (R.paused || R.drag) return;
+  R.t = Math.min(R.end, R.t + R.speed); replayShow(false);
+  if (R.t >= R.end) R.paused = true;
+  if (++R.ui % 6 === 0 || R.paused) replayUI();
+}
+const fmtT = n => { const s = Math.max(0, Math.round(n / 60)); return (s / 60 | 0) + ':' + String(s % 60).padStart(2, '0'); };
+function replayUI() {
+  const R = G.replay; if (!R) return;
+  const len = Math.max(1, R.end - R.q0), pb = $('#rpPlay');
+  if (!R.drag) $('#rpPos').value = String(Math.round((R.t - R.q0) / len * 1000));
+  $('#rpTime').textContent = fmtT(R.t - R.q0) + ' / ' + fmtT(len);
+  pb.textContent = R.paused ? '▶' : '❚❚'; pb.setAttribute('aria-label', R.paused ? 'Afspelen' : 'Pauze');
+  $('#rpSpeed').textContent = (R.speed === 0.5 ? '½' : R.speed) + '×';
+}
+function replayToggle() {
+  const R = G.replay; if (!R) return;
+  if (R.paused && R.t >= R.end) { R.t = R.q0; replayShow(true); }
+  R.paused = !R.paused; replayUI();
+}
+function replaySeek(t) { const R = G.replay; if (!R) return; R.t = clamp(t, R.q0, R.end); replayShow(true); replayUI(); }
+// d 0 cycles ½× 1× 2×, ±1 steps
+function replaySpeed(d) { const L = [0.5, 1, 2], R = G.replay; if (!R) return; const j = L.indexOf(R.speed); R.speed = L[d ? clamp(j + d, 0, 2) : (j + 1) % 3]; replayUI(); }
+function replayKey(e) {
+  if (e.code === 'Escape') { e.preventDefault(); replayClose(); return; }
+  // with a bar button or the slider focused, let it handle its own keys
+  const a = document.activeElement;
+  if (a && a !== document.body && rbar.contains(a) && ['Space', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) return;
+  if (e.code === 'Space' || e.code === 'KeyK' || e.code === 'Enter') { e.preventDefault(); if (!e.repeat) replayToggle(); }
+  else if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') { e.preventDefault(); replaySeek(G.replay.t + (e.code === 'ArrowLeft' ? -300 : 300)); }
+  else if (e.code === 'ArrowUp' || e.code === 'ArrowDown') { e.preventDefault(); replaySpeed(e.code === 'ArrowUp' ? 1 : -1); }
 }
 
 /* ---------------- online ---------------- */
@@ -7475,13 +7600,14 @@ function snapF(f) {
   return [ST_LIST.indexOf(f.state), Math.round(f.x), Math.round(f.y), f.facing, mk, f.mt | 0, f.charge | 0, f.t | 0, fl, Math.round(f.percent * 10), f.stocks, Math.round(f.shieldHP), f.invuln | 0, f.hitlag | 0, f.frozen | 0, f.flash | 0, f.djT | 0,
     Math.round(f.runPh * 100) % 100000, Math.round(f.vx * 10), evk, evd, ev ? ev.dur : 0, f.stats.ko, f.stats.falls, Math.round(f.stats.dmg), f.elim | 0, f.item ? ITEM_LIST.indexOf(f.item.type) : -1, f.copy || '', Math.round((f.aim || 0) * 100), f.key, Math.round(f.ki || 0)];
 }
-function netSnap() {
+function gameSnap() {
   const F = G.fighters, P = [];
   for (const p of G.projs) { if (P.length >= 24) break; P.push([p.id, PT_LIST.indexOf(p.type), Math.round(p.x), Math.round(p.y), Math.round(p.vx * 10), Math.round(p.vy * 10), p.t | 0, p.life | 0, Math.round((p.rot || 0) * 100) % 100000, F.indexOf(p.owner), Math.round(p.r)]); }
   const I = G.items.slice(0, 10).map(it => [ITEM_LIST.indexOf(it.type), Math.round(it.x), Math.round(it.y), it.t | 0, it.holder ? F.indexOf(it.holder) : -1]);
   const L = G.stage.lava ? [LAVA_ST.indexOf(G.stage.lava.st), Math.round(G.stage.lava.y)] : 0;
-  return { q: ++NET.seq, f: G.frame, m: Math.max(0, MODE_LIST.indexOf(G.mode)), cd: G.countdown, et: G.endT, F: F.map(snapF), P, I, L };
+  return { f: G.frame, m: Math.max(0, MODE_LIST.indexOf(G.mode)), cd: G.countdown, et: G.endT, F: F.map(snapF), P, I, L };
 }
+function netSnap() { return Object.assign({ q: ++NET.seq }, gameSnap()); }
 function netHostSend() {
   if (!NET.game || NET.role !== 'host' || !G.net) return;
   const pres = { role: 'host', pz: G.paused ? 1 : 0, mu: G.musicId, ph: G.mode === 'results' ? 'results' : 'match', code: NET.code, ch: NET.ch, cfg: NET.cfg, ord: NET.ord, mid: NET.mid, st: G.stage.key, ro: NET.ro, s: netSnap() };
@@ -7509,6 +7635,7 @@ function netClientStart(hp) {
     f.cpu = !!(r && r[3]); f.state = 'idle'; f.grounded = true; f.ground = S.main; return f;
   });
   G.netClient = true; G.net = { role: 'guest' }; G.hostPause = false; G.musicId = MUSIC.valid(hp.mu) ? hp.mu : null;
+  G.replay = null; rbar.hidden = true; G.rec = recNew(S.key, G.musicId, recRoster());
   menuEl.hidden = true; resEl.hidden = true; pauseEl.hidden = true; pbtn.hidden = false;
   touchEl.hidden = NET.src !== 'touch'; G.hudTop = NET.src === 'touch';
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
@@ -7519,6 +7646,7 @@ function netPushSnap(sn) {
   const L = NET.snaps;
   if (L.length && sn.q <= L[L.length - 1].q) { if (sn.q < L[L.length - 1].q - 300) NET.snaps = [sn]; return; }
   L.push(sn); if (L.length > 30) L.shift();
+  if (G.rec && sn.m !== 2 && G.rec.s.length < REC_MAX) G.rec.s.push(JSON.stringify(sn));
 }
 function netSendInput() {
   if (!NET.game || NET.role !== 'guest') return;
@@ -7552,7 +7680,7 @@ function netApply(a, b, k) {
     G.countdown = cd; G.endT = a.et | 0;
     const m = MODE_LIST[a.m] || 'match';
     if (m === 'gameover' && G.mode === 'match') SFX.game();
-    if (m === 'results') { if (G.mode !== 'results') showResults(); } else G.mode = m;
+    if (m === 'results') { if (G.mode !== 'results' && !G.replay) showResults(); } else G.mode = m;
   }
   a.F.forEach((r, i) => { const f = G.fighters[i]; if (f && Array.isArray(r)) netFighter(f, r, b && Array.isArray(b.F[i]) ? b.F[i] : null, k, fresh); });
   const bm = new Map(); if (b && Array.isArray(b.P)) for (const r of b.P) if (Array.isArray(r)) bm.set(r[0], r);
@@ -7633,6 +7761,7 @@ addEventListener('keydown', e => {
   SFX.init();
   // N (for notes) switches the music on and off anywhere; M is player 2's grab key
   if (e.code === 'KeyN' && !e.repeat && !GAMEKEYS.has('KeyN') && !typing() && !kbWait) { toggleMusic(); return; }
+  if (G.replay) { replayKey(e); return; }
   if ((G.mode === 'match' || G.mode === 'gameover') && GAMEKEYS.has(e.code)) e.preventDefault();
   else if (!menuEl.hidden && GAMEKEYS.has(e.code) && !typing() && !kbWait) e.preventDefault();
   if (e.code === 'Escape' || (e.code === 'KeyP' && G.mode === 'match' && !GAMEKEYS.has('KeyP'))) { if (G.mode === 'match' || G.mode === 'gameover') { setPause(pauseEl.hidden); e.preventDefault(); return; } if (G.mode === 'results' && !G.net) { showMenu(); return; } }
@@ -7654,6 +7783,16 @@ $('#toLobby').addEventListener('click', () => { if (G.net && NET.role === 'host'
 $('#again').addEventListener('click', () => { if (G.net) netStartMatch(); else goFight(); });
 $('#toMenu').addEventListener('click', () => { if (G.net) { if (NET.role === 'host') netBackToLobby(); else netLeave(); } else showMenu(); });
 pbtn.addEventListener('click', () => setPause(pauseEl.hidden));
+$('#rpWatch').addEventListener('click', replayWatch);
+$('#rpSave').addEventListener('click', recSave);
+$('#rpOpen').addEventListener('click', () => $('#rpFile').click());
+$('#rpFile').addEventListener('change', e => { const fl = e.target.files && e.target.files[0]; e.target.value = ''; if (fl) recLoad(fl); });
+$('#rpPlay').addEventListener('click', replayToggle);
+$('#rpSpeed').addEventListener('click', () => replaySpeed(0));
+$('#rpClose').addEventListener('click', replayClose);
+$('#rpPos').addEventListener('pointerdown', () => { if (G.replay) G.replay.drag = true; });
+$('#rpPos').addEventListener('input', e => { const R = G.replay; if (R) replaySeek(R.q0 + (+e.target.value / 1000) * (R.end - R.q0)); });
+for (const ev of ['pointerup', 'pointercancel']) addEventListener(ev, () => { if (G.replay && G.replay.drag) { G.replay.drag = false; replayUI(); } });
 // touch controls
 (() => {
   const pad = $('#dpad'), knob = $('#knob'); let pid = null;
@@ -7739,7 +7878,7 @@ function pollPadStart() {
   const pads = getPads();
   for (let i = 0; i < 2; i++) {
     const gp = pads && pads[i], s = !!(gp && gp.buttons[9] && gp.buttons[9].pressed);
-    if (s && !padStart[i]) { if (G.mode === 'match' || G.mode === 'gameover') setPause(pauseEl.hidden); else if (!G.net && !menuEl.hidden && !online()) goFight(); else if (G.mode === 'results' && !G.net) goFight(); }
+    if (s && !padStart[i]) { if (G.replay) replayToggle(); else if (G.mode === 'match' || G.mode === 'gameover') setPause(pauseEl.hidden); else if (!G.net && !menuEl.hidden && !online()) goFight(); else if (G.mode === 'results' && !G.net) goFight(); }
     padStart[i] = s;
   }
 }
