@@ -1070,6 +1070,8 @@ Object.assign(CHARS, {
     col: { body: '#2f5bb0', dark: '#1d2a52', acc: '#c8312f', skin: '#f0c9a0', fx: '#ffb347', hair: '#2c46a6' }, alt: { body: '#5a4632', dark: '#2b231c', acc: '#2f7d45', skin: '#e8bf95', fx: '#ffd45e', hair: '#d8d4c8' } },
   nevel: { name: 'Nevel', blurb: 'Zwaardvechter in een lange zwarte jas, uit een virtuele wereld. Zijn zwaardtechnieken lichten op: een vorpaalsteek die je oplaadt, vier snelle sneden terwijl hij vooruit glijdt, een sonische sprong omhoog en een snede die projectielen doormidden hakt. Druk in de nasleep van een techniek opnieuw speciaal in een andere richting en hij trekt zijn tweede zwaard: de volgende techniek volgt meteen, tot vier achter elkaar.', weight: 90, run: 7.4, acc: 1.15, jump: 15.5, djump: 14.5, grav: 0.84, fall: 12.5, ffall: 18, air: 5.0, airAcc: 0.5, airJumps: 1, w: 40, h: 82, pow: 1, reach: 1.28, lag: 0, limb: 10, hr: 0.15, sideRec: true,
     col: { body: '#22202b', dark: '#121118', acc: '#8f8c9e', skin: '#f6d2b0', fx: '#8fd8ff', hair: '#17161d' }, alt: { body: '#e9ecf3', dark: '#2a3550', acc: '#4f6fb8', skin: '#f6d2b0', fx: '#ffd36a', hair: '#17161d' } },
+  marsepein: { name: 'Marsepein', blurb: 'Half-elfse magiër met een lange blonde vlecht en een levende staf. Haar antwoord op alles is een explosie: zet een toverkring neer, houd vast om hem verder weg te schuiven, en even later ontploft hij (sta er zelf niet in). Een flitsspreuk die verdooft, een barrière om vanaf omhoog te springen en een genezing die snel werkt, maar wel pijn doet; daarna moet ze tien tellen wachten.', weight: 88, run: 6.5, acc: 1, jump: 15, djump: 14, grav: 0.72, fall: 10.5, ffall: 15.5, air: 4.8, airAcc: 0.48, airJumps: 1, w: 40, h: 78, pow: 1.12, reach: 1.15, lag: 0, limb: 9, zoner: 'side', hr: 0.165,
+    col: { body: '#2f5fa8', dark: '#ece8dc', acc: '#c8323a', skin: '#f8dcc0', fx: '#ff9a3c', hair: '#f2d16b' }, alt: { body: '#5b3f8c', dark: '#2a2236', acc: '#e8c548', skin: '#f8dcc0', fx: '#c38bff', hair: '#f2d16b' } },
 });
 const CHAR_KEYS = Object.keys(CHARS).filter(k => !CHARS[k].hidden);
 
@@ -1082,7 +1084,7 @@ const FINALS = {
   rat: ['storm', 'Donderstorm'], kakel: ['storm', 'Eierregen'], ninja: ['rush', 'Duizend Sneden'], techno: ['nova', 'Bloed voor de Bloedgod'],
   schim: ['nova', 'Chaosexplosie'], gokko: ['beam', 'Superstraal'], rekker: ['rush', 'Rubberstorm'], draai: ['rush', 'Klonenleger'],
   aardbei: ['beam', 'Zwarte Maansnede'], sleutel: ['storm', 'Sleutelregen'], bot: ['beam', 'Gasterkanon'], eik: ['rush', 'Grote Hemelsnede'],
-  nevel: ['rush', 'Sterrenstroom'],
+  nevel: ['rush', 'Sterrenstroom'], marsepein: ['nova', 'Oude Magie'],
 };
 // Joep's hand-made colourways: the magenta cap, black shirt and purple shorts of the classic look, and an all black-and-red one
 CHARS.joep.skins = [{ name: 'Roze pet', body: '#2a2830', dark: '#6a52a8', acc: '#d4458e', skin: '#f6cfa8', fx: '#ff9bd0' },
@@ -1140,6 +1142,7 @@ const THROWS = {
   volt:  { f: { d: 6, a: 40, b: 55, g: 45, fx: 'zap', pre: [3, 5], preD: 1 }, b: { d: 7, a: 135, b: 55, g: 50, fx: 'zap', pre: [4, 6], preD: 1 },
            u: { d: 5, a: 90, b: 72, g: 55, fx: 'zap', pre: [4, 6], preD: 1 }, d: { d: 3, a: 82, b: 42, g: 28, fx: 'zap', start: 12, end: 6, pre: [3, 5, 7, 9], preD: 1 } },
   brick: { f: { d: 11, a: 40, b: 70, g: 70, fx: 'slam' }, b: { d: 12, a: 140, b: 60, g: 95, fx: 'slam' }, u: { d: 9, a: 88, b: 65, g: 80 }, d: { d: 8, a: 75, b: 55, g: 50, fx: 'slam' } },
+  marsepein: { f: { d: 7, a: 42, b: 60, g: 56, fx: 'burst' }, b: { d: 8, a: 135, b: 55, g: 66 }, u: { d: 7, a: 90, b: 68, g: 54, fx: 'burst' }, d: { d: 5, a: 75, b: 48, g: 40 } },
   nevel: { f: { d: 8, a: 40, b: 60, g: 60, fx: 'slash' }, b: { d: 9, a: 135, b: 52, g: 76, fx: 'slash' }, u: { d: 7, a: 90, b: 65, g: 55, fx: 'slash' }, d: { d: 5, a: 80, b: 45, g: 35, fx: 'slam' } },
   eik:   { f: { d: 8, a: 40, b: 68, g: 62, fx: 'slash' }, b: { d: 10, a: 140, b: 62, g: 72 }, u: { d: 8, a: 90, b: 70, g: 62, fx: 'slash' }, d: { d: 6, a: 75, b: 55, g: 45, fx: 'slam', end: 8 } },
   sable: { f: { d: 8, a: 28, b: 60, g: 60, fx: 'slash' }, b: { d: 9, a: 140, b: 50, g: 72, fx: 'slash' }, u: { d: 6, a: 90, b: 55, g: 40, fx: 'slash' }, d: { d: 5, a: 85, b: 45, g: 30, fx: 'slash', end: 8 } },
@@ -1222,6 +1225,14 @@ const AIRS = {
     bair: M({ start: 6, active: 4, end: 16, pose: 'elbowB', aerial: true, afx: 'slash', ll: 10, hb: [H(-60, -46, 22, 13, 140, 38, 98), H(-30, -52, 20, 8, 140, 30, 80)] }),
     uair: M({ start: 5, active: 5, end: 13, pose: 'upswing', aerial: true, afx: 'slash', ll: 8, hb: [H(0, -112, 26, 12, 88, 34, 98, { nr: 1 }), H(26, -88, 22, 8, 80, 30, 80)] }),
     dair: M({ start: 9, active: 5, end: 18, pose: 'swingDown', aerial: true, afx: 'slash', ll: 15, hb: [H(0, 30, 26, 14, 275, 38, 90, { nr: 1 })] }),
+  }),
+  // Marsepein: light staff swings, with a little fire in the up air
+  marsepein: (M, H) => ({
+    nair: M({ start: 5, active: 12, end: 10, pose: 'nair', aerial: true, afx: 'star', ll: 7, hb: [H(0, -40, 38, 8, 50, 28, 80, { nr: 1, f1: 5 }), H(0, -40, 34, 5, 50, 20, 70, { nr: 1, f0: 5 })] }),
+    fair: M({ start: 7, active: 4, end: 14, pose: 'axe', aerial: true, ll: 10, hb: [H(48, -48, 24, 9, 45, 32, 90), H(26, -50, 18, 7, 50, 28, 84)] }),
+    bair: M({ start: 6, active: 4, end: 14, pose: 'bair', aerial: true, ll: 9, hb: [H(-48, -38, 22, 10, 145, 34, 96)] }),
+    uair: M({ start: 6, active: 5, end: 12, pose: 'clapUp', aerial: true, afx: 'fire', ll: 8, hb: [H(0, -96, 30, 9, 88, 32, 94, { nr: 1 })] }),
+    dair: M({ start: 10, active: 4, end: 16, pose: 'swingDown', aerial: true, ll: 11, hb: [H(0, 20, 24, 11, 272, 34, 84, { nr: 1 })] }),
   }),
   // Nevel: quick one-handed cuts
   nevel: (M, H) => ({
@@ -1469,6 +1480,11 @@ function spawnWave(f, dir, plat) {
 }
 // Nevel's skill connect: in the delay after a sword skill, special in another direction starts that skill at once;
 // each skill once per chain, so at most four, and the leap upward ends it
+function nearFoe(f) {
+  let b = null, bd = 1e9;
+  for (const v of G.fighters) { if (v === f || v.out || v.state === 'dead' || v.state === 'respawn') continue; const d = Math.hypot(v.x - f.x, v.y - f.y); if (d < bd) { bd = d; b = v; } }
+  return b;
+}
 function skillConnect(f, t) {
   const m = f.move;
   if (f.key !== 'nevel' || m.helpless || t <= m.start + m.active || !(f.bf.spc > 0)) return false;
@@ -1547,6 +1563,60 @@ const SPECIALS = {
       hb: [0, 1, 2, 3].map(i => H(0, -44, 34, 2.5, 90, 30, 0, { nr: 1, f0: i * 5, f1: i * 5 + 5, grp: i + 1 })).concat([H(0, -50, 38, 6, 80, 55, 88, { nr: 1, f0: 20, f1: 24, grp: 9 })]),
       tick: (f, t) => { if (t === 4) { f.vy = -15; f.grounded = false; f.ground = null; SFX.swing(); } if (t > 4 && t < 24 && f.vy > -6) f.vy -= 0.3; } }),
     downB: M({ special: true, start: 5, active: 22, end: 18, pose: 'counter', counter: [5, 27], tick: f => { if (!f.grounded && f.vy > 1) f.vy = 1; } }),
+  }),
+  marsepein: (M, H, s) => ({
+    // Explosie: a magic circle appears in front; hold to push it further out, let go and it blows up a moment later,
+    // also on Marsepein herself if she stands in it. The CPU lets go once the circle reaches its target
+    neutralB: M({ special: true, start: 6, active: 300, end: 0, dur: 320, pose: 'cast',
+      tick: (f, t) => {
+        if (!f.grounded && f.vy > 1.2) f.vy = 1.2; f.vx *= 0.8;
+        if (t < 6) return;
+        if (t === 6) f.charge = 90;
+        let hold = f.ctrl.h.spc;
+        // the CPU aims where the target will be when the circle goes off
+        if (f.cpu) { const v = nearFoe(f), tx = v ? v.x + (v.hitstun > 0 ? 0 : v.vx * 14) : 0; hold = !!v && Math.sign(tx - f.x) === f.facing && Math.abs(tx - f.x) > f.charge * s + 8; }
+        if (hold && f.charge < 360 && t < 120) { f.charge += 9; return; }
+        const r = 56 * Math.max(1, s);
+        spawnProj({ type: 'mcircle', owner: f, x: f.x + f.facing * f.charge * s, y: f.y - 40 * s, r, life: 16, ghost: true, pierce: true, reflect: false, hb: { d: 17, a: 50, b: 50, g: 84 },
+          onDie: p => { boom(p.x, p.y, p.owner, p.r, p.hb); G.shake = Math.max(G.shake, 8); SFX.boom(); } });
+        f.charge = 0; f.startMove(f.M.castEnd); SFX.zap();
+      } }),
+    castEnd: M({ special: true, start: 1, active: 1, end: 16, pose: 'cast', tick: f => { if (!f.grounded && f.vy > 1.5) f.vy = 1.5; } }),
+    // Flitsspreuk: a slow ball of light that stuns whoever it touches; one at a time
+    sideB: M({ special: true, start: 9, active: 1, end: 18, pose: 'cast',
+      tick: (f, t) => {
+        if (!f.grounded && f.vy > 1.5) f.vy = 1.5;
+        if (t !== 9) return;
+        if (G.projs.some(p => p.owner === f && p.type === 'flashb' && !p.dead)) { sparkFx(f.x + f.facing * 34 * s, f.y - 44 * s, '#cfcfcf', 3); return; }
+        spawnProj({ type: 'flashb', owner: f, x: f.x + f.facing * 34 * s, y: f.y - 44 * s, vx: f.facing * 8.5, r: 13, life: 32, hb: { d: 4, a: 80, b: 26, g: 0, stun: 38 } }); SFX.zap();
+      } }),
+    // Barrièresprong: a magic circle under her feet throws her up; the circle hits whoever is right below
+    upB: M({ special: true, start: 7, active: 16, end: 12, pose: 'upB', helpless: true, ledgeOK: 16, noDrift: true, ll: 14,
+      hb: [H(0, 10, 36, 9, 270, 30, 70, { nr: 1, when: (f, t) => t >= 7 && t <= 10 })],
+      noGrav: (f, t) => t <= 22,
+      tick: (f, t) => {
+        if (t < 7) { f.vx *= 0.7; f.vy *= 0.4; return; }
+        if (t === 7) { if (f.ix) f.facing = f.ix; f.vy = -17; f.vx = f.ix * 3; f.grounded = false; f.ground = null; SFX.zap(); addP({ type: 'ring', x: f.x, y: f.y, life: 16, max: 16, size: 34, color: f.col.fx }); }
+        else if (t <= 22) { f.vy += 0.6; f.vx = approach(f.vx, f.ix * 3.5, 0.3); }
+      } }),
+    // Genezing: hold to heal quickly; it hurts a bit, and afterwards she has to wait ten seconds
+    downB: M({ special: true, start: 8, active: 300, end: 0, dur: 320, pose: 'powerUp',
+      tick: (f, t) => {
+        if (!f.grounded && f.vy > 1) f.vy = 1; f.vx *= 0.8;
+        if (t === 1 && G.frame < (f.healCd || 0)) { f.startMove(f.M.fizzle); return; }
+        if (t < 8) return;
+        if (t === 8) f.healCd = G.frame + 600;
+        let hold = f.ctrl.h.spc;
+        if (f.cpu) { const v = nearFoe(f); hold = !v || Math.hypot(v.x - f.x, v.y - f.y) > 220; }
+        if (hold && t < 53 && f.percent > 0) {
+          f.percent = Math.max(0, f.percent - 0.35); f.hud = 4;
+          if (t % 5 === 0) addP({ type: 'plus', x: f.x + rand(-18, 18), y: f.y - rand(10, f.c.h), vy: -rand(1, 2), life: 26, max: 26, size: 8, color: '#7dff9a' });
+          if (t % 12 === 0) { f.flash = 3; SFX.heal(); }
+          return;
+        }
+        f.startMove(f.M.castEnd);
+      } }),
+    fizzle: M({ special: true, start: 1, active: 1, end: 14, pose: 'cast', tick: (f, t) => { if (t === 1) sparkFx(f.x + f.facing * 26 * s, f.y - 50 * s, '#bdbdbd', 3); } }),
   }),
   nevel: (M, H, s) => {
     // every sword skill starts a chain, unless it was itself connected to the one before
@@ -3384,6 +3454,7 @@ function applyHit(a, v, hb, dir, hx, hy, mult = 1, o = {}) {
   v.move = null; v.ev = null; v.hitstun = Math.floor(kb * 0.4); v.tumble = kb > 80; v.fastfall = false;
   v.upBUsed = false; v.sideBUsed = false; v.airdodged = false; v.pktHit = false;
   if (hb.freeze) { v.frozen = hb.freeze; v.hitstun = Math.max(v.hitstun, hb.freeze); }
+  if (hb.stun) { v.hitstun = Math.max(v.hitstun, hb.stun); addP({ type: 'flash', x: hx, y: hy, life: 10, max: 10, size: 34, color: 'rgba(255,250,200,.95)' }); }
   if (hb.bury && wasGround) { v.buried = true; v.frozen = Math.min(120, Math.round(45 + v.percent * 0.35)); v.hitstun = v.frozen; v.grounded = true; v.ground = wasGround; v.y = wasGround.y; v.lvx = v.lvy = 0; v.tumble = false; dustFx(v.x, v.y, 8); }
   v.setState('hitstun');
   v.hitlag = hl + (kb > 130 ? 4 : 0); if (a && !o.proj) a.hitlag = hl;
@@ -3694,12 +3765,15 @@ class AI {
       const want = adx < 380 && adx > 110 ? 'ninja' : adx > 520 ? 'kakel' : null;
       if (want && want !== f.key && Math.random() < (want === 'ninja' ? 0.03 + L * 0.01 : 0.01 + L * 0.004)) { o.d = true; o.spc = true; return this.out(o, 4); }
     }
+    // the CPU Marsepein follows a stun with an explosion on the spot
+    if (f.key === 'marsepein' && GROUNDED_ACT.includes(st) && t.hitstun > 14 && adx < 400 && Math.abs(dy) < 60) { if (f.facing !== face) { o[fk] = true; return this.out(o, 0); } o.spc = true; return this.out(o, 2); }
     if (sm) { const r = this.smart(t, o); if (r) return r; }
     const threat = t.state === 'attack' && t.move && !t.move.throw && adx < reach + 60 && Math.abs(dy) < 90;
     const incoming = G.projs.some(p => p.owner !== f && p.type !== 'pipbomb' && Math.abs(p.x - f.x) < 130 && Math.abs(p.y - (f.y - f.c.h / 2)) < 70 && (p.vx === 0 || Math.sign(p.vx) === Math.sign(f.x - p.x)));
     if (f.grounded && (threat || incoming) && Math.random() < L * 0.035) { o.shd = true; return this.out(o, 8 + (Math.random() * 10 | 0)); }
     if (adx > reach || Math.abs(dy) > 100) {
       if (t.state === 'respawn') { if (Math.abs(f.x - cx) > 60) o[f.x < cx ? 'r' : 'l'] = true; return this.out(o, 6); }
+      if (f.key === 'marsepein' && f.grounded && adx > 380 && f.percent > 50 && G.frame >= (f.healCd || 0) && Math.random() < 0.02) { o.d = true; o.spc = true; return this.out(o, 4); }
       if (f.c.zoner && f.grounded && adx > 240 && Math.abs(dy) < 70 && Math.random() < 0.01 * L) {
         if (f.facing !== face) { o[fk] = true; return this.out(o, 0); }
         o.spc = true; if (f.c.zoner === 'side' && Math.random() < 0.4) o[fk] = true; return this.out(o, 12);
@@ -4318,6 +4392,11 @@ function drawPuppet(g, ck, col, P, o = {}) {
   if (ck === 'nevel' && o.dual) nevelBlade(g, aB, h * 0.58, '#dff4f2', '#7fd8d0', o.skc);
   else if (ck === 'nevel') { g.lineCap = 'round'; g.strokeStyle = INK; g.lineWidth = 8; g.beginPath(); g.moveTo(sh.x - 24, sh.y - 16); g.lineTo(hip.x + 12, hip.y + 2); g.stroke(); g.strokeStyle = '#3a3746'; g.lineWidth = 4; g.stroke(); g.strokeStyle = INK; g.lineWidth = 7; g.beginPath(); g.moveTo(sh.x - 24, sh.y - 16); g.lineTo(sh.x - 31, sh.y - 25); g.stroke(); g.strokeStyle = '#7fd8d0'; g.lineWidth = 3.5; g.stroke(); }
   if (ck === 'lonk' && !o.sword) { g.lineCap = 'round'; g.strokeStyle = INK; g.lineWidth = 9; g.beginPath(); g.moveTo(sh.x - 18, sh.y - 12); g.lineTo(hip.x + 12, hip.y + 6); g.stroke(); g.strokeStyle = '#6b4423'; g.lineWidth = 5; g.stroke(); g.strokeStyle = '#4f6bd8'; g.lineWidth = 5; g.beginPath(); g.moveTo(sh.x - 18, sh.y - 12); g.lineTo(sh.x - 24, sh.y - 20); g.stroke(); }
+  if (ck === 'marsepein') { // long dress that flares to the ankles
+    g.save(); g.translate(sh.x, sh.y); g.rotate(lean); g.lineWidth = 3; g.strokeStyle = INK; const w = Math.sin(fr * 0.14) * 3;
+    g.beginPath(); g.moveTo(-c.w * 0.3, 0); g.lineTo(c.w * 0.3, 0); g.lineTo(c.w * 0.6 + w, h * 0.6); g.quadraticCurveTo(0, h * 0.67, -c.w * 0.64 + w, h * 0.6); g.closePath();
+    g.fillStyle = col.body; g.fill(); g.stroke(); g.strokeStyle = '#efe6c8'; g.lineWidth = 2.5; g.beginPath(); g.moveTo(c.w * 0.56 + w, h * 0.56); g.quadraticCurveTo(0, h * 0.62, -c.w * 0.6 + w, h * 0.56); g.stroke(); g.restore();
+  }
   if (ck === 'nevel') { // long coat with a split tail
     g.save(); g.translate(sh.x, sh.y); g.rotate(lean); g.lineWidth = 3; g.strokeStyle = INK; const w = Math.sin(fr * 0.16) * 4;
     g.beginPath(); g.moveTo(-c.w * 0.32, 0); g.lineTo(c.w * 0.3, 0); g.lineTo(c.w * 0.36 + w * 0.3, h * 0.64); g.lineTo(c.w * 0.04, h * 0.66 + w * 0.3); g.lineTo(-c.w * 0.06, h * 0.5); g.lineTo(-c.w * 0.2, h * 0.68 + w * 0.4); g.lineTo(-c.w * 0.6 - w, h * 0.62); g.closePath();
@@ -4422,6 +4501,7 @@ function drawPuppet(g, ck, col, P, o = {}) {
       g.beginPath(); g.moveTo(tw * 0.0, -tl + 2); g.lineTo(tw * 0.34, -tl + 2); g.lineTo(tw * 0.3, -tl * 0.28); g.lineTo(tw * 0.17, -tl * 0.12); g.lineTo(tw * 0.04, -tl * 0.28); g.closePath(); g.fillStyle = col.acc; g.fill(); g.stroke(); g.fillStyle = '#ffd34d'; g.font = `bold ${Math.round(tl * 0.22)}px Impact, sans-serif`; g.textAlign = 'center'; g.fillText('B', tw * 0.17, -tl * 0.45); }
     else if (ck === 'joep') { g.save(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.clip(); g.fillStyle = col.dark; for (const yy of [-0.78, -0.4, -0.02]) g.fillRect(-tw / 2, tl * yy, tw, tl * 0.17); g.restore(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.lineWidth = 3; g.strokeStyle = INK; g.stroke(); }
     else if (ck === 'schim') { g.fillStyle = '#f4f4f4'; g.beginPath(); g.moveTo(-tw * 0.32, -tl + 1); g.lineTo(tw * 0.36, -tl + 1); g.lineTo(tw * 0.16, -tl * 0.58); g.lineTo(0, -tl * 0.78); g.lineTo(-tw * 0.16, -tl * 0.58); g.closePath(); g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke(); }
+    else if (ck === 'marsepein') { g.beginPath(); g.ellipse(0, -tl * 0.9, tw * 0.64, tl * 0.25, 0, 0, TAU); g.fillStyle = shade(col.body, 0.8); g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke(); g.strokeStyle = col.acc; g.lineWidth = 3.5; g.beginPath(); g.moveTo(-tw * 0.26, -tl - 1); g.lineTo(tw * 0.26, -tl - 1); g.stroke(); }
     else if (ck === 'nevel') { g.fillStyle = col.dark; g.fillRect(-tw / 2 + 1, -tl * 0.22, tw - 2, tl * 0.12); g.strokeStyle = col.acc; g.lineWidth = 2.5; g.beginPath(); g.moveTo(-tw * 0.02, -tl - 1); g.lineTo(tw * 0.14, tl * 0.1); g.stroke(); g.strokeStyle = '#5a5768'; g.lineWidth = 3; g.beginPath(); g.moveTo(-tw * 0.42, -tl * 0.95); g.lineTo(tw * 0.42, -tl * 0.28); g.stroke(); }
     else if (ck === 'eik') { g.fillStyle = col.dark; g.fillRect(-tw / 2 + 1, -tl * 0.24, tw - 2, tl * 0.13); g.strokeStyle = '#6b4423'; g.lineWidth = 3; g.beginPath(); g.moveTo(-tw * 0.42, -tl * 0.9); g.lineTo(tw * 0.42, -tl * 0.2); g.stroke(); g.beginPath(); g.ellipse(tw * 0.18, -tl * 0.92, tw * 0.36, tl * 0.16, -0.25, 0, TAU); g.fillStyle = '#b9bfcc'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke(); }
     else if (ck === 'sleutel') { g.save(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.clip(); g.fillStyle = col.acc; g.fillRect(-tw * 0.5, -tl * 0.55, tw * 0.26, tl * 0.65); g.fillStyle = '#f4f1ea'; g.fillRect(-tw, -tl - 6, tw * 2, tl * 0.2); g.restore(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.lineWidth = 3; g.strokeStyle = INK; g.stroke(); g.strokeStyle = '#f2c230'; g.lineWidth = 2; g.beginPath(); g.moveTo(tw * 0.12, -tl * 0.8); g.lineTo(tw * 0.12, tl * 0.1); g.stroke(); dot(g, tw * 0.12, -tl * 0.62, 3.5, '#d9dde6'); }
@@ -4584,6 +4664,16 @@ function drawPuppet(g, ck, col, P, o = {}) {
     eye(g, hr * 0.5, hr * 0.02, hr * 0.23, hurt);
     if (!hurt) { g.lineWidth = 2.5; g.beginPath(); g.moveTo(hr * 0.28, -hr * 0.22); g.lineTo(hr * 0.75, -hr * 0.12); g.stroke(); }
     g.lineWidth = 2; g.beginPath(); g.moveTo(hr * 0.35, hr * 0.5); g.lineTo(hr * 0.68, hr * 0.46); g.stroke();
+  } else if (ck === 'marsepein') {
+    // long blonde hair with a thick braid down the back, a fringe, and half-elf ears that end in a small point
+    g.lineWidth = 3; g.strokeStyle = INK; const sw = Math.sin(fr * 0.12) * 0.1;
+    for (let i = 5; i >= 0; i--) { g.beginPath(); g.ellipse(-hr * (0.8 + i * 0.07 + sw * i), hr * (0.45 + i * 0.4), hr * (0.34 - i * 0.025), hr * 0.27, 0.35, 0, TAU); g.fillStyle = col.hair; g.fill(); g.stroke(); }
+    g.beginPath(); g.ellipse(-hr * 0.42, hr * 0.08, hr * 1.18, hr * 1.12, 0, 0, TAU); g.fillStyle = col.hair; g.fill(); g.stroke();
+    g.beginPath(); g.arc(0, 0, hr, 0, TAU); g.fillStyle = col.skin; g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(-hr * 0.98, -hr * 0.05); g.quadraticCurveTo(-hr * 0.95, -hr * 1.12, hr * 0.1, -hr * 1.06); g.quadraticCurveTo(hr * 0.92, -hr * 0.95, hr * 1.0, -hr * 0.2); g.lineTo(hr * 0.74, -hr * 0.48); g.lineTo(hr * 0.52, -hr * 0.2); g.lineTo(hr * 0.32, -hr * 0.56); g.lineTo(hr * 0.04, -hr * 0.26); g.lineTo(-hr * 0.28, -hr * 0.6); g.lineTo(-hr * 0.55, -hr * 0.05); g.closePath(); g.fillStyle = col.hair; g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(-hr * 0.3, -hr * 0.12); g.quadraticCurveTo(-hr * 1.0, -hr * 0.55, -hr * 1.42, -hr * 0.82); g.quadraticCurveTo(-hr * 1.05, -hr * 0.05, -hr * 0.42, hr * 0.32); g.closePath(); g.fillStyle = col.skin; g.fill(); g.stroke();
+    eye(g, hr * 0.5, hr * 0.1, hr * 0.24, hurt);
+    g.lineWidth = 2; g.beginPath(); g.moveTo(hr * 0.42, hr * 0.56); g.quadraticCurveTo(hr * 0.56, hr * 0.63, hr * 0.7, hr * 0.54); g.stroke();
   } else if (ck === 'nevel') {
     // black hair in loose spikes, a fringe over the forehead, a calm look
     g.lineWidth = 3; g.strokeStyle = INK;
@@ -4696,6 +4786,14 @@ function drawPuppet(g, ck, col, P, o = {}) {
     g.beginPath(); g.moveTo(bx - nx * 4, by - ny * 4); g.lineTo(bx + nx * W, by + ny * W); g.lineTo(bx + dx * L + nx * W * 0.8, by + dy * L + ny * W * 0.8); g.lineTo(bx + dx * (L + 10) - nx * 4, by + dy * (L + 10) - ny * 4); g.closePath();
     g.fillStyle = '#2a2d36'; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke();
     g.strokeStyle = '#dfe5f2'; g.lineWidth = 3; g.beginPath(); g.moveTo(bx + nx * (W - 2), by + ny * (W - 2)); g.lineTo(bx + dx * L + nx * (W * 0.8 - 2), by + dy * L + ny * (W * 0.8 - 2)); g.stroke();
+  } else if (ck === 'marsepein' && o.sword) {
+    // Ambrosia: a crooked wooden staff with a knot on top and a fresh sprout; it glows while she casts
+    const L = h * 0.66, dx = Math.sin(fa), dy = Math.cos(fa), nx = dy, ny = -dx, ex = aF[4] + dx * L, ey = aF[5] + dy * L, tx = ex + dx * 6, ty = ey + dy * 6;
+    g.lineCap = 'round'; g.strokeStyle = INK; g.lineWidth = 8; g.beginPath(); g.moveTo(aF[4] - dx * 18, aF[5] - dy * 18); g.quadraticCurveTo(aF[4] + dx * L * 0.5 + nx * 5, aF[5] + dy * L * 0.5 + ny * 5, ex, ey); g.stroke();
+    g.strokeStyle = '#9a6a3a'; g.lineWidth = 4.5; g.stroke();
+    if (o.skc) { g.save(); g.globalCompositeOperation = 'lighter'; const rg = g.createRadialGradient(tx, ty, 0, tx, ty, 18); rg.addColorStop(0, hexA(o.skc, 0.9)); rg.addColorStop(1, hexA(o.skc, 0)); g.fillStyle = rg; g.beginPath(); g.arc(tx, ty, 18, 0, TAU); g.fill(); g.restore(); }
+    g.beginPath(); g.arc(tx, ty, 8, 0, TAU); g.fillStyle = '#8a5a2e'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
+    g.beginPath(); g.ellipse(tx + dx * 5 + nx * 8, ty + dy * 5 + ny * 8, 7, 3.5, Math.atan2(dy, dx) - 0.9, 0, TAU); g.fillStyle = '#6cc04a'; g.fill(); g.lineWidth = 2; g.stroke();
   } else if (ck === 'nevel' && o.sword) {
     nevelBlade(g, aF, h * 0.62, '#2a2833', '#8c8a9c', o.skc);
   } else if (ck === 'eik' && o.sword) {
@@ -5445,6 +5543,16 @@ function drawAnimeProj(g, p, fr) {
     drawPuppet(g, 'draai', col, P, { grounded: true, fr });
   }
 }
+function drawMagicCircle(g, x, y, r, col, fr, a) {
+  // two rings with runes between them and a six-pointed star, turning slowly
+  g.save(); g.translate(x, y); g.globalAlpha *= a; g.strokeStyle = col; g.lineWidth = 2.5;
+  g.beginPath(); g.arc(0, 0, r, 0, TAU); g.stroke(); g.lineWidth = 1.5; g.beginPath(); g.arc(0, 0, r * 0.78, 0, TAU); g.stroke();
+  g.rotate(fr * 0.04);
+  for (let i = 0; i < 12; i++) { const an = i * TAU / 12; g.beginPath(); g.moveTo(Math.cos(an) * r * 0.82, Math.sin(an) * r * 0.82); g.lineTo(Math.cos(an + 0.12) * r * 0.95, Math.sin(an + 0.12) * r * 0.95); g.stroke(); }
+  g.lineWidth = 2; g.beginPath();
+  for (let k = 0; k < 2; k++) for (let i = 0; i <= 3; i++) { const an = k * Math.PI / 3 + i * TAU / 3 - Math.PI / 2, px = Math.cos(an) * r * 0.76, py = Math.sin(an) * r * 0.76; i ? g.lineTo(px, py) : g.moveTo(px, py); }
+  g.stroke(); g.restore();
+}
 function drawProj(g, p, fr) {
   g.save(); g.translate(p.x, p.y);
   if (p.type === 'fsstar') { drawFsStar(g, p, fr); g.restore(); return; }
@@ -5521,6 +5629,17 @@ function drawProj(g, p, fr) {
     const rg = g.createRadialGradient(0, 0, 0, 0, 0, p.r * 1.5); rg.addColorStop(0, '#ffffff'); rg.addColorStop(0.45, '#9fe8ff'); rg.addColorStop(1, 'rgba(125,216,255,0)');
     g.fillStyle = rg; g.beginPath(); g.arc(0, 0, p.r * 1.5, 0, TAU); g.fill();
     g.strokeStyle = '#ffffff'; g.lineWidth = 2; g.beginPath(); for (let i = 0; i < 3; i++) { const a = rand(0, TAU); g.moveTo(Math.cos(a) * p.r * 0.5, Math.sin(a) * p.r * 0.5); g.lineTo(Math.cos(a + 0.5) * p.r * 1.4, Math.sin(a + 0.5) * p.r * 1.4); } g.stroke();
+  } else if (p.type === 'mcircle') {
+    // the circle grows and brightens until it blows up
+    const k = 1 - p.life / 16, col = p.owner ? p.owner.col.fx : '#ff9a3c';
+    g.globalCompositeOperation = 'lighter'; g.fillStyle = hexA(col, 0.12 + 0.25 * k); g.beginPath(); g.arc(0, 0, p.r * (0.55 + 0.45 * k), 0, TAU); g.fill();
+    drawMagicCircle(g, 0, 0, p.r * (0.55 + 0.45 * k), col, fr + p.t * 3, 0.6 + 0.4 * (p.t % 4 < 2 ? 1 : k));
+  } else if (p.type === 'flashb') {
+    g.globalCompositeOperation = 'lighter';
+    const rg = g.createRadialGradient(0, 0, 0, 0, 0, p.r * 1.8); rg.addColorStop(0, '#ffffff'); rg.addColorStop(0.45, '#fff3a8'); rg.addColorStop(1, 'rgba(255,240,150,0)');
+    g.fillStyle = rg; g.beginPath(); g.arc(0, 0, p.r * 1.8, 0, TAU); g.fill();
+    g.rotate(p.t * 0.2); g.strokeStyle = 'rgba(255,255,230,.9)'; g.lineWidth = 2; g.beginPath();
+    for (let i = 0; i < 8; i++) { const an = i * Math.PI / 4, l = i % 2 ? 1.5 : 2.2; g.moveTo(Math.cos(an) * p.r * 0.5, Math.sin(an) * p.r * 0.5); g.lineTo(Math.cos(an) * p.r * l, Math.sin(an) * p.r * l); } g.stroke();
   } else if (p.type === 'pkflash') {
     g.globalCompositeOperation = 'lighter';
     const rg = g.createRadialGradient(0, 0, 0, 0, 0, p.r * 1.8); rg.addColorStop(0, '#ffffff'); rg.addColorStop(0.4, '#9dffb0'); rg.addColorStop(1, 'rgba(80,255,130,0)');
@@ -5766,9 +5885,9 @@ function drawFighter(g, f, fr, z) {
   if (filt !== 'none' && 'filter' in g) g.filter = filt;
   // Technoblade and Sleutel never put their blade away, except to throw or handle an item; Sleutel casts through his key
   const sword = f.key === 'techno' ? !f.item && !(f.state === 'attack' && f.move && (f.move.throw || ['cast', 'counter', 'throwItem', 'pick', 'bow', 'riptide'].includes(f.move.pose)))
-    : f.key === 'sleutel' || f.key === 'eik' || f.key === 'nevel' ? !f.item && !(f.state === 'attack' && f.move && (f.move.throw || ['throwItem', 'pick'].includes(f.move.pose)))
+    : f.key === 'sleutel' || f.key === 'eik' || f.key === 'nevel' || f.key === 'marsepein' ? !f.item && !(f.state === 'attack' && f.move && (f.move.throw || ['throwItem', 'pick'].includes(f.move.pose)))
     : (f.key === 'sable' || f.key === 'lonk' || f.key === 'aardbei' || f.key === 'bot') && f.state === 'attack' && f.move && !f.move.throw && !['cast', 'counter', 'throwItem', 'pick', 'bow', 'lonkpull', 'maskOn', 'soulGrab'].includes(f.move.pose);
-  drawPuppet(g, f.key, f.key === 'rekker' && f.ssj > 0 ? Object.assign({}, f.col, { skin: '#f0908a' }) : f.col, P, { glow: f.key === 'bot' && f.state === 'attack' && f.move && f.move.special, skc: f.key === 'nevel' && f.state === 'attack' && f.move ? f.move.skc || (f.move === f.M.final ? '#bfe8ff' : null) : null, dual: f.key === 'nevel' && f.state === 'attack' && !!f.move && (f.move === f.M.final || (!!f.move.skc && !!f.sc && f.sc.length > 1)), mask: f.maskT > 0, ssj: f.ssj > 0 || (f.state === 'attack' && f.move && f.move.ssjUp && f.mt > 18 && f.mt % 4 < 2), grounded: f.grounded || f.state === 'land', fr: fr + f.id * 30, sword, held: f.item ? f.item.type : f.state === 'attack' && f.move && f.move.bat ? 'bat' : null, wings: f.feather > 0, xbow: f.key === 'techno' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, trident: f.key === 'techno' && f.state === 'attack' && f.move === f.M.upB, totem: f.key === 'techno' && f.state === 'attack' && f.move === f.M.downB, bow: f.key === 'lonk' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, pull: f.charge, jet: f.key === 'bliep' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 4, hurt: f.state === 'hitstun' || f.state === 'knockdown' || f.state === 'dizzy' || f.state === 'shieldbreak' || f.state === 'grabbed', ...(f.key === 'poef' ? poefFlags(f) : {}) });
+  drawPuppet(g, f.key, f.key === 'rekker' && f.ssj > 0 ? Object.assign({}, f.col, { skin: '#f0908a' }) : f.col, P, { glow: f.key === 'bot' && f.state === 'attack' && f.move && f.move.special, skc: f.key === 'nevel' && f.state === 'attack' && f.move ? f.move.skc || (f.move === f.M.final ? '#bfe8ff' : null) : f.key === 'marsepein' && f.state === 'attack' && f.move && f.move.special ? f.col.fx : null, dual: f.key === 'nevel' && f.state === 'attack' && !!f.move && (f.move === f.M.final || (!!f.move.skc && !!f.sc && f.sc.length > 1)), mask: f.maskT > 0, ssj: f.ssj > 0 || (f.state === 'attack' && f.move && f.move.ssjUp && f.mt > 18 && f.mt % 4 < 2), grounded: f.grounded || f.state === 'land', fr: fr + f.id * 30, sword, held: f.item ? f.item.type : f.state === 'attack' && f.move && f.move.bat ? 'bat' : null, wings: f.feather > 0, xbow: f.key === 'techno' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, trident: f.key === 'techno' && f.state === 'attack' && f.move === f.M.upB, totem: f.key === 'techno' && f.state === 'attack' && f.move === f.M.downB, bow: f.key === 'lonk' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, pull: f.charge, jet: f.key === 'bliep' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 4, hurt: f.state === 'hitstun' || f.state === 'knockdown' || f.state === 'dizzy' || f.state === 'shieldbreak' || f.state === 'grabbed', ...(f.key === 'poef' ? poefFlags(f) : {}) });
   if ('filter' in g) g.filter = 'none';
   g.globalAlpha = 1; g.restore();
   if (f.key === 'kwak' && f.state === 'attack' && f.move === f.M.sideB) {
@@ -5779,6 +5898,7 @@ function drawFighter(g, f, fr, z) {
       g.lineCap = 'round'; g.strokeStyle = INK; g.lineWidth = 9; g.beginPath(); g.moveTo(hx, hy); g.lineTo(tx, hy); g.stroke(); g.strokeStyle = f.col.acc; g.lineWidth = 5; g.stroke(); dot(g, tx, hy, 7, f.col.acc);
     }
   }
+  if (f.key === 'marsepein' && f.state === 'attack' && f.move === f.M.neutralB && f.charge > 0) drawMagicCircle(g, f.x + f.facing * f.charge * c.h / 80, f.y - 40 * c.h / 80, 34, f.col.fx, fr, 0.7);
   if (f.state === 'attack' && f.move && f.move.sparkCharge && f.charge > 0) { g.save(); g.globalCompositeOperation = 'lighter'; g.strokeStyle = hexA(f.col.fx, 0.3 + f.charge / 120); g.lineWidth = 2.5; g.beginPath(); for (let i = 0; i < 7; i++) { const a = rand(0, TAU), r0 = c.h * 0.35, r1 = c.h * (0.55 + f.charge / 150); g.moveTo(f.x + Math.cos(a) * r0, f.y - c.h * 0.5 + Math.sin(a) * r0); g.lineTo(f.x + Math.cos(a + 0.2) * r1, f.y - c.h * 0.5 + Math.sin(a + 0.2) * r1); } g.stroke(); g.restore(); }
   if (f.state === 'attack' && f.move && f.move.burstFx && f.mt <= 10) {
     const cy = f.y - c.h * 0.4, R2 = c.h * 1.15 * (0.6 + f.mt / 25); g.save(); g.globalCompositeOperation = 'lighter';
@@ -6358,7 +6478,7 @@ function drawPv(cnv, ch, sk, now, i) {
     const sc = H * 0.0072;
     g.translate(W / 2, H * 0.9); g.scale(sc, sc);
     g.fillStyle = 'rgba(10,6,20,.35)'; g.beginPath(); g.ellipse(0, 0, c.w * 0.7, 6, 0, 0, TAU); g.fill();
-    drawPuppet(g, ch, col, P, { grounded: true, fr: now / 16.7, sword: ch === 'sleutel' || ch === 'techno' || ch === 'eik' || ch === 'nevel' || (ch === 'sable' && cyc > 3 && cyc < 3.7) });
+    drawPuppet(g, ch, col, P, { grounded: true, fr: now / 16.7, sword: ch === 'sleutel' || ch === 'techno' || ch === 'eik' || ch === 'nevel' || ch === 'marsepein' || (ch === 'sable' && cyc > 3 && cyc < 3.7) });
   }
 }
 
@@ -6430,7 +6550,7 @@ function showResults() {
 
 /* ---------------- online ---------------- */
 const ST_LIST = ['idle', 'walk', 'run', 'crouch', 'land', 'jumpsquat', 'air', 'attack', 'shield', 'evade', 'airdodge', 'hitstun', 'helpless', 'knockdown', 'dizzy', 'ledge', 'holding', 'grabbed', 'respawn', 'shieldbreak', 'dead'];
-const PT_LIST = ['spark', 'shuriken', 'fire', 'ice', 'pipbomb', 'bombT', 'boom', 'wave', 'laser', 'fist', 'bubble', 'spear', 'blast', 'bananaT', 'batT', 'blasterT', 'puffstar', 'pkbolt', 'pkfire', 'pkthunder', 'pkflash', 'arrow', 'boomer', 'jolt', 'thunder', 'egg', 'rocket', 'kibeam', 'genki', 'clone', 'getsuga', 'gblaster', 'gbeam', 'bone', 'erupt', 'fsstar'];
+const PT_LIST = ['spark', 'shuriken', 'fire', 'ice', 'pipbomb', 'bombT', 'boom', 'wave', 'laser', 'fist', 'bubble', 'spear', 'blast', 'bananaT', 'batT', 'blasterT', 'puffstar', 'pkbolt', 'pkfire', 'pkthunder', 'pkflash', 'arrow', 'boomer', 'jolt', 'thunder', 'egg', 'rocket', 'kibeam', 'genki', 'clone', 'getsuga', 'gblaster', 'gbeam', 'bone', 'erupt', 'mcircle', 'flashb', 'fsstar'];
 const MODE_LIST = ['match', 'gameover', 'results'];
 const LAVA_ST = ['idle', 'warn', 'rise', 'hold', 'fall'];
 const CTR_MOVE = { pose: 'smashF', start: 3, active: 4, end: 20, dur: 27, hb: [] };
