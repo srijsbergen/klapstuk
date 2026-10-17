@@ -1,12 +1,19 @@
 # Klapstuk
 
-Een platformvechter voor 2 tot 4 spelers in de browser: zevenentwintig vechters, veertien podia (zeven rustige en zeven met gevaren zoals lava, bliksem, een sloopkogel, een vloedgolf en een mijnkar), items die je stuk voor stuk aan of uit zet, een Klapbal waarmee elke vechter een eigen final smash doet, achtergrondmuziek (32 nummers die de browser zelf speelt, zonder geluidsbestanden) en CPU-tegenstanders van niveau 1 tot 12. Speel lokaal op één toetsenbord of gamepad, of online met vrienden.
+Een platformvechter voor 2 tot 4 spelers in de browser: zevenentwintig vechters in elk zes kleuren, veertien podia (zeven rustige en zeven met gevaren zoals lava, bliksem, een sloopkogel, een vloedgolf en een mijnkar), items die je stuk voor stuk aan of uit zet, een Klapbal waarmee elke vechter een eigen final smash doet, achtergrondmuziek (60 nummers die de browser zelf speelt, zonder geluidsbestanden: vier voor het menu en vier per podium) en CPU-tegenstanders van niveau 1 tot 12. Speel lokaal op één toetsenbord of gamepad, of online met vrienden.
 
 De hele site is één bestand: `index.html`. De WebRTC-bibliotheek zit erin en het spel gebruikt alleen standaardlettertypen (Impact en het systeemlettertype); de pagina laadt niets van andere websites. Er is geen bouwstap en geen eigen server nodig. (De afbeelding in `docs/` hoort alleen bij deze uitleg.)
 
 ## De vechters
 
 ![De zevenentwintig vechters: Volt, Brok, Sabel, Pip, Gloei, Kwak, Bliep, Joep, Poef, Klauw, Bongo, Lonk, Bliksemrat, Kakelninja, Technoblade, Schim, Gokko, Rekker, Draaikolk, Aardbei, Sleutel, Bot, Eik, Nevel, Marsepein, Sterre en Lente](docs/vechters.png)
+
+## Spelen
+
+- Kies op elke spelerkaart een besturing: **Toetsenbord 1**, **Toetsenbord 2**, **Gamepad 1**, **Gamepad 2**, **Aanraakscherm**, **CPU** of **Uit**. CPU-tegenstanders hebben een niveau van 1 tot 12.
+- Elke speler kiest een vechter met een eigen cursor: de richtingtoetsen bewegen, **aanval** kiest en **speciaal** wisselt van kleur. Met de muis klik je eerst op een spelerkaart en dan op een vechter. Twee spelers met dezelfde vechter krijgen nooit dezelfde kleur.
+- Kies een podium uit de zeven rustige of de zeven met gevaren, of laat het spel er een uit een van beide groepen kiezen. Onder de podia kies je het nummer dat erbij speelt (of laat het willekeurig) en met **Luister** hoor je het alvast.
+- Rechts stel je het aantal levens in (1 tot 9), zet je items aan of uit en kies je welke: bom, hartje, knuppel, straalpistool, bananenschil, ster, veer, kist en de Klapbal. Daaronder staan de volumes van muziek en effecten. Met **N** zet je de muziek aan of uit, ook tijdens een gevecht.
 
 ## Online zetten
 
@@ -46,6 +53,8 @@ Ga daarna naar http://localhost:8000.
 4. De host drukt op **Start!**.
 
 Er spelen maximaal 4 mensen. Wie later komt, kijkt mee. Niemand heeft een account nodig.
+
+Alleen de host kan pauzeren, en dan staat het spel voor iedereen stil. In het pauzemenu stuurt de host met **Iedereen naar lobby** alle spelers terug naar de lobby voor een nieuwe ronde; met **Spel opheffen** sluit de host het spel. Een gast kan het spel daar verlaten.
 
 ## Hoe de verbinding werkt
 
