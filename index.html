@@ -1068,7 +1068,7 @@ Object.assign(CHARS, {
     col: { body: '#3f6fd8', dark: '#1d1c24', acc: '#ff8fb8', skin: '#f4f4f0', fx: '#5fd3ff' }, alt: { body: '#2b2b33', dark: '#3f6fd8', acc: '#ffd23f', skin: '#f4f4f0', fx: '#ffd23f' } },
   eik: { name: 'Eik', blurb: 'Huurling met een reuzenzwaard. Traag, maar elke klap telt. Houd speciaal vast om op te laden: een vuurzuil uit de grond, een bliksemsnelle uithaal opzij. Gooit zijn zwaard omhoog en slaat ermee neer, en heeft een counter.', weight: 116, run: 6.4, acc: 1, jump: 15, djump: 13.8, grav: 0.88, fall: 13, ffall: 18.5, air: 4.7, airAcc: 0.42, airJumps: 1, w: 46, h: 88, pow: 1.3, reach: 1.25, lag: 2, limb: 12, hr: 0.15, arm: 0.18, sideRec: true,
     col: { body: '#2f5bb0', dark: '#1d2a52', acc: '#c8312f', skin: '#f0c9a0', fx: '#ffb347', hair: '#2c46a6' }, alt: { body: '#5a4632', dark: '#2b231c', acc: '#2f7d45', skin: '#e8bf95', fx: '#ffd45e', hair: '#d8d4c8' } },
-  nevel: { name: 'Nevel', blurb: 'Zwaardvechter in een lange zwarte jas, uit een virtuele wereld. Zijn zwaardtechnieken lichten op: een vorpaalsteek die je oplaadt, vier snelle sneden terwijl hij vooruit glijdt, een sonische sprong omhoog en een snede die projectielen doormidden hakt. Druk in de nasleep van een techniek opnieuw speciaal in een andere richting en de volgende volgt meteen, tot vier achter elkaar. Hij vecht altijd met twee zwaarden en blokkeert met ze gekruist; veel van zijn aanvallen zijn twee snelle klappen. Raken vult zijn meter; is die vol, dan geeft speciaal omlaag de Sterrenstroom: zestien slagen met twee zwaarden.', weight: 90, run: 7.4, acc: 1.15, jump: 15.5, djump: 14.5, grav: 0.84, fall: 12.5, ffall: 18, air: 5.0, airAcc: 0.5, airJumps: 1, w: 40, h: 82, pow: 1, reach: 1.28, lag: 0, limb: 10, hr: 0.15, sideRec: true,
+  nevel: { name: 'Nevel', blurb: 'Zwaardvechter in een lange zwarte jas, uit een virtuele wereld. Zijn zwaardtechnieken lichten op: een vorpaalsteek die je oplaadt, vier snelle sneden terwijl hij vooruit glijdt, een sonische sprong omhoog en een kruisblok: met gekruiste zwaarden vangt hij een klap op en slaat terug met een X-snede, en projectielen hakt hij doormidden. Druk in de nasleep van een techniek opnieuw speciaal in een andere richting en de volgende volgt meteen, tot vier achter elkaar. Hij vecht altijd met twee zwaarden en blokkeert met ze gekruist; veel van zijn aanvallen zijn twee snelle klappen. Raken vult zijn meter; is die vol, dan geeft speciaal omlaag de Sterrenstroom: zestien slagen met twee zwaarden.', weight: 90, run: 7.4, acc: 1.15, jump: 15.5, djump: 14.5, grav: 0.84, fall: 12.5, ffall: 18, air: 5.0, airAcc: 0.5, airJumps: 1, w: 40, h: 82, pow: 1, reach: 1.28, lag: 0, limb: 10, hr: 0.15, sideRec: true,
     col: { body: '#22202b', dark: '#121118', acc: '#8f8c9e', skin: '#f6d2b0', fx: '#8fd8ff', hair: '#17161d' }, alt: { body: '#e9ecf3', dark: '#2a3550', acc: '#4f6fb8', skin: '#f6d2b0', fx: '#ffd36a', hair: '#17161d' } },
   marsepein: { name: 'Marsepein', blurb: 'Half-elfse magiër met een lange blonde vlecht en een levende staf. Haar antwoord op alles is een explosie: zet een toverkring neer, houd vast om hem verder weg te schuiven, en even later ontploft hij (sta er zelf niet in). Een flitsspreuk die verdooft, een barrière om vanaf omhoog te springen en een genezing die snel werkt, maar wel pijn doet; daarna moet ze tien tellen wachten.', weight: 88, run: 6.5, acc: 1, jump: 15, djump: 14, grav: 0.72, fall: 10.5, ffall: 15.5, air: 4.8, airAcc: 0.48, airJumps: 1, w: 40, h: 78, pow: 1.12, reach: 1.15, lag: 0, limb: 9, zoner: 'side', hr: 0.165,
     col: { body: '#2f5fa8', dark: '#ece8dc', acc: '#c8323a', skin: '#f8dcc0', fx: '#ff9a3c', hair: '#f2d16b' }, alt: { body: '#5b3f8c', dark: '#2a2236', acc: '#e8c548', skin: '#f8dcc0', fx: '#c38bff', hair: '#f2d16b' } },
@@ -1731,6 +1731,8 @@ const SPECIALS = {
       // Horizontale Boog (Horizontal Arc): one sword to each side
       dsmash: M({ start: 7, active: 4, end: 26, pose: 'smashD', charge: true, hb: [H(46, -12, 22, 13, 28, 36, 98), H(-46, -12, 22, 13, 152, 36, 98)] }),
       // Sterrenstroom (Starburst Stream): with a full meter, down special is sixteen cuts with both swords while he presses forward
+      xcut: M({ special: true, start: 3, active: 10, end: 18, pose: 'smashF', poseFn: nevelXPose, intang: [0, 12], ll: 10, skc: '#ffe066', combo: true,
+        hb: [H(44, -50, 32, 5, 60, 20, 0, { nr: 1, grp: 1, f1: 3, link: true }), H(48, -44, 34, 10, 40, 58, 96, { nr: 1, grp: 2, f0: 5 })] }),
       starburst: M({ special: true, start: 8, active: 50, end: 26, pose: 'smashF', poseFn: nevelStarPose, keepVel: true, noDrift: true, ll: 16, skc: '#bfe8ff',
         onStart: f => { f.ki = 0; f.scNext = false; G.flash = 4; SFX.zap(); },
         hb: Array.from({ length: 15 }, (_, i) => H(38, -46, 34, 1.6, 50, 12, 0, { nr: 1, grp: i + 1, link: true, when: (f, t) => t >= 8 + i * 3 && t < 10 + i * 3 }))
@@ -1741,17 +1743,17 @@ const SPECIALS = {
           if (t === 58 && !f.grounded) { f.endMove(); return; }
           if (t >= 8 && t < 58) { const g = f.grounded && f.ground; f.vx = g && (f.facing > 0 ? f.x > g.x2 - 14 : f.x < g.x1 + 14) ? 0 : f.facing * 1.6; if (!f.grounded) f.vy = 0; if (t % 3 === 2) SFX.swing(); } else f.vx *= 0.8;
         } }),
-      // Kogelsnede: a fast cut that slices projectiles out of the air; a clean cut shortens the delay after it
-      downB: M({ special: true, start: 3, active: 10, end: 18, pose: 'jab3', ll: 8, skc: '#ffe066', onStart: f => { if ((f.ki || 0) >= 100) return f.startMove(f.M.starburst); on('downB')(f); },
-        hb: [H(40, -48, 30, 6, 60, 40, 70, { nr: 1, when: (f, t) => t <= 6 })],
+      // Kruisblok (Cross Block): the swords crossed to catch a hit, answered with an X-shaped cut (see triggerCounter);
+      // projectiles that meet the crossed blades are cut in two, and a clean cut shortens the delay after it
+      downB: M({ special: true, start: 3, active: 22, end: 16, pose: 'counter', ll: 8, skc: '#ffe066', counter: [3, 25], onStart: f => { if ((f.ki || 0) >= 100) return f.startMove(f.M.starburst); on('downB')(f); },
         tick: (f, t) => {
           if (skillConnect(f, t)) return;
           if (!f.grounded && f.vy > 1) f.vy = 1;
-          if (t === 14 && f.mv.cut) { f.mt = 24; return; }
-          if (t < 3 || t > 13) return;
-          const cx = f.x + f.facing * 44 * s, cy = f.y - 48 * s;
+          if (t === 26 && f.mv.cut) { f.mt = 34; return; }
+          if (t < 3 || t > 25) return;
+          const cx = f.x + f.facing * 26 * s, cy = f.y - 46 * s;
           for (const p of G.projs) {
-            if (p.owner === f || p.dead || !p.reflect || Math.hypot(p.x - cx, p.y - cy) > 48 * s + p.r) continue;
+            if (p.owner === f || p.dead || !p.reflect || Math.hypot(p.x - cx, p.y - cy) > 46 * s + p.r) continue;
             p.dead = true; f.mv.cut = true; sparkFx(p.x, p.y, '#ffe066', 8);
             addP({ type: 'ring', x: p.x, y: p.y, life: 12, max: 12, size: 22, color: '#fff3b0' }); SFX.counter();
           }
@@ -2717,6 +2719,7 @@ function splashLand(f) {
 }
 function triggerCounter(v, a, d) {
   const s = v.c.h / 80; if (a) v.facing = a.x > v.x ? 1 : -1;
+  if (v.key === 'nevel' && v.M.xcut) { v.startMove(v.M.xcut); v.flash = 10; sparkFx(v.x + v.facing * 20 * s, v.y - v.c.h / 2, '#ffe066', 10); SFX.counter(); if (a) a.hitlag = Math.max(a.hitlag, 14); G.shake = Math.max(G.shake, 6); return; }
   v.startMove({ special: true, start: 3, active: 4, end: 20, dur: 27, pose: 'smashF', intang: [0, 10], ll: 10, hb: [{ x: 46 * s, y: -44 * s, r: 36 * s, d: Math.max(9, d * 1.3), a: 38, b: 60, g: 92 }] });
   v.flash = 10; sparkFx(v.x, v.y - v.c.h / 2, '#ffffff', 10); SFX.counter();
   if (v.key === 'techno') { v.percent = Math.max(0, v.percent - 8); v.hud = 10; for (let i = 0; i < 8; i++) addP({ type: 'plus', x: v.x + rand(-18, 18), y: v.y - rand(10, v.c.h), vy: -rand(1, 2.5), life: 30, max: 30, size: 9, color: i % 2 ? '#ffd34d' : '#5bbf4a' }); }
@@ -4460,6 +4463,12 @@ function nevelSquarePose(f, t) {
   const i = ((t - 5) / 5) | 0, k = clamp(((t - 5) % 5) / 3, 0, 1), sw = lerp(-0.4, 2.1, k);
   return mk(Object.assign(i % 2 ? { aB: [sw, -0.1], aF: [0.4, -1.2] } : { aF: [sw, -0.1], aB: [0.2, -1.2] }, L));
 }
+function nevelXPose(f, t) {
+  // both swords raised crossed, then brought down one after the other
+  const k1 = clamp((t - 2) / 3, 0, 1), k2 = clamp((t - 6) / 3, 0, 1);
+  const P = mk(Object.assign({ aF: [lerp(2.8, 0.5, k1), -0.2], aB: [lerp(2.6, 0.6, k2), -0.2], lean: 0.3 }, NV_LEGS));
+  return t > 14 ? mix(P, mk({ plant: 'both' }), Math.min(1, (t - 14) / 14)) : P;
+}
 function nevelStarPose(f, t) {
   const L = Object.assign({}, NV_LEGS);
   if (t < 8) return mk(Object.assign({ aF: [2.6, -0.4], aB: [2.2, -0.6], lean: -0.1 }, L));
@@ -6059,7 +6068,7 @@ function drawFighter(g, f, fr, z) {
   if (filt !== 'none' && 'filter' in g) g.filter = filt;
   // Technoblade and Sleutel never put their blade away, except to throw or handle an item; Sleutel casts through his key
   const sword = f.key === 'techno' ? !f.item && !(f.state === 'attack' && f.move && (f.move.throw || ['cast', 'counter', 'throwItem', 'pick', 'bow', 'riptide'].includes(f.move.pose)))
-    : f.key === 'sleutel' || f.key === 'eik' || f.key === 'nevel' || f.key === 'marsepein' ? !f.item && !(f.key === 'nevel' && f.state === 'shield') && !(f.state === 'attack' && f.move && (f.move.throw || ['throwItem', 'pick'].includes(f.move.pose)))
+    : f.key === 'sleutel' || f.key === 'eik' || f.key === 'nevel' || f.key === 'marsepein' ? !f.item && !(f.key === 'nevel' && (f.state === 'shield' || (f.state === 'attack' && f.move === f.M.downB && f.mt >= 3 && f.mt <= 25))) && !(f.state === 'attack' && f.move && (f.move.throw || ['throwItem', 'pick'].includes(f.move.pose)))
     : (f.key === 'sable' || f.key === 'lonk' || f.key === 'aardbei' || f.key === 'bot') && f.state === 'attack' && f.move && !f.move.throw && !['cast', 'counter', 'throwItem', 'pick', 'bow', 'lonkpull', 'maskOn', 'soulGrab'].includes(f.move.pose);
   drawPuppet(g, f.key, f.key === 'rekker' && f.ssj > 0 ? Object.assign({}, f.col, { skin: '#f0908a' }) : f.col, P, { glow: f.key === 'bot' && f.state === 'attack' && f.move && f.move.special, skc: f.key === 'nevel' && f.state === 'attack' && f.move ? f.move.skc || (f.move === f.M.final ? '#bfe8ff' : null) : f.key === 'marsepein' && f.state === 'attack' && f.move && f.move.special ? f.col.fx : null, dual: f.key === 'nevel' && sword, mask: f.maskT > 0, ssj: f.ssj > 0 || (f.state === 'attack' && f.move && f.move.ssjUp && f.mt > 18 && f.mt % 4 < 2), grounded: f.grounded || f.state === 'land', fr: fr + f.id * 30, sword, held: f.item ? f.item.type : f.state === 'attack' && f.move && f.move.bat ? 'bat' : null, wings: f.feather > 0, xbow: f.key === 'techno' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, trident: f.key === 'techno' && f.state === 'attack' && f.move === f.M.upB, totem: f.key === 'techno' && f.state === 'attack' && f.move === f.M.downB, bow: f.key === 'lonk' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, pull: f.charge, jet: f.key === 'bliep' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 4, hurt: f.state === 'hitstun' || f.state === 'knockdown' || f.state === 'dizzy' || f.state === 'shieldbreak' || f.state === 'grabbed', ...(f.key === 'poef' ? poefFlags(f) : {}) });
   if ('filter' in g) g.filter = 'none';
@@ -6160,6 +6169,21 @@ function drawFighter(g, f, fr, z) {
       blade(cx - f.facing * 18 * s2, cy + 20 * s2, f.facing * u[0], u[1], '#2a2833', '#8c8a9c');
       blade(cx + f.facing * 18 * s2, cy + 20 * s2, -f.facing * u[0], u[1], '#dff4f2', '#7fd8d0');
     }
+  }
+  if (f.key === 'nevel' && f.state === 'attack' && f.move === f.M.downB && f.mt >= 3 && f.mt <= 25) {
+    // the Kruisblok: swords crossed in front, glowing gold while the guard is up
+    const s2 = c.h / 80, cx = f.x + f.facing * 16 * s2, cy = f.y - c.h * 0.5, L = 56 * s2, u = [0.62, -0.78];
+    const blade = (hx, hy, ux, uy, b, e) => nevelBlade(g, [0, 0, hx - ux, hy - uy, hx, hy], L, b, e, '#ffe066');
+    blade(cx - f.facing * 18 * s2, cy + 20 * s2, f.facing * u[0], u[1], '#2a2833', '#8c8a9c');
+    blade(cx + f.facing * 18 * s2, cy + 20 * s2, -f.facing * u[0], u[1], '#dff4f2', '#7fd8d0');
+  }
+  if (f.key === 'nevel' && f.state === 'attack' && f.move === f.M.xcut && f.mt >= 4 && f.mt <= 16) {
+    // the two strokes of the X
+    const s2 = c.h / 80, x0 = f.x + f.facing * 14 * s2, x1 = f.x + f.facing * 78 * s2, y0 = f.y - 88 * s2, y1 = f.y - 12 * s2;
+    g.save(); g.lineCap = 'round'; g.lineWidth = 6;
+    if (f.mt >= 4) { g.strokeStyle = hexA('#8fd8ff', Math.max(0, 1 - (f.mt - 4) / 10)); g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); }
+    if (f.mt >= 8) { g.strokeStyle = hexA('#dff4f2', Math.max(0, 1 - (f.mt - 8) / 8)); g.beginPath(); g.moveTo(x1, y0); g.lineTo(x0, y1); g.stroke(); }
+    g.restore();
   }
   if (f.state === 'attack' && f.move && f.move.reflect && !f.move.bat && f.mt >= f.move.reflect[0] && f.mt <= f.move.reflect[1]) {
     g.strokeStyle = f.col.acc; g.lineWidth = 4; g.globalAlpha = 0.85; g.beginPath();
