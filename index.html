@@ -812,7 +812,8 @@ const MUSIC = (() => {
   const STAGE_OF = { 'Hoofdmenu': 'menu', 'Hemelruïne': 'ruins', 'Sterrenaambeeld': 'anvil', 'Molenpolder': 'polder', 'Lavakern': 'lava', 'Sneltrein': 'train', 'Kermis': 'fair', 'IJsbaan': 'ice' };
   for (const t of TRACKS) t.st = STAGE_OF[t.group];
   const byId = id => TRACKS.find(t => t.id === id) || null, forStage = k => TRACKS.filter(t => t.st === k), MENU = forStage('menu');
-  let out = null, cur = null, menuIdx = 0, preview = null, gainNow = -1;
+  // the menu starts on a random track and then moves on to another random one
+  let out = null, cur = null, menuIdx = Math.random() * MENU.length | 0, preview = null, gainNow = -1;
   function ready() {
     if (out || !SFX.ac) return;
     const ac = SFX.ac, comp = ac.createDynamicsCompressor(); out = ac.createGain(); out.gain.value = 0;
@@ -837,7 +838,7 @@ const MUSIC = (() => {
       // a sleeping tab skips ahead instead of playing all the missed notes at once
       if (cur.t < now - 0.05) { const n = Math.ceil((now + 0.05 - cur.t) / cur.sd); cur.step = (cur.step + n) % cur.total; cur.t += n * cur.sd; }
       schedule(cur, now + 0.3);
-      if (cur.tr.st === 'menu' && cur.tr === w && cur.loops >= 1) menuIdx++;
+      if (cur.tr.st === 'menu' && cur.tr === w && cur.loops >= 1) menuIdx = (menuIdx + 1 + (Math.random() * (MENU.length - 1) | 0)) % MENU.length;
     }
     // quieter while paused, during a final smash and on the results
     let v = settings.musVol / 100 * 0.6;
