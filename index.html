@@ -4714,13 +4714,20 @@ function drawPuppetBase(g, ck, col, P, o = {}) {
   };
   const lB = leg('lB'), lF = leg('lF');
   // elbows are hinges that only flex one way (forearm turns toward the front), unlike knees
-  const shY = sh.y + (c.shY || 3), aB = limbPts(sh.x, shY, P.aB[0] + lean, Math.abs(P.aB[1]), AL, AL), aF = limbPts(sh.x, shY, P.aF[0] + lean, Math.abs(P.aF[1]), AL, AL);
+  let shY = sh.y + (c.shY || 3), aB = limbPts(sh.x, shY, P.aB[0] + lean, Math.abs(P.aB[1]), AL, AL), aF = limbPts(sh.x, shY, P.aF[0] + lean, Math.abs(P.aF[1]), AL, AL);
+  let shieldAt = null;
+  if (ck === 'lonk') {
+    // the shield arm reaches for a point in front of the chest; a little of the pose's own arm swing stays in it
+    const px = c.w * 0.32, py = -tl * 0.5, cs = Math.cos(lean), sn = Math.sin(lean);
+    const tx = hip.x + px * cs - py * sn + (aB[4] - sh.x) * 0.2, ty = hip.y + px * sn + py * cs + (aB[5] - shY) * 0.2;
+    const d = Math.min(Math.hypot(tx - sh.x, ty - shY), AL * 1.96), base = Math.atan2(tx - sh.x, ty - shY), b = Math.acos(d / (2 * AL));
+    aB = limbPts(sh.x, shY, base - b, 2 * b, AL, AL); shieldAt = [aB[4], aB[5]];
+  }
   const handCol = { techno: col.body, ninja: col.dark, rat: col.body, lonk: '#8a5a2b', klauw: col.body, bongo: col.skin, brick: col.dark, sable: col.dark, volt: col.skin, gloei: col.acc, kwak: col.body, bliep: col.dark, schim: '#f4f4f4', eik: col.dark, nevel: col.dark }[ck] || col.skin;
   // back limbs
   const backCol = ck === 'lente' ? shade(col.dark, 0.85) : ck === 'sterre' ? shade(col.skin, 0.9) : ck === 'klauw' ? shade(col.body, 0.78) : ck === 'lonk' ? '#cdc3aa' : ck === 'volt' ? shade(col.jacket, 0.78) : ck === 'techno' ? '#25202e' : ck === 'joep' ? col.shorts || col.dark : col.dark;
   strokeLimb(g, lB, backCol, lw); foot(g, ck, lB, lw, col);
   strokeLimb(g, aB, ck === 'rekker' || ck === 'lente' ? shade(col.skin, 0.88) : backCol, lw * 0.9); hand(g, aB, lw * (ck === 'gloei' ? 0.95 : ck === 'bongo' ? 0.8 : ck === 'klauw' ? 0.7 : 0.6), handCol); if (ck === 'klauw') spikedCuff(g, aB, lw * 0.9);
-  if (ck === 'lonk') drawShieldL(g, aB[4], aB[5], h);
   if (ck === 'lente') { lenteSleeve(g, aB, lw * 0.9, shade(col.body, 0.82)); lenteBracelet(g, aB, lw * 0.9); }
   if (ck === 'nevel' && o.dual) nevelBlade(g, aB, h * 0.58, '#dff4f2', '#7fd8d0', o.skc);
   else if (ck === 'nevel') { g.lineCap = 'round'; g.strokeStyle = INK; g.lineWidth = 8; g.beginPath(); g.moveTo(sh.x - 24, sh.y - 16); g.lineTo(hip.x + 12, hip.y + 2); g.stroke(); g.strokeStyle = '#3a3746'; g.lineWidth = 4; g.stroke(); g.strokeStyle = INK; g.lineWidth = 7; g.beginPath(); g.moveTo(sh.x - 24, sh.y - 16); g.lineTo(sh.x - 31, sh.y - 25); g.stroke(); g.strokeStyle = '#7fd8d0'; g.lineWidth = 3.5; g.stroke(); }
@@ -5137,6 +5144,7 @@ function drawPuppetBase(g, ck, col, P, o = {}) {
   }
   if (DET && !SIL && !['brick', 'bliep', 'techno', 'kwak', 'rat'].includes(ck)) headShade(g, hr);
   g.restore();
+  if (shieldAt) drawShieldL(g, shieldAt[0], shieldAt[1], h);
   // front leg & arm
   strokeLimb(g, lF, ck === 'lente' ? col.dark : ck === 'sterre' ? col.skin : ck === 'joep' ? col.shorts || col.dark : ck === 'pip' || ck === 'rekker' || ck === 'bot' ? col.dark : ck === 'lonk' ? '#ece3cc' : ck === 'volt' ? col.jacket : ck === 'techno' ? '#3b3046' : col.body, lw); foot(g, ck, lF, lw, col);
   if (ck === 'pip') { // robe overlaps front leg top
