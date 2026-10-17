@@ -4488,17 +4488,22 @@ function limbPts(ox, oy, a1, a2, L1, L2) {
 }
 // ---- the detailed look ----
 // With the Detail option on, a fighter is lit from the front and above (a cel shadow on torso, head and limbs, tapered
-// limbs with a thin highlight, fists and shoes), drawn with thinner ink lines on a layer of its own, and that layer gets
-// one ink contour around the whole silhouette, as thick as the old outlines. DET and THIN are only on while that happens.
-let DET = false, THIN = false, FXON = false, FXDIRTY = false, PUPA = null, PUPB = null, PUPC = null;
+// limbs with a thin highlight, fists and shoes) and drawn with thinner ink lines inside one ink contour around the whole
+// silhouette, as thick as the old outlines. DET, THIN and SIL are only on while a fighter is drawn that way.
+let DET = false, THIN = false, SIL = false, SINK = null;
 const SHADOW = 'rgba(52,28,96,0.30)', LIGHT = 'rgba(255,255,255,0.22)';
 {
-  // while THIN is on, ink lines get thinner: plain outlines to 60%, the rims of stroked shapes lose a pixel and a half
-  const st = CanvasRenderingContext2D.prototype.stroke;
-  CanvasRenderingContext2D.prototype.stroke = function (...a) {
-    if (!THIN || this.strokeStyle !== INK) return st.apply(this, a);
-    const w = this.lineWidth; this.lineWidth = w <= 3.5 ? w * 0.6 : w - 1.6; st.apply(this, a); this.lineWidth = w;
+  // While THIN is on, ink lines get thinner: plain outlines to 60%, the rims of stroked shapes lose a pixel and a half.
+  // While SIL is on too, only the ink lines are drawn, 0.8 wider on each side: that pass lays down the contour.
+  const C2 = CanvasRenderingContext2D.prototype, st = C2.stroke, fl = C2.fill, fr = C2.fillRect;
+  C2.stroke = function (p) {
+    if (!THIN) return p ? st.call(this, p) : st.call(this);
+    const w = this.lineWidth, ink = this.strokeStyle === INK;
+    if (SIL && (!ink || w < 2.2)) return;
+    this.lineWidth = (ink ? (w <= 3.5 ? w * 0.6 : w - 1.6) : w) + (SIL ? 1.6 : 0); p ? st.call(this, p) : st.call(this); this.lineWidth = w;
   };
+  C2.fill = function () { if (!SIL) return fl.apply(this, arguments); };
+  C2.fillRect = function (x, y, w, h) { if (!SIL) return fr.call(this, x, y, w, h); };
 }
 function tone(c, k) {
   // a colour made darker (k < 1) or lighter toward white (k > 1); takes #rrggbb or rgb()
@@ -4509,46 +4514,64 @@ function tone(c, k) {
   return `rgb(${f(r) | 0},${f(gg) | 0},${f(b) | 0})`;
 }
 function fxCtx(g) {
-  // glows and other see-through effects go on a layer of their own, so they get no ink contour
-  if (!FXON || g.canvas !== PUPA) return g;
-  const q = PUPC.getContext('2d'); q.setTransform(g.getTransform()); FXDIRTY = true; return q;
+  // glows and other see-through effects stay out of the contour pass, so they get no ink rim
+  if (!SIL) return g;
+  if (!SINK) { const c = document.createElement('canvas'); c.width = c.height = 1; SINK = c.getContext('2d'); }
+  return SINK;
 }
 function capsule(g, x0, y0, r0, x1, y1, r1) {
   const a = Math.atan2(y1 - y0, x1 - x0), q = Math.PI / 2;
   g.moveTo(x0 + Math.cos(a + q) * r0, y0 + Math.sin(a + q) * r0);
   g.arc(x0, y0, r0, a + q, a + 3 * q); g.arc(x1, y1, r1, a - q, a + q); g.closePath();
 }
+const SHADES = new Map();
+function shadeOf(c) {
+  // a colour with the shadow laid over it (the same as SHADOW on top of it), remembered per colour
+  let v = SHADES.get(c);
+  if (!v) { const [r, gg, b] = tone(c, 1).match(/\d+/g).map(Number); v = `rgb(${r * 0.7 + 15.6 | 0},${gg * 0.7 + 8.4 | 0},${b * 0.7 + 28.8 | 0})`; SHADES.set(c, v); }
+  return v;
+}
 function strokeLimbD(g, p, col, lw) {
-  // a limb that tapers toward the hand or foot, with a shadow on the side away from the light and a thin highlight
-  const r0 = lw * 0.64, r1 = lw * 0.5, r2 = lw * 0.42;
+  // a limb that tapers toward the hand or foot: the whole limb in shadow, then the same limb a little narrower and
+  // shifted toward the light (front and above) in its own colour, so a band of shadow stays on the far side; a thin highlight
+  const r0 = lw * 0.64, r1 = lw * 0.5, r2 = lw * 0.42, LX = 0.55, LY = -0.83;
   g.beginPath(); capsule(g, p[0], p[1], r0, p[2], p[3], r1); capsule(g, p[2], p[3], r1, p[4], p[5], r2);
-  g.strokeStyle = INK; g.lineWidth = 5; g.stroke(); g.fillStyle = col; g.fill();
-  g.save(); g.clip();
-  const LX = 0.55, LY = -0.83, line = (o, w, st) => { g.beginPath(); g.moveTo(p[0] + LX * o, p[1] + LY * o); g.lineTo(p[2] + LX * o, p[3] + LY * o); g.lineTo(p[4] + LX * o, p[5] + LY * o); g.strokeStyle = st; g.lineWidth = w; g.stroke(); };
-  line(-lw * 0.62, lw * 0.5, SHADOW); line(lw * 0.24, lw * 0.15, LIGHT);
-  g.restore();
+  g.strokeStyle = INK; g.lineWidth = 5; g.stroke(); g.fillStyle = shadeOf(col); g.fill();
+  if (SIL) return;
+  const ox = LX * lw * 0.14, oy = LY * lw * 0.14, k = 0.8;
+  g.beginPath(); capsule(g, p[0] + ox, p[1] + oy, r0 * k, p[2] + ox, p[3] + oy, r1 * k); capsule(g, p[2] + ox, p[3] + oy, r1 * k, p[4] + ox, p[5] + oy, r2 * k);
+  g.fillStyle = col; g.fill();
+  const q = lw * 0.24; g.beginPath(); g.moveTo(p[0] + LX * q, p[1] + LY * q); g.lineTo(p[2] + LX * q, p[3] + LY * q); g.lineTo(p[4] + LX * q, p[5] + LY * q);
+  g.strokeStyle = LIGHT; g.lineWidth = lw * 0.15; g.stroke();
 }
 function hand(g, a, r, col) {
   if (!DET) return dot(g, a[4], a[5], r, col);
   // a fist along the forearm, shaded underneath, with the line of the thumb and the knuckles
   g.save(); g.translate(a[4], a[5]); g.rotate(Math.atan2(a[5] - a[3], a[4] - a[2]));
-  g.lineWidth = 2.2; g.strokeStyle = INK; g.fillStyle = col;
-  g.beginPath(); g.ellipse(r * 0.12, 0, r * 1.1, r * 0.95, 0, 0, TAU); g.fill(); g.stroke();
-  g.save(); g.clip(); g.fillStyle = SHADOW; g.beginPath(); g.rect(-r * 3, -r * 3, r * 6, r * 6); g.arc(r * 0.3, -r * 0.35, r * 1.05, 0, TAU); g.fill('evenodd'); g.restore();
+  const fist = () => { g.beginPath(); g.ellipse(r * 0.12, 0, r * 1.1, r * 0.95, 0, 0, TAU); };
+  if (!SIL) { fist(); g.fillStyle = shadeOf(col); g.fill(); g.beginPath(); g.ellipse(r * 0.2, -r * 0.12, r * 0.98, r * 0.8, 0, 0, TAU); g.fillStyle = col; g.fill(); }
+  fist(); g.lineWidth = 2.2; g.strokeStyle = INK; g.stroke();
+  if (SIL) return g.restore();
   g.strokeStyle = tone(col, 0.6); g.lineWidth = 1.3; g.beginPath(); g.moveTo(-r * 0.5, -r * 0.35); g.quadraticCurveTo(r * 0.2, -r * 0.1, r * 0.55, -r * 0.5); g.moveTo(r * 0.8, -r * 0.25); g.lineTo(r * 0.85, r * 0.4); g.stroke();
   g.restore();
 }
 function shoe(g, p, r, col) {
   if (!DET) return dot(g, p[4], p[5], r, col);
-  // a shoe that points forward and tilts along with the shin
+  // a shoe that points forward and tilts along with the shin, with a darker sole and a glint on the toe
   const sa = Math.atan2(p[5] - p[3], p[4] - p[2]) - Math.PI / 2;
   g.save(); g.translate(p[4], p[5]); g.rotate(clamp(sa, -1.3, 1.3) * 0.8);
-  g.beginPath(); g.moveTo(-r * 0.95, -r * 0.7); g.quadraticCurveTo(-r * 1.1, r * 0.95, 0, r * 0.95); g.lineTo(r * 1.4, r * 0.95); g.quadraticCurveTo(r * 2.0, r * 0.9, r * 1.7, r * 0.1); g.quadraticCurveTo(r * 1.1, -r * 0.55, r * 0.25, -r * 0.95); g.closePath();
-  g.fillStyle = col; g.fill(); g.lineWidth = 2.2; g.strokeStyle = INK; g.stroke();
-  g.save(); g.clip(); g.fillStyle = tone(col, 0.55); g.fillRect(-r * 2, r * 0.5, r * 5, r); g.fillStyle = LIGHT; g.beginPath(); g.ellipse(r * 0.9, -r * 0.05, r * 0.5, r * 0.18, -0.35, 0, TAU); g.fill(); g.restore();
+  const sh = () => { g.beginPath(); g.moveTo(-r * 0.95, -r * 0.7); g.quadraticCurveTo(-r * 1.1, r * 0.95, 0, r * 0.95); g.lineTo(r * 1.4, r * 0.95); g.quadraticCurveTo(r * 2.0, r * 0.9, r * 1.7, r * 0.1); g.quadraticCurveTo(r * 1.1, -r * 0.55, r * 0.25, -r * 0.95); g.closePath(); };
+  if (!SIL) {
+    sh(); g.fillStyle = col; g.fill();
+    g.beginPath(); g.moveTo(-r * 0.62, r * 0.55); g.quadraticCurveTo(-r * 0.78, r * 0.95, 0, r * 0.95); g.lineTo(r * 1.4, r * 0.95); g.quadraticCurveTo(r * 1.85, r * 0.92, r * 1.8, r * 0.55); g.closePath();
+    g.fillStyle = tone(col, 0.55); g.fill();
+    g.fillStyle = LIGHT; g.beginPath(); g.ellipse(r * 0.9, -r * 0.05, r * 0.5, r * 0.18, -0.35, 0, TAU); g.fill();
+  }
+  sh(); g.lineWidth = 2.2; g.strokeStyle = INK; g.stroke();
   g.restore();
 }
 function torsoShade(g, tw, tl) {
+  if (SIL) return;
   // a cel shadow down the back and under the chest, the shadow of the head at the neck, a soft highlight
   rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.save(); g.clip();
   g.fillStyle = SHADOW; g.beginPath(); g.rect(-tw * 2, -tl * 2, tw * 4, tl * 4); g.ellipse(tw * 0.24, -tl * 0.6, tw * 0.6, tl * 0.84, 0, 0, TAU); g.fill('evenodd');
@@ -4556,45 +4579,21 @@ function torsoShade(g, tw, tl) {
   g.fillStyle = LIGHT; g.beginPath(); g.ellipse(tw * 0.24, -tl * 0.66, tw * 0.12, tl * 0.2, -0.3, 0, TAU); g.fill();
   g.restore();
 }
-let HEADL = null;
-function headLayerBegin(g, hr) {
-  // the head goes on its own small layer, so hair and face are shaded together as one shape
-  const m = g.getTransform(), S = Math.hypot(m.a, m.b), size = Math.ceil(hr * 8 * S / 2) * 2;
-  if (!HEADL) HEADL = document.createElement('canvas');
-  if (HEADL.width < size || HEADL.height < size) HEADL.width = HEADL.height = Math.max(size, HEADL.width);
-  const L = HEADL.getContext('2d'), ox = Math.floor(m.e) - size / 2, oy = Math.floor(m.f) - size / 2;
-  L.setTransform(1, 0, 0, 1, 0, 0); L.clearRect(0, 0, size, size);
-  L.setTransform(m.a, m.b, m.c, m.d, m.e - ox, m.f - oy); L.lineCap = 'round'; L.lineJoin = 'round';
-  return { L, ox, oy, size };
-}
-function headLayerEnd(g, st, hr) {
-  const L = st.L;
-  L.save(); L.globalCompositeOperation = 'source-atop'; L.fillStyle = SHADOW;
-  L.beginPath(); L.rect(-hr * 6, -hr * 6, hr * 12, hr * 12); L.arc(hr * 0.45, -hr * 0.8, hr * 1.9, 0, TAU); L.fill('evenodd');
-  L.restore();
-  g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(HEADL, 0, 0, st.size, st.size, st.ox, st.oy, st.size, st.size); g.restore();
+function headShade(g, hr) {
+  // a shadow on the lower back of the skull, under the jaw and toward the neck
+  g.save(); g.beginPath(); g.arc(0, 0, hr, 0, TAU); g.clip();
+  g.fillStyle = SHADOW; g.beginPath(); g.rect(-hr * 2, -hr * 2, hr * 4, hr * 4); g.arc(hr * 0.45, -hr * 0.8, hr * 1.9, 0, TAU); g.fill('evenodd');
+  g.restore();
 }
 function drawPuppet(g, ck, col, P, o = {}) {
-  if (!settings.detail || DET) return drawPuppetBase(g, ck, col, P, o);
-  // the fighter on layer A with thin lines and its glows on layer C; B becomes A's silhouette grown by 0.8 in ink
-  const m = g.getTransform(), S = Math.hypot(m.a, m.b), h = CHARS[ck].h, size = Math.min(2048, Math.ceil(h * 4.4 * S / 2) * 2);
-  if (!PUPA) { PUPA = document.createElement('canvas'); PUPB = document.createElement('canvas'); PUPC = document.createElement('canvas'); }
-  if (PUPA.width < size) for (const cv of [PUPA, PUPB, PUPC]) cv.width = cv.height = size;
-  const cx = m.c * -h / 2 + m.e, cy = m.d * -h / 2 + m.f, ox = Math.floor(cx) - size / 2, oy = Math.floor(cy) - size / 2;
-  const A = PUPA.getContext('2d'), B = PUPB.getContext('2d'), C = PUPC.getContext('2d');
-  A.setTransform(1, 0, 0, 1, 0, 0); A.clearRect(0, 0, size, size); A.setTransform(m.a, m.b, m.c, m.d, m.e - ox, m.f - oy);
-  if (FXDIRTY) { C.setTransform(1, 0, 0, 1, 0, 0); C.clearRect(0, 0, PUPC.width, PUPC.height); FXDIRTY = false; }
-  DET = THIN = FXON = true;
-  try { drawPuppetBase(A, ck, col, P, o); } finally { DET = THIN = FXON = false; }
-  B.setTransform(1, 0, 0, 1, 0, 0); B.globalCompositeOperation = 'source-over'; B.clearRect(0, 0, size, size);
-  const R = 0.8 * S;
-  for (let i = 0; i < 8; i++) { const a = i * TAU / 8; B.drawImage(PUPA, 0, 0, size, size, Math.cos(a) * R, Math.sin(a) * R, size, size); }
-  B.globalCompositeOperation = 'source-in'; B.fillStyle = INK; B.fillRect(0, 0, size, size); B.globalCompositeOperation = 'source-over';
-  g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
-  g.drawImage(PUPB, 0, 0, size, size, ox, oy, size, size);
-  if (FXDIRTY) { const op = g.globalCompositeOperation; g.globalCompositeOperation = 'lighter'; g.drawImage(PUPC, 0, 0, size, size, ox, oy, size, size); g.globalCompositeOperation = op; }
-  g.drawImage(PUPA, 0, 0, size, size, ox, oy, size, size);
-  g.restore();
+  if (!settings.detail || DET || o.plain) return drawPuppetBase(g, ck, col, P, o); // the small portraits in the HUD stay plain
+  // the fighter twice: first all in ink and a little wider (the contour), then itself with thin lines on top;
+  // a see-through fighter (dodging, respawning) keeps its old lines, so no ink shows through it
+  DET = true;
+  try {
+    if (g.globalAlpha > 0.99) { THIN = SIL = true; drawPuppetBase(g, ck, col, P, o); SIL = false; drawPuppetBase(g, ck, col, P, o); }
+    else drawPuppetBase(g, ck, col, P, o);
+  } finally { DET = THIN = SIL = false; }
 }
 function strokeLimb(g, p, col, lw) {
   if (DET) return strokeLimbD(g, p, col, lw);
@@ -4843,7 +4842,7 @@ function drawPuppetBase(g, ck, col, P, o = {}) {
   g.restore();
   // head
   g.save(); g.translate(hd.x, hd.y); g.rotate(lean * 0.5);
-  const hurt = o.hurt, HL = DET && !['brick', 'bliep', 'techno', 'kwak'].includes(ck) ? headLayerBegin(g, hr) : null, g0 = g; if (HL) g = HL.L;
+  const hurt = o.hurt;
   if (ck === 'brick') {
     rr(g, -hr * 1.05, -hr * 1.05, hr * 2.1, hr * 2.0, hr * 0.45); g.fillStyle = col.body; g.fill(); g.lineWidth = 3.5; g.strokeStyle = INK; g.stroke();
     rr(g, hr * 0.05, -hr * 0.35, hr * 0.95, hr * 0.42, 3); g.fillStyle = hurt ? INK : col.acc; g.fill(); g.lineWidth = 2; g.stroke();
@@ -5105,7 +5104,7 @@ function drawPuppetBase(g, ck, col, P, o = {}) {
     g.fillStyle = col.body; g.fill(); g.lineWidth = 3; g.stroke();
     g.fillStyle = col.acc; star(g, -hr * 0.15, -hr * 1.05, hr * 0.32); g.fill();
   }
-  if (HL) { g = g0; headLayerEnd(g, HL, hr); }
+  if (DET && !SIL && !['brick', 'bliep', 'techno', 'kwak'].includes(ck)) headShade(g, hr);
   g.restore();
   // front leg & arm
   strokeLimb(g, lF, ck === 'lente' ? col.dark : ck === 'sterre' ? col.skin : ck === 'joep' ? col.shorts || col.dark : ck === 'pip' || ck === 'rekker' || ck === 'bot' ? col.dark : ck === 'lonk' ? '#ece3cc' : ck === 'volt' ? col.jacket : ck === 'techno' ? '#3b3046' : col.body, lw); foot(g, ck, lF, lw, col);
@@ -6615,7 +6614,7 @@ function pctColor(p) {
 function drawPortrait(g, f, x, y, r) {
   g.save(); g.beginPath(); g.arc(x, y, r, 0, TAU); g.fillStyle = hexA(f.pc, 0.35); g.fill(); g.clip();
   const c = CHARS[f.key], s = r * (c.pz || 2.5) / c.h; g.translate(x, y + c.h * 0.42 * s + r * 0.25); g.scale(s, s);
-  drawPuppet(g, f.key, f.col, mk({ aF: [0.5, -0.8] }), { fr: G.frame, hurt: f.state === 'dead', copy: f.copy });
+  drawPuppet(g, f.key, f.col, mk({ aF: [0.5, -0.8] }), { fr: G.frame, hurt: f.state === 'dead', copy: f.copy, plain: true });
   g.restore();
   g.beginPath(); g.arc(x, y, r, 0, TAU); g.lineWidth = 3; g.strokeStyle = f.pc; g.stroke();
 }
