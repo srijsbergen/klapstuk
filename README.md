@@ -2,7 +2,7 @@
 
 Een platformvechter voor 2 tot 4 spelers in de browser: achtentwintig vechters in elk zes kleuren, veertien podia (zeven rustige en zeven met gevaren zoals lava, bliksem, een sloopkogel, een vloedgolf en een mijnkar), items die je stuk voor stuk aan of uit zet, een Klapbal waarmee elke vechter een eigen final smash doet, achtergrondmuziek (60 nummers die de browser zelf speelt, zonder geluidsbestanden: vier voor het menu en vier per podium) en CPU-tegenstanders van niveau 1 tot 12. Speel lokaal op één toetsenbord of gamepad, of online met vrienden.
 
-De hele site is één bestand: `index.html`. De WebRTC-bibliotheek zit erin en het spel gebruikt alleen standaardlettertypen (Impact en het systeemlettertype); de pagina laadt niets van andere websites. Er is geen bouwstap en geen eigen server nodig. (De afbeelding in `docs/` hoort alleen bij deze uitleg.)
+Het spel is één bestand: `index.html`. De WebRTC-bibliotheek zit erin en het spel gebruikt alleen standaardlettertypen (Impact en het systeemlettertype); de pagina laadt niets van andere websites. Er is geen bouwstap en geen eigen server nodig. Daarnaast staat er een `tierlijst.html`, waar het menu naar linkt: welke vechters in CPU-toernooien het vaakst winnen. Ook die is los te openen en laadt niets van buiten. (De afbeelding in `docs/` hoort alleen bij deze uitleg.)
 
 ## De vechters
 

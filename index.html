@@ -29,6 +29,7 @@ body{background:var(--ink);color:var(--fg);font-family:var(--ui);overflow:hidden
   text-shadow:-3px -3px 0 var(--ink),3px -3px 0 var(--ink),-3px 3px 0 var(--ink),3px 3px 0 var(--ink),6px 8px 0 #ff5468}
 .brand p{margin:0;max-width:42ch;color:var(--mute);font-size:15px;line-height:1.45;text-wrap:pretty}
 .brand p b{color:var(--fg)}
+.brand p a{color:var(--gold);font-weight:700;text-underline-offset:2px}
 .label{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);font-weight:700;margin:0}
 .slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:12px}
 .slot{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
@@ -401,7 +402,7 @@ window.KlapP2P = (() => {
       <header class="brand">
         <h1>Klapstuk</h1>
         <button class="mbtn" id="musTop" aria-pressed="true" aria-label="Muziek aan of uit (N)" title="Muziek aan of uit (N)"><svg class="note" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.8" fill="currentColor"/><circle cx="17.5" cy="16" r="2.8" fill="currentColor"/><path class="slash" d="M3 3l18 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
-        <p>Een platformvechter voor 2 tot 4 spelers, met achtentwintig vechters. Elke klap telt op als <b>schade-%</b>; hoe hoger je percentage, hoe verder je vliegt. Sla je tegenstanders <b>buiten beeld</b> en hou zelf je levens.</p>
+        <p>Een platformvechter voor 2 tot 4 spelers, met achtentwintig vechters. Elke klap telt op als <b>schade-%</b>; hoe hoger je percentage, hoe verder je vliegt. Sla je tegenstanders <b>buiten beeld</b> en hou zelf je levens. Wie het vaakst wint, zie je in de <a href="tierlijst.html">tierlijst</a>.</p>
       </header>
 
       <div class="modes" role="tablist" aria-label="Speelwijze">
