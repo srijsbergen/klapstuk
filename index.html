@@ -3088,7 +3088,7 @@ class Fighter {
     Object.assign(this, { x, y, px: x, py: y, vx: 0, vy: 0, lvx: 0, lvy: 0, facing: x <= 0 ? 1 : -1, grounded: false, ground: null, state: 'air', t: 0,
       jumps: this.c.airJumps, move: null, mt: 0, hitSet: new Set(), charge: 0, hitlag: 0, hitstun: 0, tumble: false, tumbleAnim: false, invuln: 0, intang: false,
       star: 0, feather: 0, shieldHP: 60, shieldStun: 0, fastfall: false, ledgeSide: 0, ledgeCD: 0, dropT: 0, airdodged: false, adDir: false, upBUsed: false, sideBUsed: false,
-      held: null, holder: null, grabT: 0, pumT: 0, item: null, lastHit: null, lastHitT: -9999, frozen: 0, buried: false, punchStore: 0, flash: 0, lag: 0, ev: null, mv: {}, jabN: 0, dizzy: 0, percent: 0, jsTap: false, hop: null, sjWin: 0, maskT: 0, maskCD: 0, ssj: 0, ki: this.ki || 0 });
+      held: null, holder: null, grabT: 0, pumT: 0, item: null, lastHit: null, lastHitT: -9999, frozen: 0, buried: false, punchStore: 0, flash: 0, lag: 0, ev: null, mv: {}, jabN: 0, dizzy: 0, percent: 0, jsTap: false, hop: null, sjWin: 0, maskT: 0, maskCD: 0, ssj: 0, ki: 0 });
   }
   get ix() { const h = this.ctrl.h; return (h.r ? 1 : 0) - (h.l ? 1 : 0); }
   get iy() { const h = this.ctrl.h; return (h.d ? 1 : 0) - (h.u ? 1 : 0); }
