@@ -1698,7 +1698,7 @@ const SPECIALS = {
         hb: [H(48, -46, 24, 11, 38, 46, 84), H(22, -46, 20, 9, 38, 40, 80, { nr: 1 })], noGrav: (f, t) => t <= 12,
         tick: (f, t) => { if (skillConnect(f, t)) return; if (t <= 12) { f.vx = f.facing * (9 + f.charge * 0.14) * (t >= 3 ? 1 : 0.3); f.vy = 0; if (t % 2) ghostFx(f); } else { f.vx *= 0.82; if (t === 13 && !f.grounded) f.mt += 12; } } }),
       // Horizontaal Vierkant: four quick cuts while gliding forward, the last one launches; in the air it carries you sideways
-      sideB: M({ special: true, start: 5, active: 21, end: 16, pose: 'smashF', keepVel: true, noDrift: true, ll: 12, skc: '#4fb4ff', onStart: on('sideB'),
+      sideB: M({ special: true, start: 5, active: 21, end: 16, pose: 'smashF', poseFn: nevelSquarePose, keepVel: true, noDrift: true, ll: 12, skc: '#4fb4ff', onStart: on('sideB'),
         hb: [0, 1, 2].map(i => H(38, -44, 30, 2.5, 50, 20, 0, { grp: i + 1, link: true, when: (f, t) => t >= 6 + i * 5 && t < 9 + i * 5 }))
           .concat([H(40, -46, 32, 6, 42, 44, 86, { grp: 9, when: (f, t) => t >= 22 && t <= 25 })]),
         noGrav: (f, t) => t <= 26,
@@ -1731,7 +1731,7 @@ const SPECIALS = {
       // Horizontale Boog (Horizontal Arc): one sword to each side
       dsmash: M({ start: 7, active: 4, end: 26, pose: 'smashD', charge: true, hb: [H(46, -12, 22, 13, 28, 36, 98), H(-46, -12, 22, 13, 152, 36, 98)] }),
       // Sterrenstroom (Starburst Stream): with a full meter, down special is sixteen cuts with both swords while he presses forward
-      starburst: M({ special: true, start: 8, active: 50, end: 26, pose: 'smashF', keepVel: true, noDrift: true, ll: 16, skc: '#bfe8ff',
+      starburst: M({ special: true, start: 8, active: 50, end: 26, pose: 'smashF', poseFn: nevelStarPose, keepVel: true, noDrift: true, ll: 16, skc: '#bfe8ff',
         onStart: f => { f.ki = 0; f.scNext = false; G.flash = 4; SFX.zap(); },
         hb: Array.from({ length: 15 }, (_, i) => H(38, -46, 34, 1.6, 50, 12, 0, { nr: 1, grp: i + 1, link: true, when: (f, t) => t >= 8 + i * 3 && t < 10 + i * 3 }))
           .concat([H(44, -46, 38, 6, 40, 60, 96, { nr: 1, grp: 20, when: (f, t) => t >= 54 && t <= 57 })]),
@@ -4414,6 +4414,7 @@ function poseFor(f) {
       return mk({ crouch: 0.4 * (1 - k), plant: 'both' });
     }
     case 'attack': {
+      if (f.move.poseFn) return f.move.poseFn(f, f.mt);
       const m = f.move, pz = POSE[m.pose] || POSE.jab, t = f.mt, st = m.start, ac = m.active, en = Math.max(1, m.dur - st - ac);
       const idle = f.grounded ? mk({ plant: 'both' }) : mk({ lF: [0.3, -0.6], lB: [-0.2, -0.5] });
       let P;
@@ -4445,6 +4446,27 @@ function eye(g, x, y, r, hurt) {
   if (hurt) { g.strokeStyle = INK; g.lineWidth = 2.5; g.beginPath(); g.moveTo(x - r, y - r); g.lineTo(x + r * 0.6, y); g.lineTo(x - r, y + r); g.stroke(); return; }
   g.beginPath(); g.ellipse(x, y, r * 0.75, r, 0, 0, TAU); g.fillStyle = '#ffffff'; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke();
   g.beginPath(); g.ellipse(x + r * 0.25, y + r * 0.1, r * 0.38, r * 0.55, 0, 0, TAU); g.fillStyle = INK; g.fill();
+}
+// Nevel's swinging arms: in the Horizontaal Vierkant the hands take turns sweeping across, the last cut with both;
+// in the Sterrenstroom each cut is another hand, alternating cuts from high and from low
+const NV_LEGS = { lF: [0.8, -0.4], lB: [-0.7, -0.4], plant: 'both' };
+function nevelSquarePose(f, t) {
+  const L = Object.assign({ lean: 0.35 }, NV_LEGS, { lF: [1.0, -0.5], lB: [-0.9, -0.6] });
+  if (t < 5) return mk(Object.assign({ aF: [-0.4, -0.8], aB: [-0.6, -0.8] }, L));
+  if (t >= 21) {
+    const k = clamp((t - 21) / 4, 0, 1), P = mk(Object.assign({ aF: [lerp(-0.3, 2.0, k), -0.1], aB: [lerp(-0.6, 1.8, k), -0.2] }, L));
+    return t > 26 ? mix(P, mk({ plant: 'both' }), Math.min(1, (t - 26) / 16)) : P;
+  }
+  const i = ((t - 5) / 5) | 0, k = clamp(((t - 5) % 5) / 3, 0, 1), sw = lerp(-0.4, 2.1, k);
+  return mk(Object.assign(i % 2 ? { aB: [sw, -0.1], aF: [0.4, -1.2] } : { aF: [sw, -0.1], aB: [0.2, -1.2] }, L));
+}
+function nevelStarPose(f, t) {
+  const L = Object.assign({}, NV_LEGS);
+  if (t < 8) return mk(Object.assign({ aF: [2.6, -0.4], aB: [2.2, -0.6], lean: -0.1 }, L));
+  if (t >= 58) return mix(mk(Object.assign({ aF: [1.6, -0.2], aB: [1.4, -0.3], lean: 0.2 }, L)), mk({ plant: 'both' }), Math.min(1, (t - 58) / 20));
+  const i = ((t - 8) / 3) | 0, k = ((t - 8) % 3) / 2, high = i % 4 < 2, sw = high ? lerp(2.9, 0.6, k) : lerp(0.4, 2.6, k), rest = high ? 1.9 : 1.0;
+  const lean = 0.25 + (k - 0.5) * 0.12;
+  return mk(Object.assign(i % 2 ? { aB: [sw, -0.2], aF: [rest, -1.0], lean } : { aF: [sw, -0.2], aB: [rest, -1.0], lean }, L));
 }
 function nevelBlade(g, a, L, blade, edge, glow) {
   // a slim one-handed sword; during a sword skill it glows in the skill's colour
@@ -6054,6 +6076,10 @@ function drawFighter(g, f, fr, z) {
     // one bright arc per cut, alternating between the two swords
     const i = ((f.mt - 8) / 3) | 0, ph = ((f.mt - 8) % 3) / 3, cx = f.x + f.facing * 36, cy = f.y - 46, a0 = (i * 2.3) % TAU;
     g.save(); g.lineCap = 'round'; g.strokeStyle = hexA(i % 2 ? '#dff4f2' : '#8fd8ff', 0.95 - ph * 0.6); g.lineWidth = 6; g.beginPath(); g.arc(cx, cy, 38, a0, a0 + 2.2); g.stroke(); g.restore();
+  }
+  if (f.key === 'nevel' && f.state === 'attack' && f.move === f.M.sideB && f.mt >= 6 && f.mt <= 26) {
+    const t = f.mt, last = t >= 21, i = last ? 3 : ((t - 6) / 5) | 0, ph = last ? (t - 21) / 5 : ((t - 6) % 5) / 5;
+    if (ph < 0.8) { g.save(); g.translate(f.x, f.y - 46 * c.h / 80); g.scale(f.facing, 1); g.lineCap = 'round'; g.strokeStyle = hexA(i % 2 ? '#dff4f2' : '#4fb4ff', 0.9 - ph); g.lineWidth = last ? 8 : 5; g.beginPath(); g.ellipse(24, 0, 50, 15, 0, -2.5, 0.9); g.stroke(); g.restore(); }
   }
   if (f.key === 'sterre' && f.state === 'attack' && (f.move === f.M.neutralB || f.move === f.M.fair)) {
     // the water whip, uncoiling to its full length and back
