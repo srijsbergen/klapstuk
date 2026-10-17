@@ -31,7 +31,7 @@ Ga daarna naar http://localhost:8000.
 ## Training en toetsen
 
 - **Training: bokszak** (in het menu) zet je eerste menselijke speler tegenover een bokszak die niets doet, met onbeperkt levens. Linksboven staan je combo, de beste combo, de laatste klap en welke aanvallen verzwakt zijn door herhaling. Met **R** zet je de zak terug en met **H** toon je raakvlakken (ook via het pauzemenu).
-- **Detail** (in het menu, onder het geluid) geeft de vechters schaduw, fijnere lijnen, vuisten en schoenen. Op telefoons en tablets staat het standaard uit; zet het ook uit als het spel hapert.
+- Onder **Beeld** (onderaan het menu) zet je **Detail** aan of uit: schaduw, fijnere lijnen, vuisten en schoenen op de vechters. Op telefoons en tablets staat het standaard uit; zet het ook uit als het spel hapert. Daar zet je ook een teller aan die tijdens een gevecht onder de pauzeknop laat zien hoeveel beelden per seconde het spel haalt.
 - Onder **Besturing en technieken** kun je de toetsen van beide toetsenbord-indelingen aanpassen: klik op een toets en druk de nieuwe. Je instellingen blijven bewaard in je browser.
 
 ## Online spelen

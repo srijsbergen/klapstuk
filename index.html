@@ -157,6 +157,8 @@ select{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
 .msg{color:var(--warn);min-height:1.3em;font-size:14px;margin:0}
 details.help{background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:10px 14px}
 details.help summary{cursor:pointer;font-weight:700}
+.gfx{display:flex;flex-direction:column;gap:12px;margin-top:12px;max-width:520px}
+.gfx small{display:block;color:var(--mute);font-size:13px}
 .tbl{overflow-x:auto;margin-top:10px}
 table{border-collapse:collapse;font-size:13.5px;min-width:520px;width:100%}
 th,td{text-align:left;padding:6px 10px 6px 0;border-bottom:1px solid var(--line);vertical-align:top}
@@ -439,7 +441,6 @@ window.KlapP2P = (() => {
             <div class="opt" id="cpuOpt" hidden><span>Lege plekken vullen met CPU's</span><button class="tog" id="netCpu" aria-pressed="false">Uit</button></div>
             <div class="opt"><span>Muziek</span><div class="vol"><label class="sr" for="musVol">Volume muziek</label><input type="range" id="musVol" min="0" max="100"><button class="tog" id="mus" aria-pressed="true">Aan</button></div></div>
             <div class="opt"><span>Effecten</span><div class="vol"><label class="sr" for="sfxVol">Volume effecten</label><input type="range" id="sfxVol" min="0" max="100"><button class="tog" id="snd" aria-pressed="true">Aan</button></div></div>
-            <div class="opt"><span>Detail</span><button class="tog" id="dtl" aria-pressed="true" title="Schaduw en fijnere lijnen op de vechters; zet het uit als het spel hapert">Aan</button></div>
           </div>
           <button class="go" id="go">Vechten!</button>
           <button class="btn" id="train">Training: bokszak</button>
@@ -465,6 +466,14 @@ window.KlapP2P = (() => {
           <li><b>Gevorderd.</b> <b>L-cancel</b>: druk schild vlak voor je landt met een luchtaanval, en je landingsvertraging halveert. <b>Wavedash</b>: spring en ontwijk meteen schuin omlaag, dan glijd je over de grond (ook om van een rand af te glijden). <b>Perfect afweren</b>: zet je schild vlak voordat een aanval raakt: geen schildschade, de aanvaller staat even stil en projectielen kaatsen terug. <b>Smash-DI</b>: tik een richting terwijl je na een klap stilstaat om een stukje te verschuiven, handig om uit meervoudige aanvallen te ontsnappen. <b>Sweetspots</b>: het verste puntje van een aanval raakt harder; bij Sabel en Lonk is de zwaardpunt extra sterk en de rest van het zwaard iets zwakker. <b>Herhaling</b>: dezelfde aanval steeds weer gebruiken doet minder schade.</li>
           <li>Twee spelers op één toetsenbord: geef Toetsenbord 1 en Toetsenbord 2 hierboven toetsen die niet botsen. Gamepads en het aanraakscherm zijn niet aan te passen.</li>
         </ul>
+      </details>
+
+      <details class="help" id="gfxBox">
+        <summary>Beeld</summary>
+        <div class="gfx">
+          <div class="opt"><span>Detail <small>schaduw en fijnere lijnen op de vechters; zet het uit als het spel hapert</small></span><button class="tog" id="dtl" aria-pressed="true">Aan</button></div>
+          <div class="opt"><span>Beelden per seconde tonen <small>klein onder de pauzeknop, tijdens een gevecht</small></span><button class="tog" id="fpsTog" aria-pressed="false">Uit</button></div>
+        </div>
       </details>
     </div>
   </div>
@@ -527,7 +536,7 @@ let settings = {
     { type: 'cpu', ch: 'brick', lvl: 4 },
     { type: 'off', ch: 'sable', lvl: 5 },
     { type: 'off', ch: 'pip', lvl: 5 },
-  ], stage: 'ruins', stocks: 3, items: true, ioff: [], sound: true, music: true, musVol: 50, sfxVol: 80, mus: {}, detail: !isTouch,
+  ], stage: 'ruins', stocks: 3, items: true, ioff: [], sound: true, music: true, musVol: 50, sfxVol: 80, mus: {}, detail: !isTouch, fps: false,
 };
 function save() { try { localStorage.setItem('klapstuk-v1', JSON.stringify(settings)); } catch (e) {} }
 function loadSaved() {
@@ -6830,6 +6839,7 @@ function buildMenu() {
   buildItemSet();
   $('#netCpu').onclick = () => { setOpt('cpu', !optCfg().cpu); SFX.ui(); };
   $('#dtl').onclick = () => { settings.detail = !settings.detail; syncAudioUI(); save(); SFX.ui(); };
+  $('#fpsTog').onclick = () => { settings.fps = !settings.fps; syncAudioUI(); save(); SFX.ui(); };
   $('#snd').onclick = $('#pSnd').onclick = () => { settings.sound = !settings.sound; syncAudioUI(); save(); SFX.init(); SFX.ui(); };
   for (const id of ['#mus', '#pMus', '#musTop']) $(id).addEventListener('click', toggleMusic);
   for (const id of ['#musVol', '#pMusVol']) $(id).addEventListener('input', e => { settings.musVol = +e.target.value; if (settings.musVol > 0) settings.music = true; SFX.init(); syncAudioUI(); save(); });
@@ -6859,7 +6869,7 @@ function syncAudioUI() {
     $(vol).value = settings[v]; $(tog).setAttribute('aria-pressed', String(!!settings[on])); $(tog).textContent = settings[on] ? 'Aan' : 'Uit';
   }
   $('#musTop').setAttribute('aria-pressed', String(!!settings.music));
-  $('#dtl').setAttribute('aria-pressed', String(!!settings.detail)); $('#dtl').textContent = settings.detail ? 'Aan' : 'Uit';
+  for (const [id, k] of [['#dtl', 'detail'], ['#fpsTog', 'fps']]) { $(id).setAttribute('aria-pressed', String(!!settings[k])); $(id).textContent = settings[k] ? 'Aan' : 'Uit'; }
 }
 function toggleMusic() { settings.music = !settings.music; SFX.init(); syncAudioUI(); save(); }
 // which music plays on the chosen stage, with a button to listen first
@@ -7541,13 +7551,13 @@ addEventListener('resize', resize);
 
 /* ---------------- loop ---------------- */
 let last = performance.now(), acc = 0;
-// frames per second under the pause button, counted over half a second
+// frames per second under the pause button (option in Beeld), counted over half a second
 const fpsEl = $('#fps'); let fpsN = 0, fpsT = performance.now();
 function loop(now) {
   requestAnimationFrame(loop);
   let dt = now - last; last = now; if (dt > 100) dt = 100;
   fpsN++; if (now - fpsT >= 500) { fpsEl.textContent = Math.round(fpsN * 1000 / (now - fpsT)) + ' fps'; fpsN = 0; fpsT = now; }
-  if (fpsEl.hidden !== pbtn.hidden) fpsEl.hidden = pbtn.hidden;
+  const fpsOff = pbtn.hidden || !settings.fps; if (fpsEl.hidden !== fpsOff) fpsEl.hidden = fpsOff;
   pollPadStart(); pollCursors(now);
   if (!G.paused && G.stage) { acc += dt; const step = 1000 / 60; let n = 0; while (acc >= step && n < 5) { acc -= step; n++; tick(); } if (n >= 5) acc = 0; }
   if (G.stage) render();
