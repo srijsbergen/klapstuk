@@ -1068,7 +1068,7 @@ Object.assign(CHARS, {
     col: { body: '#3f6fd8', dark: '#1d1c24', acc: '#ff8fb8', skin: '#f4f4f0', fx: '#5fd3ff' }, alt: { body: '#2b2b33', dark: '#3f6fd8', acc: '#ffd23f', skin: '#f4f4f0', fx: '#ffd23f' } },
   eik: { name: 'Eik', blurb: 'Huurling met een reuzenzwaard. Traag, maar elke klap telt. Houd speciaal vast om op te laden: een vuurzuil uit de grond, een bliksemsnelle uithaal opzij. Gooit zijn zwaard omhoog en slaat ermee neer, en heeft een counter.', weight: 116, run: 6.4, acc: 1, jump: 15, djump: 13.8, grav: 0.88, fall: 13, ffall: 18.5, air: 4.7, airAcc: 0.42, airJumps: 1, w: 46, h: 88, pow: 1.3, reach: 1.25, lag: 2, limb: 12, hr: 0.15, arm: 0.18, sideRec: true,
     col: { body: '#2f5bb0', dark: '#1d2a52', acc: '#c8312f', skin: '#f0c9a0', fx: '#ffb347', hair: '#2c46a6' }, alt: { body: '#5a4632', dark: '#2b231c', acc: '#2f7d45', skin: '#e8bf95', fx: '#ffd45e', hair: '#d8d4c8' } },
-  nevel: { name: 'Nevel', blurb: 'Zwaardvechter in een lange zwarte jas, uit een virtuele wereld. Zijn zwaardtechnieken lichten op: een vorpaalsteek die je oplaadt, vier snelle sneden terwijl hij vooruit glijdt, een sonische sprong omhoog en een snede die projectielen doormidden hakt. Druk in de nasleep van een techniek opnieuw speciaal in een andere richting en hij trekt zijn tweede zwaard: de volgende techniek volgt meteen, tot vier achter elkaar.', weight: 90, run: 7.4, acc: 1.15, jump: 15.5, djump: 14.5, grav: 0.84, fall: 12.5, ffall: 18, air: 5.0, airAcc: 0.5, airJumps: 1, w: 40, h: 82, pow: 1, reach: 1.28, lag: 0, limb: 10, hr: 0.15, sideRec: true,
+  nevel: { name: 'Nevel', blurb: 'Zwaardvechter in een lange zwarte jas, uit een virtuele wereld. Zijn zwaardtechnieken lichten op: een vorpaalsteek die je oplaadt, vier snelle sneden terwijl hij vooruit glijdt, een sonische sprong omhoog en een snede die projectielen doormidden hakt. Druk in de nasleep van een techniek opnieuw speciaal in een andere richting en de volgende volgt meteen, tot vier achter elkaar. Ook zijn gewone aanvallen zijn zwaardtechnieken, met twee zwaarden bij de smash-aanvallen. Raken vult zijn meter; is die vol, dan geeft speciaal omlaag de Sterrenstroom: zestien slagen met twee zwaarden.', weight: 90, run: 7.4, acc: 1.15, jump: 15.5, djump: 14.5, grav: 0.84, fall: 12.5, ffall: 18, air: 5.0, airAcc: 0.5, airJumps: 1, w: 40, h: 82, pow: 1, reach: 1.28, lag: 0, limb: 10, hr: 0.15, sideRec: true,
     col: { body: '#22202b', dark: '#121118', acc: '#8f8c9e', skin: '#f6d2b0', fx: '#8fd8ff', hair: '#17161d' }, alt: { body: '#e9ecf3', dark: '#2a3550', acc: '#4f6fb8', skin: '#f6d2b0', fx: '#ffd36a', hair: '#17161d' } },
   marsepein: { name: 'Marsepein', blurb: 'Half-elfse magiër met een lange blonde vlecht en een levende staf. Haar antwoord op alles is een explosie: zet een toverkring neer, houd vast om hem verder weg te schuiven, en even later ontploft hij (sta er zelf niet in). Een flitsspreuk die verdooft, een barrière om vanaf omhoog te springen en een genezing die snel werkt, maar wel pijn doet; daarna moet ze tien tellen wachten.', weight: 88, run: 6.5, acc: 1, jump: 15, djump: 14, grav: 0.72, fall: 10.5, ffall: 15.5, air: 4.8, airAcc: 0.48, airJumps: 1, w: 40, h: 78, pow: 1.12, reach: 1.15, lag: 0, limb: 9, zoner: 'side', hr: 0.165,
     col: { body: '#2f5fa8', dark: '#ece8dc', acc: '#c8323a', skin: '#f8dcc0', fx: '#ff9a3c', hair: '#f2d16b' }, alt: { body: '#5b3f8c', dark: '#2a2236', acc: '#e8c548', skin: '#f8dcc0', fx: '#c38bff', hair: '#f2d16b' } },
@@ -1086,7 +1086,7 @@ const FINALS = {
   rat: ['storm', 'Donderstorm'], kakel: ['storm', 'Eierregen'], ninja: ['rush', 'Duizend Sneden'], techno: ['nova', 'Bloed voor de Bloedgod'],
   schim: ['nova', 'Chaosexplosie'], gokko: ['beam', 'Superstraal'], rekker: ['rush', 'Rubberstorm'], draai: ['rush', 'Klonenleger'],
   aardbei: ['beam', 'Zwarte Maansnede'], sleutel: ['storm', 'Sleutelregen'], bot: ['beam', 'Gasterkanon'], eik: ['rush', 'Grote Hemelsnede'],
-  nevel: ['rush', 'Sterrenstroom'], marsepein: ['nova', 'Oude Magie'], sterre: ['nova', 'Urano Metria'],
+  nevel: ['rush', 'De Eclips'], marsepein: ['nova', 'Oude Magie'], sterre: ['nova', 'Urano Metria'],
 };
 // Joep's hand-made colourways: the magenta cap, black shirt and purple shorts of the classic look, and an all black-and-red one
 CHARS.joep.skins = [{ name: 'Roze pet', body: '#2a2830', dark: '#6a52a8', acc: '#d4458e', skin: '#f6cfa8', fx: '#ff9bd0' },
@@ -1244,13 +1244,17 @@ const AIRS = {
     uair: M({ start: 6, active: 5, end: 12, pose: 'clapUp', aerial: true, afx: 'fire', ll: 8, hb: [H(0, -96, 30, 9, 88, 32, 94, { nr: 1 })] }),
     dair: M({ start: 10, active: 4, end: 16, pose: 'swingDown', aerial: true, ll: 11, hb: [H(0, 20, 24, 11, 272, 34, 84, { nr: 1 })] }),
   }),
-  // Nevel: quick one-handed cuts
+  // Nevel: every attack is a sword skill
   nevel: (M, H) => ({
-    nair: M({ start: 5, active: 10, end: 10, pose: 'nair', aerial: true, afx: 'slash', ll: 7, hb: [H(0, -44, 44, 9, 45, 30, 84, { nr: 1, f1: 5 }), H(0, -44, 40, 6, 45, 22, 72, { nr: 1, f0: 5 })] }),
-    fair: M({ start: 5, active: 4, end: 13, pose: 'axe', aerial: true, afx: 'slash', ll: 9, hb: [H(52, -48, 26, 10, 40, 32, 92), H(28, -50, 20, 8, 45, 28, 86)] }),
+    // Draaiend Schild (Spinning Shield): both swords spin round and knock projectiles back
+    nair: M({ start: 5, active: 10, end: 10, pose: 'nair', aerial: true, afx: 'slash', ll: 7, reflect: [5, 15], hb: [H(0, -44, 44, 9, 45, 30, 84, { nr: 1, f1: 5 }), H(0, -44, 40, 6, 45, 22, 72, { nr: 1, f0: 5 })] }),
+    // Scherpe Klauw (Sharp Nail): three quick cuts, the last one launches
+    fair: M({ start: 5, active: 12, end: 12, pose: 'axe', aerial: true, afx: 'slash', ll: 9,
+      hb: [0, 1, 2].map(i => H(48, -46, 24, i < 2 ? 3 : 6, i < 2 ? 50 : 40, i < 2 ? 18 : 34, i < 2 ? 0 : 90, { grp: i + 1, link: i < 2, when: (f, t) => t >= 5 + i * 4 && t < 8 + i * 4 })) }),
     bair: M({ start: 7, active: 4, end: 15, pose: 'elbowB', aerial: true, afx: 'slash', ll: 10, hb: [H(-56, -44, 24, 12, 140, 36, 98), H(-30, -48, 20, 8, 140, 30, 86)] }),
     uair: M({ start: 5, active: 5, end: 12, pose: 'upswing', aerial: true, afx: 'slash', ll: 8, hb: [H(0, -110, 26, 9, 88, 32, 94, { nr: 1 }), H(24, -86, 22, 7, 80, 28, 85)] }),
-    dair: M({ start: 9, active: 5, end: 17, pose: 'stabDown', aerial: true, afx: 'slash', ll: 13, hb: [H(0, 32, 24, 12, 275, 38, 86, { nr: 1 })] }),
+    // Meteoorval (Meteor Fall): a stab straight down that spikes
+    dair: M({ start: 9, active: 5, end: 17, pose: 'stabDown', aerial: true, afx: 'slash', ll: 13, hb: [H(0, 32, 24, 13, 275, 40, 88, { nr: 1 })] }),
   }),
   // Eik: a heavy blade, so every aerial comes out late and hits hard
   eik: (M, H) => ({
@@ -1688,7 +1692,7 @@ const SPECIALS = {
         } }),
       vorpal: M({ special: true, start: 3, active: 9, end: 24, pose: 'dashB', keepVel: true, noDrift: true, ll: 14, skc: '#ff5a4a', charge: true, chargeAt: -1, chargeMax: 50, chargeBoost: 0.7,
         hb: [H(48, -46, 24, 11, 38, 46, 84), H(22, -46, 20, 9, 38, 40, 80, { nr: 1 })], noGrav: (f, t) => t <= 12,
-        tick: (f, t) => { if (skillConnect(f, t)) return; if (t <= 12) { f.vx = f.facing * (9 + f.charge * 0.14) * (t >= 3 ? 1 : 0.3); f.vy = 0; if (t % 2) ghostFx(f); } else f.vx *= 0.82; } }),
+        tick: (f, t) => { if (skillConnect(f, t)) return; if (t <= 12) { f.vx = f.facing * (9 + f.charge * 0.14) * (t >= 3 ? 1 : 0.3); f.vy = 0; if (t % 2) ghostFx(f); } else { f.vx *= 0.82; if (t === 13 && !f.grounded) f.mt += 12; } } }),
       // Horizontaal Vierkant: four quick cuts while gliding forward, the last one launches; in the air it carries you sideways
       sideB: M({ special: true, start: 5, active: 21, end: 16, pose: 'smashF', keepVel: true, noDrift: true, ll: 12, skc: '#4fb4ff', onStart: on('sideB'),
         hb: [0, 1, 2].map(i => H(38, -44, 30, 2.5, 50, 20, 0, { grp: i + 1, link: true, when: (f, t) => t >= 6 + i * 5 && t < 9 + i * 5 }))
@@ -1708,8 +1712,29 @@ const SPECIALS = {
           if (t === 5) { if (f.ix) f.facing = f.ix; f.vx = f.facing * 3; f.vy = -16.5; f.grounded = false; f.ground = null; SFX.swing(); }
           else if (t <= 17) { f.vy += 0.5; f.vx = approach(f.vx, f.facing * 3 + f.ix * 3, 0.4); if (t % 2) ghostFx(f); }
         } }),
+      // Schuine Snede (Slant): a diagonal cut
+      ftilt: M({ start: 5, active: 3, end: 14, pose: 'swingDown', hb: [H(42, -40, 18, 8, 35, 30, 92), H(22, -44, 16, 8, 35, 30, 92)] }),
+      // Woedepiek (Rage Spike): a low dash with a thrust
+      dash: M({ start: 6, active: 7, end: 18, pose: 'dashB', keepVel: true, slide: 0.93, hb: [H(32, -36, 22, 9, 50, 42, 72)] }),
+      // Dubbele Cirkel (Double Circular): both swords cut at once
+      fsmash: M({ start: 11, active: 3, end: 26, pose: 'smashF', charge: true, hb: [H(52, -42, 24, 15, 38, 40, 104), H(28, -42, 18, 13, 38, 40, 100)] }),
+      // Nova-opstijging (Nova Ascension): a rising cut with both swords
+      usmash: M({ start: 8, active: 7, end: 26, pose: 'smashU', charge: true, hb: [H(0, -104, 30, 14, 88, 40, 100, { nr: 1 }), H(18, -76, 24, 12, 85, 40, 98)] }),
+      // Horizontale Boog (Horizontal Arc): one sword to each side
+      dsmash: M({ start: 7, active: 4, end: 26, pose: 'smashD', charge: true, hb: [H(46, -12, 22, 13, 28, 36, 98), H(-46, -12, 22, 13, 152, 36, 98)] }),
+      // Sterrenstroom (Starburst Stream): with a full meter, down special is sixteen cuts with both swords while he presses forward
+      starburst: M({ special: true, start: 8, active: 50, end: 26, pose: 'smashF', keepVel: true, noDrift: true, ll: 16, skc: '#bfe8ff',
+        onStart: f => { f.ki = 0; f.scNext = false; G.flash = 4; SFX.zap(); },
+        hb: Array.from({ length: 15 }, (_, i) => H(38, -46, 34, 1.6, 50, 12, 0, { nr: 1, grp: i + 1, link: true, when: (f, t) => t >= 8 + i * 3 && t < 10 + i * 3 }))
+          .concat([H(44, -46, 38, 6, 40, 60, 96, { nr: 1, grp: 20, when: (f, t) => t >= 54 && t <= 57 })]),
+        noGrav: (f, t) => t <= 58,
+        // he stops at the edge of a platform, and in the air the delay afterwards is cut so he can still get back
+        tick: (f, t) => {
+          if (t === 58 && !f.grounded) { f.endMove(); return; }
+          if (t >= 8 && t < 58) { const g = f.grounded && f.ground; f.vx = g && (f.facing > 0 ? f.x > g.x2 - 14 : f.x < g.x1 + 14) ? 0 : f.facing * 1.6; if (!f.grounded) f.vy = 0; if (t % 3 === 2) SFX.swing(); } else f.vx *= 0.8;
+        } }),
       // Kogelsnede: a fast cut that slices projectiles out of the air; a clean cut shortens the delay after it
-      downB: M({ special: true, start: 3, active: 10, end: 18, pose: 'jab3', ll: 8, skc: '#ffe066', onStart: on('downB'),
+      downB: M({ special: true, start: 3, active: 10, end: 18, pose: 'jab3', ll: 8, skc: '#ffe066', onStart: f => { if ((f.ki || 0) >= 100) return f.startMove(f.M.starburst); on('downB')(f); },
         hb: [H(40, -48, 30, 6, 60, 40, 70, { nr: 1, when: (f, t) => t <= 6 })],
         tick: (f, t) => {
           if (skillConnect(f, t)) return;
@@ -2569,7 +2594,7 @@ function fsRush(f, t) {
     if (v.state === 'dead' || v.state === 'respawn') continue;
     if (t === 100) { fsHit(f, v, 15, 40, 64, 108, f.facing); continue; }
     easeTo(v, f.x + f.facing * (f.c.w / 2 + v.c.w / 2 + 14), f.y, 0.35);
-    if (t % (f.key === 'nevel' ? 4 : 6) === 0) { fsHit(f, v, f.key === 'nevel' ? 1.7 : 2.5, 80, 0, 0, f.facing); sparkFx(v.x + rand(-14, 14), v.y - v.c.h / 2 + rand(-20, 20), f.col.fx, 4); }
+    if (f.key === 'nevel' ? t % 2 === 0 && t <= 92 : t % 6 === 0) { fsHit(f, v, f.key === 'nevel' ? 1 : 2.5, 80, 0, 0, f.facing); sparkFx(v.x + rand(-14, 14), v.y - v.c.h / 2 + rand(-20, 20), f.col.fx, 4); }
     v.vx = v.vy = v.lvx = v.lvy = 0; v.hitstun = Math.max(v.hitstun, 20);
   }
 }
@@ -3450,7 +3475,7 @@ function staleInfo(a, o) {
   return { key, use, mult: 1 - sum };
 }
 // transformation meters, filled by [dealing, taking] damage, and what the transformed form does
-const METER = { gokko: [1.6, 0.5], draai: [0.8, 1.3], aardbei: [1.3, 0.6], rekker: [1.4, 0.7] };
+const METER = { gokko: [1.6, 0.5], draai: [0.8, 1.3], aardbei: [1.3, 0.6], rekker: [1.4, 0.7], nevel: [1.2, 0.5] };
 const FORM = { gokko: { dmg: 1.25, weight: 20, run: 1.15, air: 1 }, draai: { dmg: 1.2, weight: 10, run: 1.25, air: 1 }, aardbei: { dmg: 1.15, weight: 5, run: 1.3, air: 1.2 }, rekker: { dmg: 1.15, weight: 0, run: 1.35, air: 1.25 } };
 const skinOf = f => f.key === 'rekker' && f.ssj > 0 ? '#f0908a' : f.col.skin;
 const formOf = f => f.ssj > 0 ? FORM[f.key] : null;
@@ -3820,6 +3845,8 @@ class AI {
       const want = adx < 380 && adx > 110 ? 'ninja' : adx > 520 ? 'kakel' : null;
       if (want && want !== f.key && Math.random() < (want === 'ninja' ? 0.03 + L * 0.01 : 0.01 + L * 0.004)) { o.d = true; o.spc = true; return this.out(o, 4); }
     }
+    // the CPU Nevel saves his Sterrenstroom for when someone stands right in front of him
+    if (f.key === 'nevel' && (f.ki || 0) >= 100 && GROUNDED_ACT.includes(st) && adx < 120 && Math.abs(dy) < 50 && t.state !== 'shield') { if (f.facing !== face) { o[fk] = true; return this.out(o, 0); } o.d = true; o.spc = true; return this.tap(o); }
     // the CPU Sterre whips from just outside reach, sends the bull at mid range and calls Waterman when someone is close
     if (f.key === 'sterre' && GROUNDED_ACT.includes(st) && Math.abs(dy) < 60) {
       if (adx > 70 && adx < 150 && Math.random() < 0.02 + L * 0.006) { if (f.facing !== face) { o[fk] = true; return this.out(o, 0); } o.spc = true; return this.out(o, 8); }
@@ -4011,7 +4038,7 @@ class AI {
     if (st === 'shield') return this.oos(t, o, thr, q);
     if (f.grounded && GROUNDED_ACT.includes(st)) {
       // transform when the meter is full and there is room for it
-      if (METER[f.key] && (f.ki || 0) >= 100 && !(f.ssj > 0) && thr > 30 && (adx > 200 || t.state === 'knockdown' || (t.state === 'hitstun' && t.hitstun > 40))) { o.d = true; o.spc = true; return this.tap(o); }
+      if (METER[f.key] && f.key !== 'nevel' && (f.ki || 0) >= 100 && !(f.ssj > 0) && thr > 30 && (adx > 200 || t.state === 'knockdown' || (t.state === 'hitstun' && t.hitstun > 40))) { o.d = true; o.spc = true; return this.tap(o); }
       return this.ground(t, o, thr, TP, q, tOff);
     }
     if (st === 'air') return this.airPlay(t, o, thr, TP, q, tOff);
@@ -4411,6 +4438,8 @@ function eye(g, x, y, r, hurt) {
   g.beginPath(); g.ellipse(x, y, r * 0.75, r, 0, 0, TAU); g.fillStyle = '#ffffff'; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke();
   g.beginPath(); g.ellipse(x + r * 0.25, y + r * 0.1, r * 0.38, r * 0.55, 0, 0, TAU); g.fillStyle = INK; g.fill();
 }
+// Nevel fights with both swords in his smash attacks, his spinning air attack, linked sword skills and his final smash
+const NEVEL_DUAL = ['fsmash', 'usmash', 'dsmash', 'nair', 'starburst'];
 function nevelBlade(g, a, L, blade, edge, glow) {
   // a slim one-handed sword; during a sword skill it glows in the skill's colour
   const fa = Math.atan2(a[4] - a[2], a[5] - a[3]), dx = Math.sin(fa), dy = Math.cos(fa), ex = a[4] + dx * L, ey = a[5] + dy * L;
@@ -6004,7 +6033,7 @@ function drawFighter(g, f, fr, z) {
   const sword = f.key === 'techno' ? !f.item && !(f.state === 'attack' && f.move && (f.move.throw || ['cast', 'counter', 'throwItem', 'pick', 'bow', 'riptide'].includes(f.move.pose)))
     : f.key === 'sleutel' || f.key === 'eik' || f.key === 'nevel' || f.key === 'marsepein' ? !f.item && !(f.state === 'attack' && f.move && (f.move.throw || ['throwItem', 'pick'].includes(f.move.pose)))
     : (f.key === 'sable' || f.key === 'lonk' || f.key === 'aardbei' || f.key === 'bot') && f.state === 'attack' && f.move && !f.move.throw && !['cast', 'counter', 'throwItem', 'pick', 'bow', 'lonkpull', 'maskOn', 'soulGrab'].includes(f.move.pose);
-  drawPuppet(g, f.key, f.key === 'rekker' && f.ssj > 0 ? Object.assign({}, f.col, { skin: '#f0908a' }) : f.col, P, { glow: f.key === 'bot' && f.state === 'attack' && f.move && f.move.special, skc: f.key === 'nevel' && f.state === 'attack' && f.move ? f.move.skc || (f.move === f.M.final ? '#bfe8ff' : null) : f.key === 'marsepein' && f.state === 'attack' && f.move && f.move.special ? f.col.fx : null, dual: f.key === 'nevel' && f.state === 'attack' && !!f.move && (f.move === f.M.final || (!!f.move.skc && !!f.sc && f.sc.length > 1)), mask: f.maskT > 0, ssj: f.ssj > 0 || (f.state === 'attack' && f.move && f.move.ssjUp && f.mt > 18 && f.mt % 4 < 2), grounded: f.grounded || f.state === 'land', fr: fr + f.id * 30, sword, held: f.item ? f.item.type : f.state === 'attack' && f.move && f.move.bat ? 'bat' : null, wings: f.feather > 0, xbow: f.key === 'techno' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, trident: f.key === 'techno' && f.state === 'attack' && f.move === f.M.upB, totem: f.key === 'techno' && f.state === 'attack' && f.move === f.M.downB, bow: f.key === 'lonk' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, pull: f.charge, jet: f.key === 'bliep' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 4, hurt: f.state === 'hitstun' || f.state === 'knockdown' || f.state === 'dizzy' || f.state === 'shieldbreak' || f.state === 'grabbed', ...(f.key === 'poef' ? poefFlags(f) : {}) });
+  drawPuppet(g, f.key, f.key === 'rekker' && f.ssj > 0 ? Object.assign({}, f.col, { skin: '#f0908a' }) : f.col, P, { glow: f.key === 'bot' && f.state === 'attack' && f.move && f.move.special, skc: f.key === 'nevel' && f.state === 'attack' && f.move ? f.move.skc || (f.move === f.M.final ? '#bfe8ff' : null) : f.key === 'marsepein' && f.state === 'attack' && f.move && f.move.special ? f.col.fx : null, dual: f.key === 'nevel' && f.state === 'attack' && !!f.move && (f.move === f.M.final || NEVEL_DUAL.includes(f.move.netKey) || (!!f.move.skc && !!f.sc && f.sc.length > 1)), mask: f.maskT > 0, ssj: f.ssj > 0 || (f.state === 'attack' && f.move && f.move.ssjUp && f.mt > 18 && f.mt % 4 < 2), grounded: f.grounded || f.state === 'land', fr: fr + f.id * 30, sword, held: f.item ? f.item.type : f.state === 'attack' && f.move && f.move.bat ? 'bat' : null, wings: f.feather > 0, xbow: f.key === 'techno' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, trident: f.key === 'techno' && f.state === 'attack' && f.move === f.M.upB, totem: f.key === 'techno' && f.state === 'attack' && f.move === f.M.downB, bow: f.key === 'lonk' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, pull: f.charge, jet: f.key === 'bliep' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 4, hurt: f.state === 'hitstun' || f.state === 'knockdown' || f.state === 'dizzy' || f.state === 'shieldbreak' || f.state === 'grabbed', ...(f.key === 'poef' ? poefFlags(f) : {}) });
   if ('filter' in g) g.filter = 'none';
   g.globalAlpha = 1; g.restore();
   if (f.key === 'kwak' && f.state === 'attack' && f.move === f.M.sideB) {
@@ -6014,6 +6043,11 @@ function drawFighter(g, f, fr, z) {
       const hx = f.x + f.facing * c.w * 0.45, hy = f.y - 70 * s, tx = hx + f.facing * (110 * s - c.w * 0.45) * k;
       g.lineCap = 'round'; g.strokeStyle = INK; g.lineWidth = 9; g.beginPath(); g.moveTo(hx, hy); g.lineTo(tx, hy); g.stroke(); g.strokeStyle = f.col.acc; g.lineWidth = 5; g.stroke(); dot(g, tx, hy, 7, f.col.acc);
     }
+  }
+  if (f.key === 'nevel' && f.state === 'attack' && f.move === f.M.starburst && f.mt >= 8 && f.mt < 58) {
+    // one bright arc per cut, alternating between the two swords
+    const i = ((f.mt - 8) / 3) | 0, ph = ((f.mt - 8) % 3) / 3, cx = f.x + f.facing * 36, cy = f.y - 46, a0 = (i * 2.3) % TAU;
+    g.save(); g.lineCap = 'round'; g.strokeStyle = hexA(i % 2 ? '#dff4f2' : '#8fd8ff', 0.95 - ph * 0.6); g.lineWidth = 6; g.beginPath(); g.arc(cx, cy, 38, a0, a0 + 2.2); g.stroke(); g.restore();
   }
   if (f.key === 'sterre' && f.state === 'attack' && (f.move === f.M.neutralB || f.move === f.M.fair)) {
     // the water whip, uncoiling to its full length and back
@@ -6318,8 +6352,8 @@ function drawHUD(g, V) {
     if (METER[f.key] && !f.out) {
       const bx = px + 32 * s, by = y + 36 * s, bw = 74 * s, bh = 6 * s, full = f.ssj > 0 || (f.ki || 0) >= 100, k = f.ssj > 0 ? 1 : (f.ki || 0) / 100;
       rr(g, bx, by, bw, bh, bh / 2); g.fillStyle = 'rgba(18,14,29,.75)'; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke();
-      if (k > 0) { rr(g, bx + 1, by + 1, Math.max(bh - 2, (bw - 2) * k), bh - 2, (bh - 2) / 2); g.fillStyle = f.key === 'rekker' ? (full ? (G.frame % 20 < 10 ? '#ff6b8a' : '#ffd0da') : '#ff8fa8') : f.key === 'aardbei' ? (full ? (G.frame % 20 < 10 ? '#ff3048' : '#2a1018') : '#c4161c') : f.key === 'draai' ? (full ? (G.frame % 20 < 10 ? '#ff5a1a' : '#ffd08a') : '#ff9a3c') : full ? (G.frame % 20 < 10 ? '#ffe066' : '#fff4b0') : '#7fd0ff'; g.fill(); }
-      if (full && !(f.ssj > 0)) { g.font = `${10 * s}px Impact, 'Arial Black', sans-serif`; g.fillStyle = '#ffe066'; g.lineWidth = 3; g.strokeStyle = INK; const lab = f.key === 'rekker' ? 'VERSNELLING' : f.key === 'aardbei' ? 'BANKAI' : f.key === 'draai' ? 'VOS VOL' : 'KI VOL'; g.strokeText(lab, bx + bw + 4 * s, by + bh); g.fillText(lab, bx + bw + 4 * s, by + bh); }
+      if (k > 0) { rr(g, bx + 1, by + 1, Math.max(bh - 2, (bw - 2) * k), bh - 2, (bh - 2) / 2); g.fillStyle = f.key === 'rekker' ? (full ? (G.frame % 20 < 10 ? '#ff6b8a' : '#ffd0da') : '#ff8fa8') : f.key === 'aardbei' ? (full ? (G.frame % 20 < 10 ? '#ff3048' : '#2a1018') : '#c4161c') : f.key === 'draai' ? (full ? (G.frame % 20 < 10 ? '#ff5a1a' : '#ffd08a') : '#ff9a3c') : f.key === 'nevel' ? (full ? (G.frame % 20 < 10 ? '#bfe8ff' : '#ffffff') : '#5fb8ff') : full ? (G.frame % 20 < 10 ? '#ffe066' : '#fff4b0') : '#7fd0ff'; g.fill(); }
+      if (full && !(f.ssj > 0)) { g.font = `${10 * s}px Impact, 'Arial Black', sans-serif`; g.fillStyle = '#ffe066'; g.lineWidth = 3; g.strokeStyle = INK; const lab = f.key === 'rekker' ? 'VERSNELLING' : f.key === 'aardbei' ? 'BANKAI' : f.key === 'draai' ? 'VOS VOL' : f.key === 'nevel' ? 'STERRENSTROOM' : 'KI VOL'; g.strokeText(lab, bx + bw + 4 * s, by + bh); g.fillText(lab, bx + bw + 4 * s, by + bh); }
     }
     g.globalAlpha = 1;
   });
