@@ -4152,6 +4152,19 @@ class AI {
     }
     return s - h.k * 0.25;
   }
+  // a KO (score 60 and up) wins outright; otherwise a near-best option at random, where every use among the last
+  // eight picks costs a move 6 points, so the CPU mixes its attacks instead of throwing the same smash every time
+  choose(opts) {
+    const used = this.used || [];
+    for (const x of opts) { x.rep = used.filter(k => k === x.key).length; if (x.s < 60) x.s -= x.rep * 6; }
+    opts.sort((a, b) => b.s - a.s);
+    if (opts[0].s >= 60) return opts[0];
+    const top = opts[0].s, pool = opts.filter(x => x.s >= top - 10), w = pool.map(x => Math.exp((x.s - top) / 4));
+    let r = Math.random() * w.reduce((a, b) => a + b, 0);
+    for (let i = 0; i < pool.length; i++) { r -= w[i]; if (r <= 0) return pool[i]; }
+    return pool[0];
+  }
+  note(key) { (this.used = this.used || []).push(key); if (this.used.length > 8) this.used.shift(); }
   // frames until an enemy hitbox or projectile reaches this fighter (99 = nothing coming)
   threatIn(f, n) {
     let best = 99;
@@ -4201,7 +4214,7 @@ class AI {
     if (t.intang && !(t.state === 'evade' && t.ev && t.t + 4 >= t.ev.i1)) { if (adx > 90) o[fk] = true; return this.out(o, 1); }
     const run = f.state === 'run' && Math.abs(f.vx) > f.c.run * 0.6, tg = t.grounded || G.frame - (t.pinT ?? -99) <= 10;
     const stand = this.selfPath('stand', 0, 44), opts = [];
-    const add = (key, inp, fac, path, grab) => { const mv = M[key]; const h = this.hitsAt(mv, path || stand, fac, TP, 0, t, grab); if (h) opts.push({ s: this.score(mv, h, t, TP[h.k]) + (thr < h.k ? -25 : 0), inp, keep: null }); };
+    const add = (key, inp, fac, path, grab) => { const mv = M[key]; const h = this.hitsAt(mv, path || stand, fac, TP, 0, t, grab); if (h) opts.push({ s: this.score(mv, h, t, TP[h.k]) + (thr < h.k ? -25 : 0), inp, keep: null, key }); };
     add('jab', { atk: true }, f.facing);
     add('fsmash', { [fk]: true, atk: true, smash: true }, face);
     add('usmash', { u: true, atk: true, smash: true }, f.facing);
@@ -4219,13 +4232,14 @@ class AI {
         for (let off = 5; off <= 26 && !h; off += 2) h = this.hitsAt(M[key], path, f.facing, TP, off, t);
         if (!h || !this.safeAt(path[Math.min(path.length - 1, h.k + M[key].dur - M[key].start)])) continue;
         const s = this.score(M[key], h, t, TP[h.k]) - 3;
-        if (!opts.some(x => x.jump === mode && x.s >= s)) opts.push({ s, jump: mode, inp: Object.assign({ jmp: true }, jk ? { [jk]: true } : {}), keep: Object.assign(mode === 'fh' ? { jmp: true } : {}, jk ? { [jk]: true } : {}) });
+        if (!opts.some(x => x.jump === mode && x.s >= s)) opts.push({ s, key, jump: mode, inp: Object.assign({ jmp: true }, jk ? { [jk]: true } : {}), keep: Object.assign(mode === 'fh' ? { jmp: true } : {}, jk ? { [jk]: true } : {}) });
       }
     }
     if (opts.length) {
-      opts.sort((a, b) => b.s - a.s);
-      const pick = opts.length > 1 && Math.random() > 0.55 + q * 0.4 ? opts[1] : opts[0];
-      if (pick.s > -6) return this.tap(pick.inp, pick.keep && Object.assign(blank(), pick.keep));
+      const pick = this.choose(opts);
+      // the same attack yet again and no KO in it: often step in closer first, where the others reach too
+      if (pick.s < 60 && pick.rep >= 2 && !pick.jump && adx > 34 && thr > 12 && Math.random() < 0.35 * pick.rep) { o[fk] = true; return this.out(o, 2); }
+      if (pick.s > -6) { this.note(pick.key); return this.tap(pick.inp, pick.keep && Object.assign(blank(), pick.keep)); }
     }
     // nothing connects yet: guard the ledge, get under a falling target, or walk into range
     const edgeStop = () => { if (f.ground === m && ((o.r && f.x > m.x2 - 26) || (o.l && f.x < m.x1 + 26))) o.r = o.l = false; };
@@ -4256,12 +4270,11 @@ class AI {
     if (thr <= 4 && !f.airdodged && this.roll(id) < q * 0.45) { o.shd = true; if (onStage) o[face > 0 ? 'l' : 'r'] = true; return this.tap(o); }
     const dX = this.driftX(TP[10].x), jd = Math.abs(dX - f.x) > 10 ? Math.sign(dX - f.x) : 0, jk = jd > 0 ? 'r' : jd < 0 ? 'l' : null, keep = () => Object.assign(blank(), jk ? { [jk]: true } : {});
     const path = this.selfPath('air', jd, 40), opts = [];
-    const add = (key, inp) => { const h = this.hitsAt(M[key], path, f.facing, TP, 0, t); if (h && this.safeAt(path[Math.min(path.length - 1, M[key].dur)])) opts.push({ s: this.score(M[key], h, t, TP[h.k]), inp }); };
+    const add = (key, inp) => { const h = this.hitsAt(M[key], path, f.facing, TP, 0, t); if (h && this.safeAt(path[Math.min(path.length - 1, M[key].dur)])) opts.push({ s: this.score(M[key], h, t, TP[h.k]), inp, key }); };
     add('nair', { atk: true }); add('fair', { [ff]: true, atk: true }); add('bair', { [fb]: true, atk: true });
     add('uair', { u: true, atk: true }); add('dair', { d: true, atk: true });
     if (opts.length) {
-      opts.sort((a, b) => b.s - a.s);
-      const pick = opts.length > 1 && Math.random() > 0.55 + q * 0.4 ? opts[1] : opts[0];
+      const pick = this.choose(opts); this.note(pick.key);
       return this.tap(pick.inp, keep());
     }
     // chase upward with the double jump, drop fast onto a grounded target, otherwise drift toward it
