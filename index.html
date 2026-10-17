@@ -204,6 +204,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,canvas:focus-visib
 .res canvas{width:56px;height:56px;border-radius:50%}
 .res .nm{font-weight:700;font-size:17px}
 .res .st{color:var(--mute);font-size:13px;font-variant-numeric:tabular-nums}
+#fps{position:absolute;top:calc(56px + env(safe-area-inset-top,0px));right:12px;width:42px;text-align:center;font:600 11px/1 ui-monospace,Consolas,monospace;color:rgba(255,255,255,.75);text-shadow:0 1px 2px rgba(0,0,0,.8);pointer-events:none}
 #pbtn{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:12px;width:42px;height:42px;border-radius:10px;background:rgba(18,14,29,.6);border:1px solid rgba(255,255,255,.25);font-weight:700;letter-spacing:-.05em}
 #touch{position:absolute;inset:0;pointer-events:none}
 #dpad{position:absolute;left:calc(18px + env(safe-area-inset-left,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));width:148px;height:148px;border-radius:50%;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.22);pointer-events:auto;touch-action:none}
@@ -488,6 +489,7 @@ window.KlapP2P = (() => {
   </div>
 
   <button id="pbtn" hidden aria-label="Pauze">II</button>
+  <div id="fps" hidden aria-hidden="true"></div>
   <div id="touch" hidden>
     <div id="dpad" aria-label="Richting"><span id="knob"></span></div>
     <div id="tbtns">
@@ -7540,9 +7542,13 @@ addEventListener('resize', resize);
 
 /* ---------------- loop ---------------- */
 let last = performance.now(), acc = 0;
+// frames per second under the pause button, counted over half a second
+const fpsEl = $('#fps'); let fpsN = 0, fpsT = performance.now();
 function loop(now) {
   requestAnimationFrame(loop);
   let dt = now - last; last = now; if (dt > 100) dt = 100;
+  fpsN++; if (now - fpsT >= 500) { fpsEl.textContent = Math.round(fpsN * 1000 / (now - fpsT)) + ' fps'; fpsN = 0; fpsT = now; }
+  if (fpsEl.hidden !== pbtn.hidden) fpsEl.hidden = pbtn.hidden;
   pollPadStart(); pollCursors(now);
   if (!G.paused && G.stage) { acc += dt; const step = 1000 / 60; let n = 0; while (acc >= step && n < 5) { acc -= step; n++; tick(); } if (n >= 5) acc = 0; }
   if (G.stage) render();
