@@ -1068,7 +1068,7 @@ Object.assign(CHARS, {
     col: { body: '#3f6fd8', dark: '#1d1c24', acc: '#ff8fb8', skin: '#f4f4f0', fx: '#5fd3ff' }, alt: { body: '#2b2b33', dark: '#3f6fd8', acc: '#ffd23f', skin: '#f4f4f0', fx: '#ffd23f' } },
   eik: { name: 'Eik', blurb: 'Huurling met een reuzenzwaard. Traag, maar elke klap telt. Houd speciaal vast om op te laden: een vuurzuil uit de grond, een bliksemsnelle uithaal opzij. Gooit zijn zwaard omhoog en slaat ermee neer, en heeft een counter.', weight: 116, run: 6.4, acc: 1, jump: 15, djump: 13.8, grav: 0.88, fall: 13, ffall: 18.5, air: 4.7, airAcc: 0.42, airJumps: 1, w: 46, h: 88, pow: 1.3, reach: 1.25, lag: 2, limb: 12, hr: 0.15, arm: 0.18, sideRec: true,
     col: { body: '#2f5bb0', dark: '#1d2a52', acc: '#c8312f', skin: '#f0c9a0', fx: '#ffb347', hair: '#2c46a6' }, alt: { body: '#5a4632', dark: '#2b231c', acc: '#2f7d45', skin: '#e8bf95', fx: '#ffd45e', hair: '#d8d4c8' } },
-  nevel: { name: 'Nevel', blurb: 'Zwaardvechter in een lange zwarte jas, uit een virtuele wereld. Zijn zwaardtechnieken lichten op: een vorpaalsteek die je oplaadt, vier snelle sneden terwijl hij vooruit glijdt, een sonische sprong omhoog en een snede die projectielen doormidden hakt. Druk in de nasleep van een techniek opnieuw speciaal in een andere richting en de volgende volgt meteen, tot vier achter elkaar. Ook zijn gewone aanvallen zijn zwaardtechnieken, met twee zwaarden bij de smash-aanvallen. Raken vult zijn meter; is die vol, dan geeft speciaal omlaag de Sterrenstroom: zestien slagen met twee zwaarden.', weight: 90, run: 7.4, acc: 1.15, jump: 15.5, djump: 14.5, grav: 0.84, fall: 12.5, ffall: 18, air: 5.0, airAcc: 0.5, airJumps: 1, w: 40, h: 82, pow: 1, reach: 1.28, lag: 0, limb: 10, hr: 0.15, sideRec: true,
+  nevel: { name: 'Nevel', blurb: 'Zwaardvechter in een lange zwarte jas, uit een virtuele wereld. Zijn zwaardtechnieken lichten op: een vorpaalsteek die je oplaadt, vier snelle sneden terwijl hij vooruit glijdt, een sonische sprong omhoog en een snede die projectielen doormidden hakt. Druk in de nasleep van een techniek opnieuw speciaal in een andere richting en de volgende volgt meteen, tot vier achter elkaar. Hij vecht altijd met twee zwaarden en blokkeert met ze gekruist; veel van zijn aanvallen zijn twee snelle klappen. Raken vult zijn meter; is die vol, dan geeft speciaal omlaag de Sterrenstroom: zestien slagen met twee zwaarden.', weight: 90, run: 7.4, acc: 1.15, jump: 15.5, djump: 14.5, grav: 0.84, fall: 12.5, ffall: 18, air: 5.0, airAcc: 0.5, airJumps: 1, w: 40, h: 82, pow: 1, reach: 1.28, lag: 0, limb: 10, hr: 0.15, sideRec: true,
     col: { body: '#22202b', dark: '#121118', acc: '#8f8c9e', skin: '#f6d2b0', fx: '#8fd8ff', hair: '#17161d' }, alt: { body: '#e9ecf3', dark: '#2a3550', acc: '#4f6fb8', skin: '#f6d2b0', fx: '#ffd36a', hair: '#17161d' } },
   marsepein: { name: 'Marsepein', blurb: 'Half-elfse magiër met een lange blonde vlecht en een levende staf. Haar antwoord op alles is een explosie: zet een toverkring neer, houd vast om hem verder weg te schuiven, en even later ontploft hij (sta er zelf niet in). Een flitsspreuk die verdooft, een barrière om vanaf omhoog te springen en een genezing die snel werkt, maar wel pijn doet; daarna moet ze tien tellen wachten.', weight: 88, run: 6.5, acc: 1, jump: 15, djump: 14, grav: 0.72, fall: 10.5, ffall: 15.5, air: 4.8, airAcc: 0.48, airJumps: 1, w: 40, h: 78, pow: 1.12, reach: 1.15, lag: 0, limb: 9, zoner: 'side', hr: 0.165,
     col: { body: '#2f5fa8', dark: '#ece8dc', acc: '#c8323a', skin: '#f8dcc0', fx: '#ff9a3c', hair: '#f2d16b' }, alt: { body: '#5b3f8c', dark: '#2a2236', acc: '#e8c548', skin: '#f8dcc0', fx: '#c38bff', hair: '#f2d16b' } },
@@ -1247,12 +1247,14 @@ const AIRS = {
   // Nevel: every attack is a sword skill
   nevel: (M, H) => ({
     // Draaiend Schild (Spinning Shield): both swords spin round and knock projectiles back
-    nair: M({ start: 5, active: 10, end: 10, pose: 'nair', aerial: true, afx: 'slash', ll: 7, reflect: [5, 15], hb: [H(0, -44, 44, 9, 45, 30, 84, { nr: 1, f1: 5 }), H(0, -44, 40, 6, 45, 22, 72, { nr: 1, f0: 5 })] }),
+    nair: M({ start: 5, active: 12, end: 10, pose: 'nair', aerial: true, afx: 'slash', ll: 7, reflect: [5, 17], combo: true, hb: [H(0, -44, 42, 4, 50, 20, 0, { nr: 1, grp: 1, f1: 4, link: true }), H(0, -44, 44, 7, 45, 34, 90, { nr: 1, grp: 2, f0: 7 })] }),
     // Scherpe Klauw (Sharp Nail): three quick cuts, the last one launches
-    fair: M({ start: 5, active: 12, end: 12, pose: 'axe', aerial: true, afx: 'slash', ll: 9,
-      hb: [0, 1, 2].map(i => H(48, -46, 24, i < 2 ? 3 : 6, i < 2 ? 50 : 40, i < 2 ? 18 : 34, i < 2 ? 0 : 90, { grp: i + 1, link: i < 2, when: (f, t) => t >= 5 + i * 4 && t < 8 + i * 4 })) }),
-    bair: M({ start: 7, active: 4, end: 15, pose: 'elbowB', aerial: true, afx: 'slash', ll: 10, hb: [H(-56, -44, 24, 12, 140, 36, 98), H(-30, -48, 20, 8, 140, 30, 86)] }),
-    uair: M({ start: 5, active: 5, end: 12, pose: 'upswing', aerial: true, afx: 'slash', ll: 8, hb: [H(0, -110, 26, 9, 88, 32, 94, { nr: 1 }), H(24, -86, 22, 7, 80, 28, 85)] }),
+    fair: M({ start: 5, active: 11, end: 12, pose: 'axe', aerial: true, afx: 'slash', ll: 9, combo: true,
+      hb: [H(48, -46, 24, 3, 50, 18, 0, { grp: 1, f1: 3, link: true }), H(48, -46, 24, 3, 50, 18, 0, { grp: 2, f0: 4, f1: 7, link: true }), H(50, -46, 26, 7, 40, 38, 96, { grp: 3, f0: 8 })] }),
+    // Halve Maan (Gengetsu): a cut behind him with each sword
+    bair: M({ start: 6, active: 9, end: 14, pose: 'elbowB', aerial: true, afx: 'slash', ll: 10, combo: true, hb: [H(-50, -44, 22, 4, 140, 20, 0, { grp: 1, f1: 3, link: true }), H(-56, -44, 24, 9.5, 140, 38, 102, { grp: 2, f0: 5 })] }),
+    // Verticaal (Vertical): two cuts straight up
+    uair: M({ start: 5, active: 9, end: 12, pose: 'upswing', aerial: true, afx: 'slash', ll: 8, combo: true, hb: [H(10, -94, 24, 3, 85, 20, 0, { nr: 1, grp: 1, f1: 3, link: true }), H(0, -110, 26, 7, 88, 36, 100, { nr: 1, grp: 2, f0: 5 })] }),
     // Meteoorval (Meteor Fall): a stab straight down that spikes
     dair: M({ start: 9, active: 5, end: 17, pose: 'stabDown', aerial: true, afx: 'slash', ll: 13, hb: [H(0, 32, 24, 13, 275, 40, 88, { nr: 1 })] }),
   }),
@@ -1472,6 +1474,8 @@ function buildMoves(ck) {
     m.hb = m.hb.map(h => Math.abs(dist(h) - far) < 1 ? Object.assign({}, h, { sweet: true, d: Math.round(h.d * (SW ? 1.25 : 1.12) * 10) / 10, g: h.g * 1.05 }) : (SW ? Object.assign({}, h, { d: Math.round(h.d * 0.85 * 10) / 10 }) : h));
     m.hb.sort((a, b) => (a.sweet ? 1 : 0) - (b.sweet ? 1 : 0)); // the sweetspot only wins when nothing closer overlaps
   }
+  // moves of several hits: the smart CPU scores them by the total and by the last, strongest hit
+  for (const k in mv) { const m = mv[k]; if (!m.combo || !m.hb.length) continue; m.finHb = m.hb.reduce((a, b) => (b.g > a.g ? b : a)); m.sumD = m.hb.reduce((t, h) => t + h.d, 0); }
   if (FINALS[ck]) mv.final = finalMove(M, ck);
   for (const k in mv) mv[k].netKey = k;
   Object.defineProperty(mv, '_mk', { value: { M, H, s } });
@@ -1712,14 +1716,18 @@ const SPECIALS = {
           if (t === 5) { if (f.ix) f.facing = f.ix; f.vx = f.facing * 3; f.vy = -16.5; f.grounded = false; f.ground = null; SFX.swing(); }
           else if (t <= 17) { f.vy += 0.5; f.vx = approach(f.vx, f.facing * 3 + f.ix * 3, 0.4); if (t % 2) ghostFx(f); }
         } }),
-      // Schuine Snede (Slant): a diagonal cut
-      ftilt: M({ start: 5, active: 3, end: 14, pose: 'swingDown', hb: [H(42, -40, 18, 8, 35, 30, 92), H(22, -44, 16, 8, 35, 30, 92)] }),
+      // Schuine Snede (Slant): a diagonal cut with each sword
+      ftilt: M({ start: 5, active: 9, end: 12, pose: 'swingDown', combo: true, hb: [H(40, -46, 20, 3.5, 60, 20, 0, { grp: 1, f1: 3, link: true }), H(44, -40, 22, 6.5, 35, 32, 98, { grp: 2, f0: 6 })] }),
+      // Verticale Boog (Vertical Arc): down and back up in a V
+      utilt: M({ start: 5, active: 10, end: 12, pose: 'upswing', combo: true, hb: [H(24, -60, 24, 3, 80, 20, 0, { grp: 1, f1: 3, link: true }), H(8, -88, 24, 6, 92, 40, 104, { nr: 1, grp: 2, f0: 6 })] }),
+      // Slangenbeet (Snake Bite): two quick low cuts
+      dtilt: M({ start: 4, active: 8, end: 10, pose: 'sweep', combo: true, hb: [H(40, -10, 17, 2.5, 70, 20, 0, { grp: 1, f1: 3, link: true }), H(42, -10, 17, 4.5, 72, 34, 60, { grp: 2, f0: 5 })] }),
       // Woedepiek (Rage Spike): a low dash with a thrust
       dash: M({ start: 6, active: 7, end: 18, pose: 'dashB', keepVel: true, slide: 0.93, hb: [H(32, -36, 22, 9, 50, 42, 72)] }),
-      // Dubbele Cirkel (Double Circular): both swords cut at once
-      fsmash: M({ start: 11, active: 3, end: 26, pose: 'smashF', charge: true, hb: [H(52, -42, 24, 15, 38, 40, 104), H(28, -42, 18, 13, 38, 40, 100)] }),
-      // Nova-opstijging (Nova Ascension): a rising cut with both swords
-      usmash: M({ start: 8, active: 7, end: 26, pose: 'smashU', charge: true, hb: [H(0, -104, 30, 14, 88, 40, 100, { nr: 1 }), H(18, -76, 24, 12, 85, 40, 98)] }),
+      // Dubbele Cirkel (Double Circular): one cut with each sword, the second launches
+      fsmash: M({ start: 11, active: 9, end: 24, pose: 'smashF', charge: true, combo: true, hb: [H(48, -44, 24, 5, 40, 20, 0, { grp: 1, f1: 3, link: true }), H(52, -42, 26, 13.5, 38, 44, 110, { grp: 2, f0: 6 })] }),
+      // Nova-opstijging (Nova Ascension): a rising cut with each sword
+      usmash: M({ start: 8, active: 9, end: 26, pose: 'smashU', charge: true, combo: true, hb: [H(14, -80, 24, 5, 85, 20, 0, { grp: 1, f1: 3, link: true }), H(0, -104, 28, 12, 88, 42, 106, { nr: 1, grp: 2, f0: 5 })] }),
       // Horizontale Boog (Horizontal Arc): one sword to each side
       dsmash: M({ start: 7, active: 4, end: 26, pose: 'smashD', charge: true, hb: [H(46, -12, 22, 13, 28, 36, 98), H(-46, -12, 22, 13, 152, 36, 98)] }),
       // Sterrenstroom (Starburst Stream): with a full meter, down special is sixteen cuts with both swords while he presses forward
@@ -4000,11 +4008,11 @@ class AI {
       const kill = ['f', 'b', 'u', 'd'].some(k => f.M[k + 'throw'] && throwKB(f.M[k + 'throw'].thb, t) > 165);
       s = 9 + (kill ? 60 : 0) + (t.state === 'shield' ? 30 : 0) - mv.dur * 0.08;
     } else {
-      const d = hb.d * (formOf(f) ? formOf(f).dmg : 1) * (f.maskT > 0 ? 1.2 : 1);
+      const fh = mv.finHb || hb, d = (mv.sumD || hb.d) * (formOf(f) ? formOf(f).dmg : 1) * (f.maskT > 0 ? 1.2 : 1);
       s = d - mv.dur * 0.12;
       if (t.state === 'shield' && !hb.unblock && t.shieldHP > d * 1.25) s -= 40;
-      if (this.koSim(t, hb, d, f.facing, at)) s += 80;
-      else { const kb = this.kbOf(t, hb, d); if (kb * 0.4 > mv.dur - mv.start + 4 && kb < 120) s += d * 0.6; }
+      if (this.koSim(t, fh, d, f.facing, at)) s += 80;
+      else { const kb = this.kbOf(t, fh, d); if (kb * 0.4 > mv.dur - mv.start + 4 && kb < 120) s += d * 0.6; }
       if (f.stale) s -= f.stale.filter(e => e.k === mv.netKey).length * 1.5;
     }
     return s - h.k * 0.25;
@@ -4438,8 +4446,6 @@ function eye(g, x, y, r, hurt) {
   g.beginPath(); g.ellipse(x, y, r * 0.75, r, 0, 0, TAU); g.fillStyle = '#ffffff'; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke();
   g.beginPath(); g.ellipse(x + r * 0.25, y + r * 0.1, r * 0.38, r * 0.55, 0, 0, TAU); g.fillStyle = INK; g.fill();
 }
-// Nevel fights with both swords in his smash attacks, his spinning air attack, linked sword skills and his final smash
-const NEVEL_DUAL = ['fsmash', 'usmash', 'dsmash', 'nair', 'starburst'];
 function nevelBlade(g, a, L, blade, edge, glow) {
   // a slim one-handed sword; during a sword skill it glows in the skill's colour
   const fa = Math.atan2(a[4] - a[2], a[5] - a[3]), dx = Math.sin(fa), dy = Math.cos(fa), ex = a[4] + dx * L, ey = a[5] + dy * L;
@@ -6031,9 +6037,9 @@ function drawFighter(g, f, fr, z) {
   if (filt !== 'none' && 'filter' in g) g.filter = filt;
   // Technoblade and Sleutel never put their blade away, except to throw or handle an item; Sleutel casts through his key
   const sword = f.key === 'techno' ? !f.item && !(f.state === 'attack' && f.move && (f.move.throw || ['cast', 'counter', 'throwItem', 'pick', 'bow', 'riptide'].includes(f.move.pose)))
-    : f.key === 'sleutel' || f.key === 'eik' || f.key === 'nevel' || f.key === 'marsepein' ? !f.item && !(f.state === 'attack' && f.move && (f.move.throw || ['throwItem', 'pick'].includes(f.move.pose)))
+    : f.key === 'sleutel' || f.key === 'eik' || f.key === 'nevel' || f.key === 'marsepein' ? !f.item && !(f.key === 'nevel' && f.state === 'shield') && !(f.state === 'attack' && f.move && (f.move.throw || ['throwItem', 'pick'].includes(f.move.pose)))
     : (f.key === 'sable' || f.key === 'lonk' || f.key === 'aardbei' || f.key === 'bot') && f.state === 'attack' && f.move && !f.move.throw && !['cast', 'counter', 'throwItem', 'pick', 'bow', 'lonkpull', 'maskOn', 'soulGrab'].includes(f.move.pose);
-  drawPuppet(g, f.key, f.key === 'rekker' && f.ssj > 0 ? Object.assign({}, f.col, { skin: '#f0908a' }) : f.col, P, { glow: f.key === 'bot' && f.state === 'attack' && f.move && f.move.special, skc: f.key === 'nevel' && f.state === 'attack' && f.move ? f.move.skc || (f.move === f.M.final ? '#bfe8ff' : null) : f.key === 'marsepein' && f.state === 'attack' && f.move && f.move.special ? f.col.fx : null, dual: f.key === 'nevel' && f.state === 'attack' && !!f.move && (f.move === f.M.final || NEVEL_DUAL.includes(f.move.netKey) || (!!f.move.skc && !!f.sc && f.sc.length > 1)), mask: f.maskT > 0, ssj: f.ssj > 0 || (f.state === 'attack' && f.move && f.move.ssjUp && f.mt > 18 && f.mt % 4 < 2), grounded: f.grounded || f.state === 'land', fr: fr + f.id * 30, sword, held: f.item ? f.item.type : f.state === 'attack' && f.move && f.move.bat ? 'bat' : null, wings: f.feather > 0, xbow: f.key === 'techno' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, trident: f.key === 'techno' && f.state === 'attack' && f.move === f.M.upB, totem: f.key === 'techno' && f.state === 'attack' && f.move === f.M.downB, bow: f.key === 'lonk' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, pull: f.charge, jet: f.key === 'bliep' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 4, hurt: f.state === 'hitstun' || f.state === 'knockdown' || f.state === 'dizzy' || f.state === 'shieldbreak' || f.state === 'grabbed', ...(f.key === 'poef' ? poefFlags(f) : {}) });
+  drawPuppet(g, f.key, f.key === 'rekker' && f.ssj > 0 ? Object.assign({}, f.col, { skin: '#f0908a' }) : f.col, P, { glow: f.key === 'bot' && f.state === 'attack' && f.move && f.move.special, skc: f.key === 'nevel' && f.state === 'attack' && f.move ? f.move.skc || (f.move === f.M.final ? '#bfe8ff' : null) : f.key === 'marsepein' && f.state === 'attack' && f.move && f.move.special ? f.col.fx : null, dual: f.key === 'nevel' && sword, mask: f.maskT > 0, ssj: f.ssj > 0 || (f.state === 'attack' && f.move && f.move.ssjUp && f.mt > 18 && f.mt % 4 < 2), grounded: f.grounded || f.state === 'land', fr: fr + f.id * 30, sword, held: f.item ? f.item.type : f.state === 'attack' && f.move && f.move.bat ? 'bat' : null, wings: f.feather > 0, xbow: f.key === 'techno' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, trident: f.key === 'techno' && f.state === 'attack' && f.move === f.M.upB, totem: f.key === 'techno' && f.state === 'attack' && f.move === f.M.downB, bow: f.key === 'lonk' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, pull: f.charge, jet: f.key === 'bliep' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 4, hurt: f.state === 'hitstun' || f.state === 'knockdown' || f.state === 'dizzy' || f.state === 'shieldbreak' || f.state === 'grabbed', ...(f.key === 'poef' ? poefFlags(f) : {}) });
   if ('filter' in g) g.filter = 'none';
   g.globalAlpha = 1; g.restore();
   if (f.key === 'kwak' && f.state === 'attack' && f.move === f.M.sideB) {
@@ -6118,9 +6124,16 @@ function drawFighter(g, f, fr, z) {
   if (f.frozen > 0 && !f.buried) { g.fillStyle = 'rgba(190,240,255,.42)'; g.strokeStyle = 'rgba(255,255,255,.8)'; g.lineWidth = 2; rr(g, f.x - c.w * 0.75, f.y - c.h - 8, c.w * 1.5, c.h + 10, 8); g.fill(); g.stroke(); }
   if (f.star > 0) for (let i = 0; i < 3; i++) { const a = fr * 0.15 + i * TAU / 3; g.fillStyle = `hsl(${(fr * 8 + i * 120) % 360},95%,65%)`; star(g, f.x + Math.cos(a) * c.w * 0.8, f.y - c.h * 0.5 + Math.sin(a) * c.h * 0.5, 6); g.fill(); }
   if (f.state === 'shield') {
-    const r = c.h * 0.62 * (0.32 + 0.68 * f.shieldHP / 60);
-    g.fillStyle = f.pc; g.globalAlpha = 0.28; g.beginPath(); g.arc(f.x, f.y - c.h * 0.48, r, 0, TAU); g.fill();
-    g.globalAlpha = 0.85; g.strokeStyle = f.pc; g.lineWidth = 3; g.stroke(); g.globalAlpha = 1;
+    const r = c.h * 0.62 * (0.32 + 0.68 * f.shieldHP / 60), nv = f.key === 'nevel';
+    g.fillStyle = f.pc; g.globalAlpha = nv ? 0.14 : 0.28; g.beginPath(); g.arc(f.x, f.y - c.h * 0.48, r, 0, TAU); g.fill();
+    g.globalAlpha = nv ? 0.5 : 0.85; g.strokeStyle = f.pc; g.lineWidth = 3; g.stroke(); g.globalAlpha = 1;
+    if (nv) {
+      // Nevel guards with his two swords crossed in front of him
+      const s2 = c.h / 80, cx = f.x + f.facing * 16 * s2, cy = f.y - c.h * 0.5, L = 56 * s2, u = [0.62, -0.78];
+      const blade = (hx, hy, ux, uy, b, e) => nevelBlade(g, [0, 0, hx - ux, hy - uy, hx, hy], L, b, e, f.col.fx);
+      blade(cx - f.facing * 18 * s2, cy + 20 * s2, f.facing * u[0], u[1], '#2a2833', '#8c8a9c');
+      blade(cx + f.facing * 18 * s2, cy + 20 * s2, -f.facing * u[0], u[1], '#dff4f2', '#7fd8d0');
+    }
   }
   if (f.state === 'attack' && f.move && f.move.reflect && !f.move.bat && f.mt >= f.move.reflect[0] && f.mt <= f.move.reflect[1]) {
     g.strokeStyle = f.col.acc; g.lineWidth = 4; g.globalAlpha = 0.85; g.beginPath();
@@ -6641,7 +6654,7 @@ function drawPv(cnv, ch, sk, now, i) {
     const sc = H * 0.0072;
     g.translate(W / 2, H * 0.9); g.scale(sc, sc);
     g.fillStyle = 'rgba(10,6,20,.35)'; g.beginPath(); g.ellipse(0, 0, c.w * 0.7, 6, 0, 0, TAU); g.fill();
-    drawPuppet(g, ch, col, P, { grounded: true, fr: now / 16.7, sword: ch === 'sleutel' || ch === 'techno' || ch === 'eik' || ch === 'nevel' || ch === 'marsepein' || (ch === 'sable' && cyc > 3 && cyc < 3.7) });
+    drawPuppet(g, ch, col, P, { grounded: true, fr: now / 16.7, sword: ch === 'sleutel' || ch === 'techno' || ch === 'eik' || ch === 'nevel' || ch === 'marsepein' || (ch === 'sable' && cyc > 3 && cyc < 3.7), dual: ch === 'nevel' });
   }
 }
 
