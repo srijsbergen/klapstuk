@@ -5634,14 +5634,15 @@ function drawAquarius(g, x, y, d, t) {
   g.restore();
 }
 function drawMagicCircle(g, x, y, r, col, fr, a) {
-  // two rings with runes between them and a six-pointed star, turning slowly
+  // two rings with runes between them, a ring of small circles and a flame in the middle, turning slowly
   g.save(); g.translate(x, y); g.globalAlpha *= a; g.strokeStyle = col; g.lineWidth = 2.5;
   g.beginPath(); g.arc(0, 0, r, 0, TAU); g.stroke(); g.lineWidth = 1.5; g.beginPath(); g.arc(0, 0, r * 0.78, 0, TAU); g.stroke();
   g.rotate(fr * 0.04);
   for (let i = 0; i < 12; i++) { const an = i * TAU / 12; g.beginPath(); g.moveTo(Math.cos(an) * r * 0.82, Math.sin(an) * r * 0.82); g.lineTo(Math.cos(an + 0.12) * r * 0.95, Math.sin(an + 0.12) * r * 0.95); g.stroke(); }
-  g.lineWidth = 2; g.beginPath();
-  for (let k = 0; k < 2; k++) for (let i = 0; i <= 3; i++) { const an = k * Math.PI / 3 + i * TAU / 3 - Math.PI / 2, px = Math.cos(an) * r * 0.76, py = Math.sin(an) * r * 0.76; i ? g.lineTo(px, py) : g.moveTo(px, py); }
-  g.stroke(); g.restore();
+  g.lineWidth = 1.5; g.beginPath(); g.arc(0, 0, r * 0.42, 0, TAU); g.stroke();
+  for (let i = 0; i < 6; i++) { const an = i * TAU / 6; g.beginPath(); g.arc(Math.cos(an) * r * 0.6, Math.sin(an) * r * 0.6, r * 0.09, 0, TAU); g.stroke(); }
+  g.rotate(-fr * 0.04); g.lineWidth = 2; g.beginPath(); g.moveTo(0, -r * 0.3); g.quadraticCurveTo(r * 0.24, -r * 0.02, 0, r * 0.26); g.quadraticCurveTo(-r * 0.24, -r * 0.02, 0, -r * 0.3); g.stroke();
+  g.restore();
 }
 function drawProj(g, p, fr) {
   g.save(); g.translate(p.x, p.y);
@@ -6022,7 +6023,7 @@ function drawFighter(g, f, fr, z) {
       g.lineCap = 'round'; g.beginPath(); g.moveTo(x0, y0);
       for (let i = 1; i <= 10; i++) { const u = i / 10; g.lineTo(x0 + (x1 - x0) * u, y0 + (y1 - y0) * u + Math.sin(u * 9 + fr * 0.6) * 5 * (1 - u * 0.5) * k); }
       g.strokeStyle = INK; g.lineWidth = 8; g.stroke(); g.strokeStyle = '#4fb8ff'; g.lineWidth = 4.5; g.stroke(); g.strokeStyle = '#d8f2ff'; g.lineWidth = 1.5; g.stroke();
-      g.fillStyle = '#ffe680'; star(g, x1, y1, 7); g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke();
+      g.save(); g.translate(x1 + f.facing * 4, y1); g.beginPath(); g.moveTo(0, 6); g.bezierCurveTo(-9, -1, -5, -9, 0, -4); g.bezierCurveTo(5, -9, 9, -1, 0, 6); g.fillStyle = '#ff7aa8'; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke(); g.restore();
     }
   }
   if (f.key === 'sterre' && f.state === 'attack' && f.move === f.M.aquarius && f.mt < 34) drawAquarius(g, f.x - f.facing * 30, f.y - f.c.h - 50 + Math.sin(fr * 0.1) * 3, f.facing, f.mt);
