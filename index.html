@@ -114,13 +114,16 @@ select{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
 @media (prefers-reduced-motion:reduce){.lvl[data-hot="3"]{animation:none}}
 .row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:12px}
 @media (max-width:780px){.row{grid-template-columns:minmax(0,1fr)}}
+.sgroups{display:flex;flex-direction:column;gap:8px}
+.sgroup{margin:4px 0 0;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+.sgroup.haz{color:#ff8a5c}
 .stages{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .stage{background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:6px 6px 10px;display:flex;flex-direction:column;gap:4px;text-align:left}
 .stage[aria-pressed="true"]{border-color:var(--gold)}
 .stage canvas{width:100%;max-width:100%;aspect-ratio:2/1;height:auto;border-radius:8px;display:block}
 .stage b{font-family:var(--display);font-weight:400;font-size:14px;padding-inline:4px;overflow-wrap:anywhere}
 .stage small{color:var(--mute);padding-inline:4px;font-size:12.5px;line-height:1.3}
-.side{display:flex;flex-direction:column;gap:12px}
+.side{display:flex;flex-direction:column;gap:12px;align-self:start}
 .opts{background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
 .opt{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .step{display:flex;align-items:center;gap:6px}
@@ -421,7 +424,7 @@ window.KlapP2P = (() => {
       <div class="row">
         <section>
           <p class="label" style="margin-bottom:8px">Podium</p>
-          <div class="stages" id="stages"></div>
+          <div class="sgroups" id="stages"></div>
           <div class="musrow"><svg class="note small" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.8" fill="currentColor"/><circle cx="17.5" cy="16" r="2.8" fill="currentColor"/><path class="slash" d="M3 3l18 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><label for="musSel" id="musLab">Muziek</label><select id="musSel"></select><button class="btn small" id="musPrev">Luister</button></div>
         </section>
         <section class="side">
@@ -581,6 +584,14 @@ const SFX = {
   beep(hi) { this.tone(hi ? 880 : 440, hi ? 880 : 440, hi ? 0.4 : 0.15, 0.12, 'square', 0, true); },
   game() { [0, 0.12, 0.24, 0.4].forEach((d, i) => this.tone([392, 523, 659, 784][i], [392, 523, 659, 784][i], 0.25, 0.08, 'square', d, true)); },
   ui() { this.tone(600, 900, 0.05, 0.05, 'triangle', 0, true); },
+  // stage hazard warnings
+  alarm() { this.tone(880, 660, 0.22, 0.08, 'square'); this.tone(660, 880, 0.22, 0.08, 'square', 0.24); },
+  crackle() { this.noise(0.05, 5000, 0.14, 'highpass'); this.noise(0.04, 2600, 0.09, 'highpass'); },
+  thunder() { this.noise(1.4, 1200, 0.8, 'lowpass', 0.7, 50); this.tone(70, 28, 1.1, 0.5, 'sine'); },
+  horn() { this.tone(233, 233, 0.45, 0.09, 'square'); this.tone(294, 294, 0.45, 0.06, 'square'); },
+  foghorn() { this.tone(98, 92, 1.3, 0.3, 'triangle'); this.tone(98, 92, 1.3, 0.05, 'square'); },
+  splash() { this.noise(1.1, 1600, 0.6, 'lowpass', 0.6, 250); },
+  swoosh() { this.noise(0.4, 400, 0.45, 'bandpass', 0.8, 2400); },
 };
 
 /* ---------------- music ----------------
@@ -637,6 +648,18 @@ const MUSIC = (() => {
     { id: 'ice2', group: 'IJsbaan', name: 'Poolnacht', mood: 'koud en vlug', bpm: 122, root: 54, mode: 'minor', sec: { A: [0, 5, 6, 2], B: [3, 5, 0, 6] }, form: 'AABA', bass: 'eighth', bassWave: 'sine', pad: { vol: 0.07 }, lead: { wave: 'bell', oct: 1, dens: 0.4, seed: 2, rv: 0.5 }, drums: { k: 'x.....x...x..x..', s: '....x..g.g..x...', h: 'x.x.x.x.x.x.x.x.' } },
     { id: 'ice3', group: 'IJsbaan', name: 'Pirouette', mood: 'draaiend en licht', bpm: 140, root: 62, mode: 'lydian', sec: { A: [0, 1, 5, 4], B: [5, 1, 0, 4] }, form: 'AABA', bass: 'octave', bassWave: 'triangle', pad: { vol: 0.045 }, arp: { wave: 'bell', rate: 16, oct: 1, vol: 0.04 }, lead: { wave: 'triangle', oct: 1, dens: 0.6, seed: 1040, cut: 4500, vib: 0.005, dl: 0.25, rv: 0.25 }, drums: { k: 'x...x...x...x...', s: '....x.......x...', h: '..x...x...x...x.' } },
     { id: 'ice4', group: 'IJsbaan', name: 'Sneeuwstorm', mood: 'jachtig', bpm: 148, root: 52, mode: 'harm', sec: { A: [0, 5, 3, 4], B: [0, 3, 5, 4] }, form: 'AABA', bass: 'eighth', bassWave: 'sawtooth', pad: { vol: 0.05 }, arp: { wave: 'bell', rate: 8, oct: 1, vol: 0.045 }, lead: { wave: 'sawtooth', det: 9, oct: 1, dens: 0.7, seed: 1177, cut: 3200, dl: 0.18 }, drums: { k: 'x.x...x.x.x...x.', s: '....x.......x...', h: 'xgxgxgxgxgxgxgxg' }, fill: true },
+    { id: 'storm1', group: 'Onweerstop', name: 'Donderslag', mood: 'groots en dreigend', bpm: 144, root: 52, mode: 'harm', sec: { A: [0, 5, 3, 4], B: [5, 3, 0, 4] }, form: 'AABA', bass: 'octave', bassWave: 'sawtooth', bassCut: 600, pad: { vol: 0.07, choir: true }, lead: { wave: 'brass', oct: 0, dens: 0.6, seed: 2101, cut: 2400, dl: 0.15, rv: 0.3 }, drums: { k: 'x.....x.x.......', s: '....x.......x...', h: 'x.x.x.x.x.x.x.x.' }, crash: true, fill: 'toms' },
+    { id: 'storm2', group: 'Onweerstop', name: 'Regengordijn', mood: 'gejaagd', bpm: 128, root: 50, mode: 'dorian', sec: { A: [0, 6, 3, 0], B: [2, 3, 6, 4] }, form: 'AABA', bass: 'sync', bassWave: 'sawtooth', bassCut: 600, pad: { vol: 0.05 }, arp: { wave: 'triangle', rate: 16, oct: 1, vol: 0.045 }, lead: { wave: 'triangle', oct: 1, dens: 0.55, seed: 2202, cut: 4000, vib: 0.005, dl: 0.3, rv: 0.3 }, drums: { k: 'x.....x...x..x..', s: '....x..g.g..x...', h: 'xgxgxgxgxgxgxgxg' } },
+    { id: 'storm3', group: 'Onweerstop', name: 'Bliksemafleider', mood: 'scherp en snel', bpm: 150, root: 54, mode: 'phryg', sec: { A: [0, 1, 0, 6], B: [5, 6, 1, 0] }, form: 'AABA', bass: 'gallop', bassWave: 'sawtooth', bassCut: 550, lead: { wave: 'square', oct: 0, dens: 0.7, seed: 2303, cut: 1800, q: 5, dl: 0.18 }, drums: { k: 'x.x...x.x.x...x.', s: '....x.......x...', h: 'x.x.x.x.x.x.x.x.' }, fill: true },
+    { id: 'storm4', group: 'Onweerstop', name: 'Oog van de storm', mood: 'gespannen stilte', bpm: 124, root: 48, mode: 'minor', sec: { A: [0, 5, 6, 0], B: [3, 5, 6, 6] }, form: 'AABA', bass: 'half', bassWave: 'sawtooth', bassCut: 420, pad: { vol: 0.07 }, arp: { wave: 'bell', rate: 8, oct: 1, vol: 0.035 }, lead: { wave: 'sine', oct: 1, dens: 0.4, seed: 2404, vib: 0.008, rv: 0.45 }, drums: { k: 'x.........x.....', s: '........x.......', h: 'xgxgxgxgxgxgxgxg', t: '..............x.' } },
+    { id: 'crane1', group: 'Bouwput', name: 'Sloopkogel', mood: 'beukend', bpm: 140, root: 57, mode: 'minor', sec: { A: [0, 3, 6, 2], B: [5, 6, 0, 0] }, form: 'AABA', bass: 'octave', bassWave: 'square', bassCut: 650, lead: { wave: 'pulse', oct: 1, dens: 0.7, seed: 3101, cut: 4200, dl: 0.15 }, drums: { k: 'x...x...x...x...', s: '....x.......x...', h: '..o...o...o...o.', c: '....x.......x...' }, fill: true },
+    { id: 'crane2', group: 'Bouwput', name: 'Bouwvakkersfunk', mood: 'funky, met swing', bpm: 122, root: 52, mode: 'dorian', sec: { A: [0, 3, 0, 3], B: [2, 6, 3, 4] }, form: 'AABA', swing: 0.12, bass: 'sync', bassWave: 'sawtooth', bassCut: 700, pad: { vol: 0.04 }, lead: { wave: 'triangle', oct: 1, dens: 0.6, seed: 3202, cut: 4000, vib: 0.004, dl: 0.2 }, drums: { k: 'x.....x...x..x..', s: '....x..g.g..x...', h: 'x.xgx.xgx.xgx.xg' } },
+    { id: 'crane3', group: 'Bouwput', name: 'Hijskraan', mood: 'stevig doorwerken', bpm: 134, root: 55, mode: 'mixo', sec: { A: [0, 6, 3, 0], B: [3, 0, 6, 4] }, form: 'AABA', bass: 'eighth', bassWave: 'sawtooth', pad: { vol: 0.045 }, lead: { wave: 'sawtooth', det: 8, oct: 0, dens: 0.6, seed: 3303, cut: 2400, dl: 0.2, rv: 0.2 }, drums: { k: 'x.......x.x.....', s: '....x.......x...', h: 'x.x.x.x.x.x.x.x.' }, fill: true },
+    { id: 'crane4', group: 'Bouwput', name: 'Betonmolen', mood: 'draaiend en zwaar', bpm: 146, root: 50, mode: 'harm', sec: { A: [0, 3, 4, 0], B: [5, 3, 4, 4] }, form: 'AABA', bass: 'gallop', bassWave: 'sawtooth', bassCut: 520, lead: { wave: 'square', oct: 0, dens: 0.65, seed: 3404, cut: 1700, q: 5, dl: 0.2 }, drums: { k: 'x..x..x.x..x..x.', s: '....x.......x...', h: 'xgxgxgxgxgxgxgxg' }, fill: true },
+    { id: 'tide1', group: 'Vloedlijn', name: 'Vloedgolf', mood: 'surfend', bpm: 138, root: 62, mode: 'major', sec: { A: [0, 4, 5, 3], B: [3, 4, 1, 4] }, form: 'AABA', bass: 'octave', bassWave: 'sawtooth', lead: { wave: 'pulse', oct: 1, dens: 0.7, seed: 4101, cut: 4500, vib: 0.005, dl: 0.2, rv: 0.2 }, drums: { k: 'x...x...x...x...', s: '....x.......x...', h: '..o...o...o...o.' }, fill: true },
+    { id: 'tide2', group: 'Vloedlijn', name: 'Zandkasteel', mood: 'zonnig', bpm: 124, root: 53, mode: 'lydian', sec: { A: [0, 1, 5, 4], B: [3, 1, 0, 4] }, form: 'AABA', bass: 'sync', bassWave: 'sine', pad: { vol: 0.045 }, arp: { wave: 'triangle', rate: 8, oct: 1, vol: 0.045 }, lead: { wave: 'bell', oct: 1, dens: 0.5, seed: 4202, dl: 0.25, rv: 0.35 }, drums: { k: 'x.....x...x.....', s: '....x.......x...', h: 'x.x.x.x.x.x.x.x.' } },
+    { id: 'tide3', group: 'Vloedlijn', name: 'Meeuwen', mood: 'zomers, met swing', bpm: 132, root: 57, mode: 'mixo', sec: { A: [0, 6, 3, 0], B: [3, 0, 6, 4] }, form: 'AABA', swing: 0.15, bass: 'walk', bassWave: 'triangle', pad: { vol: 0.04 }, lead: { wave: 'triangle', oct: 1, dens: 0.55, seed: 4303, cut: 4000, vib: 0.005, dl: 0.2 }, drums: { k: 'x.......x.......', s: '....x.......x...', h: 'x.x.x.x.x.x.x.x.' } },
+    { id: 'tide4', group: 'Vloedlijn', name: 'Springtij', mood: 'stormachtig snel', bpm: 148, root: 59, mode: 'minor', sec: { A: [0, 6, 5, 6], B: [3, 4, 5, 6] }, form: 'AABA', bass: 'eighth', bassWave: 'square', bassCut: 600, pad: { vol: 0.045 }, lead: { wave: 'sawtooth', det: 8, oct: 0, dens: 0.7, seed: 4404, cut: 2600, dl: 0.18 }, drums: { k: 'x.x...x.x.x...x.', s: '....x.......x...', h: 'xgxgxgxgxgxgxgxg' }, fill: true },
   ];
 
   // rhythms for one bar of melody: x starts a note, - holds it, . is a rest
@@ -780,6 +803,7 @@ const MUSIC = (() => {
       case 'oom': if (st === 0) bn(c, 4); else if (st === 8) bn(c + 4 - 7, 4); break;
       case 'walk': if (!(st & 3)) { const q = st >> 2; bn(q === 3 ? (nc >= c ? nc - 1 : nc + 1) : c + q * 2, 4); } break;
       case 'half': if (st === 0 || st === 8) bn(c, 8); break;
+      case 'gallop': if ((st & 3) !== 1) bn(c, 1, st & 3 ? 0.8 : 1); break;
       case 'sync': if ('x..x..x...x..x..'[st] === 'x') bn(c + (st === 6 || st === 13 ? 7 : 0), 3); break;
     }
     const chord = [c, c + 2, c + 4];
@@ -815,7 +839,7 @@ const MUSIC = (() => {
     while (S.t < until) { playStep(S, S.step, S.t); S.step = (S.step + 1) % S.total; if (!S.step) S.loops = (S.loops || 0) + 1; S.t += S.sd * (S.step & 1 ? 1 + sw : 1 - sw); }
   }
 
-  const STAGE_OF = { 'Hoofdmenu': 'menu', 'Hemelruïne': 'ruins', 'Sterrenaambeeld': 'anvil', 'Molenpolder': 'polder', 'Lavakern': 'lava', 'Sneltrein': 'train', 'Kermis': 'fair', 'IJsbaan': 'ice' };
+  const STAGE_OF = { 'Hoofdmenu': 'menu', 'Hemelruïne': 'ruins', 'Sterrenaambeeld': 'anvil', 'Molenpolder': 'polder', 'Lavakern': 'lava', 'Sneltrein': 'train', 'Kermis': 'fair', 'IJsbaan': 'ice', 'Onweerstop': 'storm', 'Bouwput': 'crane', 'Vloedlijn': 'tide' };
   for (const t of TRACKS) t.st = STAGE_OF[t.group];
   const byId = id => TRACKS.find(t => t.id === id) || null, forStage = k => TRACKS.filter(t => t.st === k), MENU = forStage('menu');
   // the menu starts on a random track and then moves on to another random one
@@ -2451,8 +2475,142 @@ const STAGES = {
   train: { name: 'Sneltrein', blurb: 'Op het dak van een rijdende trein. In de lucht duwt de rijwind je naar achteren.', main: { x1: -440, x2: 440, y: 0, h: 150 }, plats: [[-320, -200, -112], [200, 320, -112]], blast: { l: -1220, r: 1220, t: -980, b: 640 }, wind: -0.45 },
   fair: { name: 'Kermis', blurb: 'Een draaiend reuzenrad: de gondels zijn bewegende platforms.', main: { x1: -400, x2: 400, y: 0, h: 50 }, wheel: { cx: 0, cy: -300, r: 190 },
     plats: [0, 1, 2, 3].map(i => [0, 0, 0, { wheel: { cx: 0, cy: -300, r: 190, per: 1400, ph: i * Math.PI / 2, hw: 48 } }]), blast: { l: -1200, r: 1200, t: -980, b: 640 }, thumbY: -170 },
+  storm: { name: 'Onweerstop', blurb: 'Een bergtop in een onweer. Waar de grond oplicht, slaat zo de bliksem in.', main: { x1: -410, x2: 410, y: 0, h: 70 }, plats: [[-270, -130, -130], [130, 270, -130]], blast: { l: -1200, r: 1200, t: -980, b: 640 }, hazard: 'storm' },
+  crane: { name: 'Bouwput', blurb: 'Een bouwplaats met een sloopkogel. Hoor je de toeter, spring dan over de kogel heen.', main: { x1: -430, x2: 430, y: 0, h: 50 }, plats: [[-300, -170, -150], [170, 300, -150]], blast: { l: -1200, r: 1200, t: -980, b: 640 }, hazard: 'crane', thumbY: -200 },
+  tide: { name: 'Vloedlijn', blurb: 'Een zandplaat bij de vuurtoren. Klinkt de misthoorn, dan spoelt er een golf overheen: klim op een steiger.', main: { x1: -400, x2: 400, y: 0, h: 40 }, plats: [[-290, -150, -125], [150, 290, -125], [-60, 60, -240]], blast: { l: -1200, r: 1200, t: -980, b: 640 }, hazard: 'tide' },
   ice: { name: 'IJsbaan', blurb: 'Spiegelglad ijs. Remmen duurt lang en je glijdt zo van de rand.', main: { x1: -430, x2: 430, y: 0, h: 56 }, plats: [[-250, -100, -138], [100, 250, -138]], blast: { l: -1200, r: 1200, t: -980, b: 640 }, ice: true },
 };
+/* ---------------- stage hazards ----------------
+   Lava rises by its own clock; the other hazards run on the match clock alone (same frame, same thing), so every online
+   player sees and hears them at the same moment without sending anything extra */
+const stageHazard = k => { const d = STAGES[k]; return !!(d && (d.hazard || d.wind || d.ice)); };
+const HZ_START = 360;
+function hzPhase(S, fr) {
+  const h = S && S.def.hazard; if (!h || h === 'lava' || fr < HZ_START) return null;
+  const C = h === 'storm' ? 480 : h === 'crane' ? 600 : 720, f = fr - HZ_START;
+  return { h, n: Math.floor(f / C), p: f % C, C };
+}
+function hash01(a, b) { let x = Math.imul(a * 374761393 + b * 668265263 | 0, 1274126177); x = Math.imul(x ^ (x >>> 13), 1103515245); return ((x ^ (x >>> 16)) >>> 0) / 4294967296; }
+// two lightning columns per storm cycle, apart from each other
+function stormCols(S, n) {
+  const m = S.main, lo = m.x1 + 50, hi = m.x2 - 50, a = lo + (hi - lo) * hash01(n, 1), gap = 190 + 150 * hash01(n, 2);
+  let b = a + (hash01(n, 3) < 0.5 ? -gap : gap); if (b < lo || b > hi) b = a - (b - a);
+  return [a, b];
+}
+// the wrecking ball hangs from a crane: it rests out to one side, shakes when the horn goes, swings across and rests on the other side
+function craneBall(S, fr) {
+  const P = hzPhase(S, fr), A = 1.15, L = 640, py = -700;
+  let th = A;
+  if (P) {
+    const sd = P.n % 2 ? -1 : 1, q = P.p;
+    if (q < 360) th = sd * A + Math.sin(q * 0.05) * 0.015;
+    else if (q < 420) th = sd * A + Math.sin(q * 0.9) * 0.035;
+    else if (q < 480) th = sd * A * Math.cos(Math.PI * (q - 420) / 60);
+    else th = -sd * A + Math.sin((q - 480) * 0.2) * 0.06 * Math.max(0, 1 - (q - 480) / 60);
+  }
+  return { x: Math.sin(th) * L, y: py + Math.cos(th) * L, th };
+}
+// the flood wave comes in from one side, alternating each time
+function tideFront(S, P) {
+  const d = P.n % 2 ? -1 : 1, k = clamp((P.p - 630) / 70, 0, 1);
+  return { d, x: -d * 900 + d * 1800 * k };
+}
+// the stage hurts or pushes: lightning, the ball, the wave (host and local play only; guests get the result)
+function hazardTick(S) {
+  const P = hzPhase(S, G.frame); if (!P) return; const m = S.main;
+  for (const f of G.fighters) {
+    if (f.hzCD > 0) f.hzCD--;
+    if (f.state === 'dead' || f.state === 'respawn' || f.intang) continue;
+    if (P.h === 'storm' && P.p >= 100 && P.p < 108 && !(f.hzCD > 0)) {
+      for (const c of stormCols(S, P.n)) if (Math.abs(f.x - c) < 40 + f.c.w * 0.35 && f.y <= m.y + 6) {
+        f.hzCD = 40; applyHit(null, f, { d: 14, a: 82, b: 75, g: 70 }, f.x >= c ? 1 : -1, c, f.y - f.c.h / 2, 1, { throw: true }); sparkFx(f.x, f.y - f.c.h / 2, '#fff38a', 12); break;
+      }
+    } else if (P.h === 'crane' && P.p >= 420 && P.p < 480 && !(f.hzCD > 0)) {
+      const b = craneBall(S, G.frame), b0 = craneBall(S, G.frame - 1), dir = b.x < b0.x ? -1 : 1;
+      for (const q of [0.5, 1]) {
+        const bx = lerp(b0.x, b.x, q), by = lerp(b0.y, b.y, q);
+        if (circleRect(bx, by, 46, f.x - f.c.w / 2, f.y - f.c.h, f.c.w, f.c.h)) { f.hzCD = 50; applyHit(null, f, { d: 12, a: 35, b: 55, g: 72 }, dir, bx, by, 1, { throw: true }); SFX.boom(); break; }
+      }
+    } else if (P.h === 'tide' && P.p >= 630 && P.p < 705) {
+      const T = tideFront(S, P);
+      if (T.d * (f.x - T.x) < 0 && f.y > m.y - 75 && f.y < m.y + 60 && f.state !== 'ledge' && f.state !== 'grabbed') {
+        if (f.wet !== P.n + 1) { f.wet = P.n + 1; applyHit(null, f, { d: 5, a: 30, b: 70, g: 25 }, T.d, f.x, f.y - 20, 1, { throw: true }); }
+        f.x += T.d * 5;
+      }
+    }
+  }
+}
+// warning sounds and flashes; runs for everyone, also online guests
+function hazardFx(S) {
+  if (!S) return;
+  if (S.lava) { if (S.lava.st === 'warn' && G.frame % 36 === 0) SFX.alarm(); return; }
+  const P = hzPhase(S, G.frame), prev = S.hzP; S.hzP = P; if (!P || (prev && prev.n === P.n && prev.p === P.p)) return;
+  const at = t => prev && prev.n === P.n ? prev.p < t && P.p >= t : P.p >= t && P.p < t + 6;
+  if (P.h === 'storm') {
+    if (P.p < 100 && P.p % 20 < (prev && prev.n === P.n ? P.p - prev.p : 1)) SFX.crackle();
+    if (at(100)) { SFX.thunder(); G.flash = Math.max(G.flash, 5); G.shake = Math.max(G.shake, 12); }
+  } else if (P.h === 'crane') {
+    if (at(360) || at(390)) SFX.horn();
+    if (at(438)) SFX.swoosh();
+  } else if (P.h === 'tide') {
+    if (at(540) || at(590)) SFX.foghorn();
+    if (at(630)) SFX.splash();
+  }
+}
+// the big warning text at the top of the screen
+function hazardWarn(S) {
+  if (S.lava) return S.lava.st === 'warn' ? ['LAVA STIJGT!', '#ff8a3d', '255,80,20'] : null;
+  const P = hzPhase(S, G.frame); if (!P) return null;
+  if (P.h === 'storm' && P.p < 100) return ['BLIKSEM!', '#fff38a', '255,236,120'];
+  if (P.h === 'crane' && P.p >= 360 && P.p < 425) return ['SLOOPKOGEL!', '#ffc933', '255,170,40'];
+  if (P.h === 'tide' && P.p >= 540 && P.p < 630) return ['VLOEDGOLF!', '#8fe3ff', '60,170,255'];
+  return null;
+}
+// behind the fighters: the lightning marks, the crane's ball and rope, the sea rising before the wave
+function drawHazardBack(g, S, fr) {
+  const m = S.main, P = hzPhase(S, fr), k = S.key;
+  if (k === 'storm' && P) {
+    if (P.p < 100) for (const c of stormCols(S, P.n)) {
+      const q = P.p / 100, pulse = 0.5 + 0.5 * Math.sin(fr * (0.3 + q * 0.5));
+      const lg = g.createLinearGradient(0, -900, 0, m.y); lg.addColorStop(0, 'rgba(255,243,138,0)'); lg.addColorStop(1, `rgba(255,243,138,${0.08 + 0.2 * q})`);
+      g.fillStyle = lg; g.fillRect(c - 40, -900, 80, 900 + m.y);
+      g.fillStyle = `rgba(255,243,138,${0.35 + 0.45 * pulse})`; g.beginPath(); g.ellipse(c, m.y + 2, 46, 9, 0, 0, TAU); g.fill(); g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
+    } else if (P.p >= 112 && P.p < 200) for (const c of stormCols(S, P.n)) { g.globalAlpha = 1 - (P.p - 112) / 88; g.fillStyle = '#231c2a'; g.beginPath(); g.ellipse(c, m.y + 3, 40, 7, 0, 0, TAU); g.fill(); g.globalAlpha = 1; }
+  } else if (k === 'crane') {
+    const b = craneBall(S, fr);
+    g.strokeStyle = '#2a2730'; g.lineWidth = 4; g.beginPath(); g.moveTo(0, -700); g.lineTo(b.x, b.y); g.stroke();
+    g.strokeStyle = '#4a4650'; g.lineWidth = 2; for (let i = 1; i < 6; i++) { const t = 1 - i * 0.04, x = b.x * t, y = -700 + (b.y + 700) * t; g.beginPath(); g.ellipse(x, y, 4, 7, b.th, 0, TAU); g.stroke(); }
+    const rg = g.createRadialGradient(b.x - 14, b.y - 16, 4, b.x, b.y, 48); rg.addColorStop(0, '#8a8794'); rg.addColorStop(1, '#2c2a33');
+    g.fillStyle = rg; g.beginPath(); g.arc(b.x, b.y, 46, 0, TAU); g.fill(); g.strokeStyle = INK; g.lineWidth = 4; g.stroke();
+    g.fillStyle = '#2c2a33'; g.fillRect(b.x - 9, b.y - 58, 18, 14); g.strokeRect(b.x - 9, b.y - 58, 18, 14);
+    if (P && P.p >= 420 && P.p < 480) { g.strokeStyle = 'rgba(255,255,255,.5)'; g.lineWidth = 3; const b0 = craneBall(S, fr - 3); g.beginPath(); g.moveTo(b0.x, b0.y - 30); g.lineTo(b.x, b.y - 30); g.moveTo(b0.x, b0.y + 30); g.lineTo(b.x, b.y + 30); g.stroke(); }
+  } else if (k === 'tide' && P && P.p >= 540 && P.p < 630) {
+    const d = P.n % 2 ? -1 : 1, q = (P.p - 540) / 90, ex = -d * (m.x2 + 40);
+    g.fillStyle = 'rgba(47,134,184,.85)'; g.beginPath(); g.moveTo(ex - d * 900, m.y + 120);
+    for (let i = 0; i <= 20; i++) { const x = ex - d * 900 + d * i * 50, hh = 90 * q * Math.max(0, 1 - Math.abs(i - 18) / 18) + Math.sin(fr * 0.15 + i) * 4; g.lineTo(x, m.y + 30 - hh); }
+    g.lineTo(ex + d * 100, m.y + 120); g.closePath(); g.fill();
+  }
+}
+// in front of the fighters: the lightning bolts and the flood water
+function drawHazardFront(g, S, fr) {
+  const m = S.main, P = hzPhase(S, fr); if (!P) return;
+  if (P.h === 'storm' && P.p >= 100 && P.p < 114) {
+    const a = 1 - (P.p - 100) / 14;
+    for (const c of stormCols(S, P.n)) {
+      const pts = []; for (let i = 0, y = -1000; y < m.y; i++, y += 70) pts.push([c + (hash01(P.n * 31 + i, c | 0) - 0.5) * 70 * (y < m.y - 70 ? 1 : 0), y]); pts.push([c, m.y]);
+      g.save(); g.globalCompositeOperation = 'lighter'; g.lineJoin = 'round'; g.lineCap = 'round';
+      for (const [w, col] of [[26, `rgba(255,236,120,${0.3 * a})`], [12, `rgba(255,250,200,${0.7 * a})`], [5, `rgba(255,255,255,${a})`]]) { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke(); }
+      g.restore();
+    }
+  } else if (P.h === 'tide' && P.p >= 630 && P.p < 720) {
+    const T = tideFront(S, P), fade = P.p < 700 ? 1 : 1 - (P.p - 700) / 20, top = m.y - 48;
+    g.save(); g.globalAlpha = 0.78 * fade; g.fillStyle = '#2f86b8'; g.beginPath(); g.moveTo(-T.d * 1600, m.y + 60);
+    for (let x = -T.d * 1600; T.d * (T.x - x) > 0; x += T.d * 40) g.lineTo(x, top + Math.sin(x * 0.03 + fr * 0.3) * 6);
+    g.lineTo(T.x, top - 18); g.lineTo(T.x + T.d * 30, m.y + 10); g.lineTo(T.x + T.d * 30, m.y + 60); g.closePath(); g.fill();
+    g.fillStyle = '#e8f8ff'; for (let i = 0; i < 7; i++) { g.beginPath(); g.arc(T.x - T.d * i * 14, top - 14 + i * 7 + Math.sin(fr * 0.4 + i) * 3, 12 - i, 0, TAU); g.fill(); }
+    g.restore();
+  }
+}
 function makeStage(key) {
   const d = STAGES[key] || STAGES.ruins;
   const main = { x1: d.main.x1, x2: d.main.x2, y: d.main.y, h: d.main.h, solid: true, dx: 0 };
@@ -3330,7 +3488,15 @@ class AI {
     if (st === 'knockdown' || st === 'dizzy') { if (Math.random() < 0.3) o.atk = true; this.mem = o; return o; }
     const offstage = !f.grounded && (f.x < m.x1 - 2 || f.x > m.x2 + 2 || f.y > m.y + 4);
     if (offstage && !(this.L >= 11 && this.chaseOK())) return this.recover(o);
-    const LV = G.stage.lava, hot = LV && LV.st !== 'idle' && LV.st !== 'fall';
+    const LV = G.stage.lava, HP = hzPhase(G.stage, G.frame), hot = (LV && LV.st !== 'idle' && LV.st !== 'fall') || !!(HP && HP.h === 'tide' && HP.p >= 540 && HP.p < 705);
+    if (HP && f.grounded && GROUNDED_ACT.includes(st)) {
+      if (HP.h === 'storm' && HP.p < 104) { const c = stormCols(G.stage, HP.n).find(x => Math.abs(x - f.x) < 85); if (c != null && Math.random() < 0.5 + this.L * 0.04) { o[f.x >= c ? 'r' : 'l'] = true; this.mem = o; this.wait = 0; return o; } }
+      // look ahead: where will the ball be in a moment, and does it pass through me there?
+      if (HP.h === 'crane' && HP.p >= 410 && HP.p < 472 && !this.mem.jmp) {
+        let soon = false; for (let k = 6; k <= 14 && !soon; k += 2) { const b = craneBall(G.stage, G.frame + k); soon = circleRect(b.x, b.y, 52, f.x - f.c.w / 2, f.y - f.c.h, f.c.w, f.c.h); }
+        if (soon && Math.random() < 0.45 + this.L * 0.05) { o.jmp = true; this.mem = o; this.wait = 0; return o; }
+      }
+    }
     if (hot && f.grounded && f.ground === m && GROUNDED_ACT.includes(st)) {
       let best = null; for (const p of G.stage.plats) if (!best || Math.abs((p.x1 + p.x2) / 2 - f.x) < Math.abs((best.x1 + best.x2) / 2 - f.x)) best = p;
       if (best) { const bx = (best.x1 + best.x2) / 2; if (Math.abs(bx - f.x) > 40) o[bx > f.x ? 'r' : 'l'] = true; if (Math.abs(bx - f.x) < 110 && !this.mem.jmp) o.jmp = true; }
@@ -3716,7 +3882,7 @@ function demoRoster() {
   return list;
 }
 function startMatch(demo, custom, cfg) {
-  const c = cfg || settings, sk = c.stage, sks = Object.keys(STAGES), S = makeStage(sk === 'random' || !STAGES[sk] ? sks[Math.random() * sks.length | 0] : sk);
+  const c = cfg || settings, sk = c.stage, sks = Object.keys(STAGES), pool = STAGES[sk] ? null : sks.filter(k => stageHazard(k) === (sk === 'randomh')), S = makeStage(pool ? pool[Math.random() * pool.length | 0] : sk);
   Object.assign(G, { stage: S, projs: [], items: [], parts: [], kos: [], frame: 0, shake: 0, flash: 0, paused: false, endT: 0, useItems: c.items, itemT: 480, itemOn: ITEM_LIST.filter(k => !(c.ioff || []).includes(k)),
     training: false, mode: demo ? 'demo' : 'match', countdown: demo ? 0 : 200, stocks: demo ? 99 : c.stocks, net: null, netClient: false });
   G.musicId = demo ? null : MUSIC.pick(S.key); if (!demo) MUSIC.preview(null);
@@ -3744,6 +3910,7 @@ function sim() {
   if (G.countdown > 0) { G.countdown--; if (G.countdown % 50 === 0 && G.countdown > 0) SFX.beep(G.countdown === 50); }
   updatePlatforms(G.stage, G.frame);
   if (G.stage.lava) updateLava(G.stage);
+  hazardTick(G.stage); hazardFx(G.stage);
   for (const f of G.fighters) f.update();
   tapped.clear();
   for (const f of G.fighters) if (f.state === 'holding' && f.held) placeHeld(f);
@@ -4723,6 +4890,40 @@ function drawBG(g, V, S, fr) {
       for (let q = 1; q < 10; q++) { const t = q / 10, x = x0 + t * 400, y = -330 + 60 * (1 - (2 * t - 1) ** 2), on = (q + seg + (fr / 14 | 0)) % 3; g.globalAlpha = on ? 0.95 : 0.35; g.fillStyle = bulbs[(q + seg + 9) % 3]; g.beginPath(); g.arc(x, y + 5, 5, 0, TAU); g.fill(); }
       g.globalAlpha = 1;
     }
+  } else if (k === 'storm') {
+    gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#12141f'); gr.addColorStop(0.55, '#2d3247'); gr.addColorStop(1, '#4e5570');
+    g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    setLayer(g, V, 0.08); g.fillStyle = '#232634';
+    g.beginPath(); g.moveTo(-3000, 900); for (const [x, y] of [[-1800, 300], [-1300, -80], [-900, 160], [-500, -40], [-100, 220], [400, -120], [900, 120], [1400, -60], [1900, 260]]) g.lineTo(x, y); g.lineTo(3000, 900); g.fill();
+    setLayer(g, V, 0.15);
+    for (const c2 of CLOUDS) cloud(g, (((c2.x + fr * 0.9 * c2.s) % 3600) + 3600) % 3600 - 1800, c2.y - 120, c2.s * 1.5, 'rgba(58,62,84,.92)');
+    setLayer(g, V, 0.7); g.strokeStyle = 'rgba(190,205,235,.35)'; g.lineWidth = 2;
+    for (let i = 0; i < 90; i++) { const x = (((i * 211 + fr * 9) % 3000) + 3000) % 3000 - 1500, y = (((i * 397 + fr * 24) % 1600) + 1600) % 1600 - 1100; g.beginPath(); g.moveTo(x, y); g.lineTo(x - 8, y + 34); g.stroke(); }
+  } else if (k === 'crane') {
+    gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#41588f'); gr.addColorStop(0.6, '#e08f61'); gr.addColorStop(1, '#f6c88a');
+    g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    setLayer(g, V, 0.1); g.fillStyle = '#5d4a6b';
+    for (const [bx, bw, bh] of [[-1500, 220, 520], [-1180, 160, 380], [-900, 260, 640], [-520, 180, 420], [620, 240, 600], [960, 170, 360], [1260, 260, 700], [1640, 200, 460]]) g.fillRect(bx, 300 - bh, bw, bh + 600);
+    g.fillStyle = 'rgba(255,214,140,.55)';
+    for (const [bx, bw, bh] of [[-900, 260, 640], [1260, 260, 700]]) for (let y = 330 - bh; y < 280; y += 46) for (let x = bx + 22; x < bx + bw - 20; x += 44) if ((x * 7 + y) % 3) g.fillRect(x, y, 16, 22);
+    setLayer(g, V, 0.3); g.fillStyle = '#a48b6e'; g.fillRect(-3000, 230, 6000, 1200);
+    g.fillStyle = '#8c7358'; for (const [hx, hw] of [[-1200, 420], [-300, 260], [700, 520]]) { g.beginPath(); g.moveTo(hx, 232); g.lineTo(hx + hw * 0.5, 150); g.lineTo(hx + hw, 232); g.fill(); }
+  } else if (k === 'tide') {
+    gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#6fc3ee'); gr.addColorStop(0.7, '#cfeaf5'); gr.addColorStop(1, '#f6dfb4');
+    g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    setLayer(g, V, 0.12);
+    for (const c2 of CLOUDS) cloud(g, ((c2.x + fr * 0.25 * c2.s + 1800) % 3600) - 1800, c2.y - 40, c2.s, 'rgba(255,255,255,.9)');
+    setLayer(g, V, 0.22);
+    g.fillStyle = '#2f86b8'; g.fillRect(-3000, 150, 6000, 1400);
+    g.strokeStyle = 'rgba(255,255,255,.45)'; g.lineWidth = 3; for (let i = 0; i < 26; i++) { const x = (((i * 233 + fr * 0.6) % 3000) + 3000) % 3000 - 1500, y = 175 + (i % 6) * 26; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + 20, y - 8, x + 40, y); g.stroke(); }
+    g.save(); g.translate(980, 150);
+    g.fillStyle = '#7a6a58'; g.beginPath(); g.ellipse(0, 6, 120, 26, 0, 0, TAU); g.fill();
+    for (let i = 0; i < 5; i++) { g.fillStyle = i % 2 ? '#d8353f' : '#f4f1ea'; g.beginPath(); g.moveTo(-34 + i * 4, -i * 64); g.lineTo(34 - i * 4, -i * 64); g.lineTo(30 - i * 4, -(i + 1) * 64); g.lineTo(-30 + i * 4, -(i + 1) * 64); g.closePath(); g.fill(); }
+    g.fillStyle = '#2f2a33'; g.fillRect(-26, -360, 52, 42); g.fillStyle = '#ffe28a'; g.fillRect(-18, -354, 36, 30); g.fillStyle = '#d8353f'; g.beginPath(); g.moveTo(-32, -360); g.lineTo(0, -396); g.lineTo(32, -360); g.closePath(); g.fill();
+    const ba = fr * 0.03; g.globalCompositeOperation = 'lighter'; g.fillStyle = 'rgba(255,240,170,.22)'; g.beginPath(); g.moveTo(0, -340); g.lineTo(Math.cos(ba) * 900, -340 + Math.sin(ba) * 90 - 60); g.lineTo(Math.cos(ba) * 900, -340 + Math.sin(ba) * 90 + 60); g.closePath(); g.fill(); g.globalCompositeOperation = 'source-over';
+    g.restore();
+    setLayer(g, V, 0.45); g.strokeStyle = '#2f2a33'; g.lineWidth = 3;
+    for (let i = 0; i < 5; i++) { const x = (((i * 610 + fr * (1.2 + i * 0.2)) % 3200) + 3200) % 3200 - 1600, y = -380 + i * 55 + Math.sin(fr * 0.05 + i) * 20, w = Math.sin(fr * 0.25 + i) * 8; g.beginPath(); g.moveTo(x - 18, y + w); g.quadraticCurveTo(x - 8, y - 6, x, y); g.quadraticCurveTo(x + 8, y - 6, x + 18, y + w); g.stroke(); }
   } else if (k === 'ice') {
     gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#8fb9e3'); gr.addColorStop(0.65, '#d6e6f6'); gr.addColorStop(1, '#f5eef6');
     g.fillStyle = gr; g.fillRect(0, 0, W, H);
@@ -4845,6 +5046,46 @@ function drawStage(g, V, S, fr) {
       g.fillStyle = 'rgba(21,17,31,.35)'; g.fillRect(p.x1 + 16, p.y + 17, pw - 32, 10);
       g.fillStyle = '#f4efe3'; g.fillRect(p.x1, p.y, pw, 9); g.strokeRect(p.x1, p.y, pw, 9);
     });
+  } else if (k === 'storm') {
+    g.fillStyle = '#3d3f4c'; g.beginPath(); g.moveTo(m.x1, m.y + m.h * 0.4); g.lineTo(m.x1 + 50, m.y + m.h + 80); g.lineTo(-160, m.y + m.h + 220); g.lineTo(-30, m.y + m.h + 420); g.lineTo(90, m.y + m.h + 240); g.lineTo(m.x2 - 70, m.y + m.h + 90); g.lineTo(m.x2, m.y + m.h * 0.4); g.closePath(); g.fill(); g.stroke();
+    g.strokeStyle = 'rgba(21,17,31,.4)'; g.lineWidth = 3; for (const [ax, ay] of [[-260, 40], [-80, 150], [120, 90], [-10, 260]]) { g.beginPath(); g.moveTo(ax, m.y + m.h + ay * 0.4); g.lineTo(ax + 24, m.y + m.h + ay); g.stroke(); }
+    g.strokeStyle = INK; g.lineWidth = 4; g.fillStyle = '#5d5f6e'; g.fillRect(m.x1, m.y, w, m.h * 0.55); g.strokeRect(m.x1, m.y, w, m.h * 0.55);
+    g.fillStyle = '#7c7f8f'; g.fillRect(m.x1, m.y, w, 12); g.strokeRect(m.x1, m.y, w, 12);
+    g.fillStyle = '#4b4d5a'; for (let x = m.x1 + 30; x < m.x2 - 20; x += 70) { g.beginPath(); g.moveTo(x, m.y + 12); g.lineTo(x + 14, m.y + 26); g.lineTo(x + 30, m.y + 12); g.fill(); }
+    g.strokeStyle = '#8a8d9c'; g.lineWidth = 5; g.beginPath(); g.moveTo(m.x2 - 40, m.y); g.lineTo(m.x2 - 40, m.y - 120); g.stroke(); g.fillStyle = '#c9a43a'; g.beginPath(); g.arc(m.x2 - 40, m.y - 124, 6, 0, TAU); g.fill(); g.strokeStyle = INK; g.lineWidth = 4;
+    for (const p of S.plats) { const pw = p.x2 - p.x1; g.fillStyle = '#5d5f6e'; g.beginPath(); g.moveTo(p.x1 + 6, p.y + 12); g.lineTo(p.x2 - 6, p.y + 12); g.lineTo((p.x1 + p.x2) / 2 + 10, p.y + 40); g.lineTo((p.x1 + p.x2) / 2 - 18, p.y + 32); g.closePath(); g.fill(); g.stroke(); g.fillStyle = '#7c7f8f'; g.fillRect(p.x1, p.y, pw, 12); g.strokeRect(p.x1, p.y, pw, 12); }
+  } else if (k === 'crane') {
+    g.strokeStyle = '#d9a12b'; g.lineWidth = 8; g.beginPath(); g.moveTo(-660, 420); g.lineTo(-660, -760); g.moveTo(-620, 420); g.lineTo(-620, -760); g.stroke();
+    g.lineWidth = 3; for (let y = 400; y > -760; y -= 60) { g.beginPath(); g.moveTo(-660, y); g.lineTo(-620, y - 60); g.moveTo(-620, y); g.lineTo(-660, y - 60); g.stroke(); }
+    g.lineWidth = 8; g.beginPath(); g.moveTo(-780, -760); g.lineTo(240, -760); g.moveTo(-780, -730); g.lineTo(240, -730); g.stroke();
+    g.lineWidth = 3; for (let x = -780; x < 240; x += 50) { g.beginPath(); g.moveTo(x, -760); g.lineTo(x + 50, -730); g.stroke(); }
+    g.fillStyle = '#3b3f4a'; g.fillRect(-830, -770, 60, 50); g.fillStyle = '#d9a12b'; g.fillRect(-26, -742, 52, 30); g.strokeStyle = INK; g.lineWidth = 3; g.strokeRect(-26, -742, 52, 30);
+    const P = hzPhase(S, fr), warn = P && P.p >= 360 && P.p < 480;
+    g.fillStyle = warn && fr % 12 < 6 ? '#ff3b3b' : '#7a2b2b'; g.beginPath(); g.arc(240, -772, 9, 0, TAU); g.fill(); g.stroke();
+    g.strokeStyle = INK; g.lineWidth = 4;
+    g.fillStyle = '#6d6a72'; g.beginPath(); g.moveTo(m.x1 + 30, m.y + m.h); g.lineTo(m.x1 + 30, m.y + m.h + 200); g.lineTo(m.x2 - 30, m.y + m.h + 200); g.lineTo(m.x2 - 30, m.y + m.h); g.closePath(); g.fill(); g.stroke();
+    g.strokeStyle = 'rgba(21,17,31,.3)'; g.lineWidth = 3; for (let x = m.x1 + 90; x < m.x2 - 40; x += 120) { g.beginPath(); g.moveTo(x, m.y + m.h + 10); g.lineTo(x, m.y + m.h + 190); g.stroke(); }
+    g.strokeStyle = INK; g.lineWidth = 4; g.fillStyle = '#a7a3a0'; g.fillRect(m.x1, m.y, w, m.h); g.strokeRect(m.x1, m.y, w, m.h);
+    g.save(); g.beginPath(); g.rect(m.x1, m.y + m.h - 14, w, 14); g.clip(); for (let x = m.x1 - 20, q = 0; x < m.x2; x += 28, q++) { g.fillStyle = q % 2 ? '#1e1c22' : '#ffc933'; g.beginPath(); g.moveTo(x, m.y + m.h); g.lineTo(x + 14, m.y + m.h - 14); g.lineTo(x + 28, m.y + m.h - 14); g.lineTo(x + 14, m.y + m.h); g.fill(); } g.restore();
+    g.strokeRect(m.x1, m.y + m.h - 14, w, 14); g.fillStyle = '#c4c0bc'; g.fillRect(m.x1, m.y, w, 10); g.strokeRect(m.x1, m.y, w, 10);
+    // warning lights on the stage corners, so the horn is visible too
+    for (const lx of [m.x1 + 16, m.x2 - 16]) { g.fillStyle = '#3b3f4a'; g.fillRect(lx - 6, m.y - 14, 12, 14); g.strokeRect(lx - 6, m.y - 14, 12, 14); const on = warn && fr % 12 < 6; g.fillStyle = on ? '#ffb020' : '#7a5a2b'; g.beginPath(); g.arc(lx, m.y - 20, 8, Math.PI, 0); g.closePath(); g.fill(); g.stroke();
+      if (on) { const rg = g.createRadialGradient(lx, m.y - 22, 2, lx, m.y - 22, 60); rg.addColorStop(0, 'rgba(255,176,32,.55)'); rg.addColorStop(1, 'rgba(255,176,32,0)'); g.fillStyle = rg; g.beginPath(); g.arc(lx, m.y - 22, 60, 0, TAU); g.fill(); } }
+    for (const p of S.plats) { const pw = p.x2 - p.x1; g.fillStyle = '#b7372f'; g.fillRect(p.x1, p.y, pw, 14); g.strokeRect(p.x1, p.y, pw, 14); g.fillStyle = '#8c2a24'; g.fillRect(p.x1 + 10, p.y + 14, pw - 20, 6); g.strokeStyle = '#3b3f4a'; g.lineWidth = 3; g.beginPath(); g.moveTo(p.x1 + 20, p.y); g.lineTo((p.x1 + p.x2) / 2, p.y - 70); g.lineTo(p.x2 - 20, p.y); g.stroke(); g.strokeStyle = INK; g.lineWidth = 4; }
+  } else if (k === 'tide') {
+    g.fillStyle = '#2f86b8'; g.fillRect(-3000, m.y + 30, 6000, 600);
+    g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 3; for (let x = -1600; x < 1600; x += 60) { const y = m.y + 34 + Math.sin(x * 0.02 + fr * 0.08) * 4; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + 15, y - 6, x + 30, y); g.stroke(); }
+    g.strokeStyle = INK; g.lineWidth = 4;
+    g.fillStyle = '#c9a46a'; g.beginPath(); g.moveTo(m.x1 - 30, m.y + m.h); g.quadraticCurveTo(0, m.y + m.h + 90, m.x2 + 30, m.y + m.h); g.closePath(); g.fill(); g.stroke();
+    g.fillStyle = '#e6c98a'; g.fillRect(m.x1, m.y, w, m.h); g.strokeRect(m.x1, m.y, w, m.h);
+    g.fillStyle = '#f2dca6'; g.fillRect(m.x1, m.y, w, 10); g.strokeRect(m.x1, m.y, w, 10);
+    g.fillStyle = 'rgba(160,120,70,.5)'; for (let x = m.x1 + 26; x < m.x2; x += 52) { g.beginPath(); g.arc(x, m.y + 24, 3, 0, TAU); g.fill(); }
+    for (const [sx, sc] of [[-330, '#f08a5d'], [260, '#f4e3c1']]) { g.fillStyle = sc; g.beginPath(); g.moveTo(sx - 9, m.y); g.quadraticCurveTo(sx, m.y - 14, sx + 9, m.y); g.fill(); g.lineWidth = 2; g.stroke(); g.lineWidth = 4; }
+    for (const p of S.plats) {
+      const pw = p.x2 - p.x1; g.strokeStyle = '#6b4a2e'; g.lineWidth = 7; for (const px of [p.x1 + 14, p.x2 - 14]) { g.beginPath(); g.moveTo(px, p.y + 10); g.lineTo(px, m.y + 60); g.stroke(); }
+      g.strokeStyle = INK; g.lineWidth = 4; g.fillStyle = '#a8794a'; g.fillRect(p.x1, p.y, pw, 12); g.strokeRect(p.x1, p.y, pw, 12);
+      g.strokeStyle = 'rgba(21,17,31,.35)'; g.lineWidth = 2; for (let x = p.x1 + 22; x < p.x2; x += 22) { g.beginPath(); g.moveTo(x, p.y); g.lineTo(x, p.y + 12); g.stroke(); } g.strokeStyle = INK; g.lineWidth = 4;
+    }
   } else if (k === 'ice') {
     g.fillStyle = '#bfe9fb'; g.lineWidth = 2.5;
     for (let x = m.x1 + 20; x < m.x2 - 10; x += 34) { const L = 26 + ((Math.abs(x) * 7) % 40); g.beginPath(); g.moveTo(x - 10, m.y + m.h - 2); g.lineTo(x, m.y + m.h + L); g.lineTo(x + 10, m.y + m.h - 2); g.closePath(); g.fill(); g.stroke(); }
@@ -5584,13 +5825,14 @@ function render() {
   const V = view; V.cam = G.cam;
   const sh = reduceMotion ? G.shake * 0.25 : G.shake; V.sx = rand(-1, 1) * sh; V.sy = rand(-1, 1) * sh;
   const g = ctx, fr = G.frame, S = G.stage;
-  drawBG(g, V, S, fr); drawStage(g, V, S, fr);
+  drawBG(g, V, S, fr); drawStage(g, V, S, fr); drawHazardBack(g, S, fr);
   drawFsDim(g, V);
   setLayer(g, V, 1);
   drawAuras(g, fr);
   for (const it of G.items) if (!it.holder) drawItem(g, it, fr);
   for (const f of G.fighters) if (f.state !== 'attack' || !f.move || !f.move.throw) drawFighter(g, f, fr, V.cam.z);
   for (const f of G.fighters) if (f.state === 'attack' && f.move && f.move.throw) drawFighter(g, f, fr, V.cam.z);
+  drawHazardFront(g, S, fr);
   drawFinals(g, fr); drawFsHints(g, fr);
   if (S.lava) { setLayer(g, V, 1); drawLava(g, S.lava.y, fr); }
   drawHitboxes(g, fr);
@@ -5600,10 +5842,11 @@ function render() {
   if (G.showBoxes && G.training) { setLayer(g, V, 1); drawBoxes(g); }
   if (G.mode !== 'demo') { drawOffscreen(g, V); drawHUD(g, V); drawTraining(g, V); }
   drawFsBanner(g, V);
-  if (S.lava && S.lava.st === 'warn') {
+  const hw = G.mode !== 'demo' && hazardWarn(S);
+  if (hw) {
     setScreen(g, V); const a = 0.18 + 0.12 * Math.sin(fr * 0.25), lg = g.createLinearGradient(0, V.H * 0.6, 0, V.H);
-    lg.addColorStop(0, 'rgba(255,80,20,0)'); lg.addColorStop(1, `rgba(255,80,20,${a})`); g.fillStyle = lg; g.fillRect(0, V.H * 0.6, V.W, V.H * 0.4);
-    if (fr % 30 < 20) { const ty = G.hudTop ? V.H * 0.3 : V.H * 0.14; g.font = `${Math.min(34, V.W * 0.06)}px Impact, 'Arial Black', sans-serif`; g.textAlign = 'center'; g.lineJoin = 'round'; g.lineWidth = 7; g.strokeStyle = INK; g.strokeText('LAVA STIJGT!', V.W / 2, ty); g.fillStyle = '#ff8a3d'; g.fillText('LAVA STIJGT!', V.W / 2, ty); }
+    lg.addColorStop(0, `rgba(${hw[2]},0)`); lg.addColorStop(1, `rgba(${hw[2]},${a})`); g.fillStyle = lg; g.fillRect(0, V.H * 0.6, V.W, V.H * 0.4);
+    if (fr % 30 < 20) { const ty = G.hudTop ? V.H * 0.3 : V.H * 0.14; g.font = `${Math.min(34, V.W * 0.06)}px Impact, 'Arial Black', sans-serif`; g.textAlign = 'center'; g.lineJoin = 'round'; g.lineWidth = 7; g.strokeStyle = INK; g.strokeText(hw[0], V.W / 2, ty); g.fillStyle = hw[1]; g.fillText(hw[0], V.W / 2, ty); }
   }
   if (G.mode === 'match' && G.countdown > 0) {
     const c = G.countdown, n = Math.ceil((c - 50) / 50), k = 1 + ((c - 1) % 50) / 50 * 0.4;
@@ -5714,11 +5957,15 @@ function buildMenu() {
     refreshSlot(i);
   });
   const st = $('#stages'); st.innerHTML = '';
-  for (const [k, d] of [...Object.entries(STAGES), ['random', { name: 'Willekeurig', blurb: 'Elke wedstrijd een ander podium.' }]]) {
+  for (const [title, haz, rk, rb] of [['Zonder gevaren', false, 'random', 'Elke wedstrijd een ander podium zonder gevaren.'], ['Met gevaren', true, 'randomh', 'Elke wedstrijd een ander podium met gevaren.']]) {
+  const hd = document.createElement('p'); hd.className = 'sgroup' + (haz ? ' haz' : ''); hd.textContent = title; st.appendChild(hd);
+  const grid = document.createElement('div'); grid.className = 'stages'; st.appendChild(grid);
+  for (const [k, d] of [...Object.entries(STAGES).filter(([sk]) => stageHazard(sk) === haz), [rk, { name: 'Willekeurig', blurb: rb }]]) {
     const b = document.createElement('button'); b.className = 'stage'; b.dataset.k = k; b.setAttribute('aria-pressed', String(settings.stage === k));
     b.innerHTML = `<canvas width="480" height="240" aria-hidden="true"></canvas><b>${d.name}</b><small>${d.blurb}</small>`;
     b.addEventListener('click', () => { setOpt('stage', k); SFX.ui(); restartDemoSoon(); });
-    st.appendChild(b); drawThumb(b.querySelector('canvas'), k);
+    grid.appendChild(b); drawThumb(b.querySelector('canvas'), k);
+  }
   }
   $('#stm').onclick = () => { setOpt('stocks', Math.max(1, optCfg().stocks - 1)); SFX.ui(); };
   $('#stp').onclick = () => { setOpt('stocks', Math.min(9, optCfg().stocks + 1)); SFX.ui(); };
@@ -5760,10 +6007,10 @@ function toggleMusic() { settings.music = !settings.music; SFX.init(); syncAudio
 function syncMusicRow() {
   const k = optCfg().stage, sel = $('#musSel'), list = MUSIC.forStage(k), ro = online() && NET.game && NET.role !== 'host', pv = MUSIC.previewing();
   if (pv && pv.st !== k) MUSIC.preview(null);
-  $('#musLab').textContent = k === 'random' ? 'Muziek: hoort bij het podium dat het wordt' : 'Muziek bij ' + STAGES[k].name;
+  $('#musLab').textContent = !STAGES[k] ? 'Muziek: hoort bij het podium dat het wordt' : 'Muziek bij ' + STAGES[k].name;
   sel.innerHTML = '<option value="random">Willekeurig</option>' + list.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
   sel.value = list.some(t => t.id === (settings.mus || {})[k]) ? settings.mus[k] : 'random';
-  sel.disabled = k === 'random' || ro; $('#musPrev').disabled = k === 'random';
+  sel.disabled = !STAGES[k] || ro; $('#musPrev').disabled = !STAGES[k];
   $('#musPrev').textContent = MUSIC.previewing() ? 'Stop' : 'Luister';
 }
 function syncOpts() {
@@ -5798,12 +6045,13 @@ function setMode(m) {
 }
 function drawThumb(cnv, key) {
   const g = cnv.getContext('2d');
-  if (key === 'random') {
-    g.setTransform(2, 0, 0, 2, 0, 0); const gr = g.createLinearGradient(0, 0, 240, 120); gr.addColorStop(0, '#2a2245'); gr.addColorStop(1, '#4a2a66'); g.fillStyle = gr; g.fillRect(0, 0, 240, 120);
+  if (key === 'random' || key === 'randomh') {
+    g.setTransform(2, 0, 0, 2, 0, 0); const gr = g.createLinearGradient(0, 0, 240, 120); gr.addColorStop(0, key === 'randomh' ? '#45222a' : '#2a2245'); gr.addColorStop(1, key === 'randomh' ? '#6a2a2a' : '#4a2a66'); g.fillStyle = gr; g.fillRect(0, 0, 240, 120);
+    if (key === 'randomh') { g.save(); g.beginPath(); g.rect(0, 104, 240, 16); g.clip(); for (let x = -20, q = 0; x < 260; x += 16, q++) { g.fillStyle = q % 2 ? '#1e1c22' : '#ffc933'; g.beginPath(); g.moveTo(x, 120); g.lineTo(x + 8, 104); g.lineTo(x + 16, 104); g.lineTo(x + 8, 120); g.fill(); } g.restore(); }
     g.font = "64px Impact, 'Arial Black', sans-serif"; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round'; g.lineWidth = 8; g.strokeStyle = INK; g.strokeText('?', 120, 64); g.fillStyle = '#ffc933'; g.fillText('?', 120, 64); return;
   }
   const S = makeStage(key), V = { W: 240, H: 120, dpr: 2, sx: 0, sy: 0, cam: { x: 0, y: S.def.thumbY || -60, z: 240 / 1180 } };
-  drawBG(g, V, S, 0); drawStage(g, V, S, 0);
+  drawBG(g, V, S, 0); drawStage(g, V, S, 0); setLayer(g, V, 1); drawHazardBack(g, S, 0);
   if (S.lava) { setLayer(g, V, 1); drawLava(g, 150, 0); }
 }
 function drawPreviews(now) {
@@ -6209,7 +6457,7 @@ function netClientTick() {
   let a = sn[0], b = null;
   for (let i = 0; i < sn.length; i++) if (sn[i].q <= NET.disp) { a = sn[i]; b = sn[i + 1] || null; }
   const k = b ? clamp((NET.disp - a.q) / Math.max(1, b.q - a.q), 0, 1) : 0;
-  netApply(a, b, k);
+  netApply(a, b, k); hazardFx(G.stage);
   updateParts(); updateCam(false); G.shake *= 0.86; if (G.flash > 0) G.flash--;
 }
 function netApply(a, b, k) {
