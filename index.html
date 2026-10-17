@@ -142,6 +142,7 @@ select{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
 .musrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-top:10px;background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:8px 12px}
 .musrow label{color:var(--mute);font-size:14px}
 .musrow select{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit;min-width:0;max-width:100%}
+.pnote{margin:-6px 0 0;color:var(--mute);font-size:15px}.pnote[hidden],#pause .btn[hidden]{display:none}
 .paudio{display:flex;flex-direction:column;gap:10px;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
 .iset{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:6px;margin-top:-2px}
 .iset[hidden]{display:none}
@@ -469,7 +470,8 @@ window.KlapP2P = (() => {
   <div id="pause" class="screen" hidden>
     <div class="card">
       <h2 id="pauseTitle">Pauze</h2>
-      <div class="btns"><button class="btn main" id="resume">Doorgaan</button><button class="btn" id="quit">Naar menu</button></div>
+      <p class="pnote" id="pauseNote" hidden></p>
+      <div class="btns"><button class="btn main" id="resume">Doorgaan</button><button class="btn" id="toLobby" hidden>Iedereen naar lobby</button><button class="btn" id="quit">Naar menu</button></div>
       <div class="paudio"><div class="opt"><span>Muziek</span><div class="vol"><label class="sr" for="pMusVol">Volume muziek</label><input type="range" id="pMusVol" min="0" max="100"><button class="tog" id="pMus" aria-pressed="true">Aan</button></div></div><div class="opt"><span>Effecten</span><div class="vol"><label class="sr" for="pSfxVol">Volume effecten</label><input type="range" id="pSfxVol" min="0" max="100"><button class="tog" id="pSnd" aria-pressed="true">Aan</button></div></div></div>
       <div class="btns" id="trBtns" hidden><button class="btn" id="trReset">Bokszak terugzetten</button><button class="btn" id="trBoxes">Raakvlakken tonen</button></div>
     </div>
@@ -6261,9 +6263,20 @@ function resetBag() {
 function setPause(p) {
   if (!(G.mode === 'match' || G.mode === 'gameover')) return;
   $('#trBtns').hidden = !G.training; $('#trBoxes').textContent = G.showBoxes ? 'Raakvlakken verbergen' : 'Raakvlakken tonen';
-  $('#pauseTitle').textContent = G.net ? 'Online spel' : G.training ? 'Training' : 'Pauze'; $('#quit').textContent = G.net ? 'Spel verlaten' : 'Naar menu';
-  if (G.net) { G.paused = false; pauseEl.hidden = !p; if (p) $('#resume').focus(); return; }
+  const host = !!G.net && G.net.role === 'host', guest = !!G.net && !host, held = guest && G.hostPause;
+  if (held) p = true;
+  $('#pauseTitle').textContent = held ? 'Gepauzeerd' : guest ? 'Online spel' : G.training ? 'Training' : 'Pauze';
+  $('#pauseNote').hidden = !G.net;
+  $('#pauseNote').textContent = held ? 'De host heeft het spel gepauzeerd.' : guest ? 'Het spel loopt door. Alleen de host kan pauzeren.' : host ? 'Het spel staat voor iedereen stil.' : '';
+  $('#resume').hidden = held; $('#toLobby').hidden = !host;
+  $('#quit').textContent = host ? 'Spel opheffen' : guest ? 'Spel verlaten' : 'Naar menu';
+  if (guest) { G.paused = held; pauseEl.hidden = !p; if (p) $(held ? '#quit' : '#resume').focus(); return; }
   G.paused = p; pauseEl.hidden = !p;
+  if (host) {
+    // presses made during the pause should not fire on resume
+    if (!p) G.fighters.forEach(f => { if (f.ctrl && f.ctrl.peer) f.ctrl.seen = null; });
+    netHostSend();
+  }
   if (p) $('#resume').focus(); else if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
 }
 function showResults() {
@@ -6403,7 +6416,7 @@ async function netLeave(keepScreen) {
   NET.unsubs.forEach(u => { try { u(); } catch (e) {} }); NET.unsubs = [];
   Object.assign(NET, { game: null, role: null, code: '', ord: [], ro: null, mid: 0, snaps: [], joinedOk: false });
   const wasPlaying = !!G.net;
-  G.net = null; G.netClient = false;
+  G.net = null; G.netClient = false; G.hostPause = false;
   if (NET.room) NET.room.presence({ open: null }).catch(() => {});
   if (g) { try { await g.leave(); } catch (e) {} }
   if (keepScreen) return;
@@ -6414,7 +6427,7 @@ async function netLeave(keepScreen) {
 function netLost(msg) { netLeave().then(() => netMsg(msg)); }
 function hostLobbyPresence() {
   if (NET.role !== 'host' || !NET.game) return;
-  NET.game.presence({ role: 'host', ph: 'lobby', code: NET.code, ch: NET.ch, sk: NET.sk, nm: NET.nm, cfg: NET.cfg, ord: NET.ord, mid: NET.mid, ro: null, st: null, s: null }).catch(() => {});
+  NET.game.presence({ role: 'host', pz: 0, ph: 'lobby', code: NET.code, ch: NET.ch, sk: NET.sk, nm: NET.nm, cfg: NET.cfg, ord: NET.ord, mid: NET.mid, ro: null, st: null, s: null }).catch(() => {});
   if (NET.room) NET.room.presence({ open: { code: NET.code, n: Math.max(1, NET.ord.length) } }).catch(() => {});
 }
 function lobbyOrder() {
@@ -6555,7 +6568,7 @@ function netSnap() {
 }
 function netHostSend() {
   if (!NET.game || NET.role !== 'host' || !G.net) return;
-  const pres = { role: 'host', mu: G.musicId, ph: G.mode === 'results' ? 'results' : 'match', code: NET.code, ch: NET.ch, cfg: NET.cfg, ord: NET.ord, mid: NET.mid, st: G.stage.key, ro: NET.ro, s: netSnap() };
+  const pres = { role: 'host', pz: G.paused ? 1 : 0, mu: G.musicId, ph: G.mode === 'results' ? 'results' : 'match', code: NET.code, ch: NET.ch, cfg: NET.cfg, ord: NET.ord, mid: NET.mid, st: G.stage.key, ro: NET.ro, s: netSnap() };
   if (JSON.stringify(pres).length > 3800) { pres.s.P = pres.s.P.slice(0, 6); if (JSON.stringify(pres).length > 3800) pres.s.I = []; }
   NET.game.presence(pres).catch(() => {});
 }
@@ -6563,8 +6576,10 @@ function guestFromHost(hp) {
   if ((hp.ph === 'match' || hp.ph === 'results') && Array.isArray(hp.ro) && hp.ro.length && hp.s && typeof hp.s === 'object') {
     if (hp.mid !== NET.mid) netClientStart(hp);
     if (G.netClient) netPushSnap(hp.s);
+    const pz = hp.ph === 'match' && !!hp.pz;
+    if (G.netClient && pz !== !!G.hostPause) { G.hostPause = pz; if (pz) setPause(true); else { G.paused = false; setPause(false); } }
   } else if (hp.ph === 'lobby' && G.netClient) {
-    G.netClient = false; G.net = null; NET.snaps = [];
+    G.netClient = false; G.net = null; NET.snaps = []; G.hostPause = false;
     resEl.hidden = true; pauseEl.hidden = true; pbtn.hidden = true; touchEl.hidden = true; G.hudTop = false;
     menuEl.hidden = false; NET.lkey = ''; setMode('online'); startMatch(true); renderLobby();
   }
@@ -6577,7 +6592,7 @@ function netClientStart(hp) {
     const ck = Array.isArray(r) && CHARS[r[1]] ? r[1] : 'volt', f = new Fighter(clamp((r && r[0]) | 0, 0, 3), ck, 'none', clamp((r && r[4]) | 0, 1, 12), clamp((r && r[2]) | 0, 0, SKINS - 1));
     f.cpu = !!(r && r[3]); f.state = 'idle'; f.grounded = true; f.ground = S.main; return f;
   });
-  G.netClient = true; G.net = { role: 'guest' }; G.musicId = MUSIC.valid(hp.mu) ? hp.mu : null;
+  G.netClient = true; G.net = { role: 'guest' }; G.hostPause = false; G.musicId = MUSIC.valid(hp.mu) ? hp.mu : null;
   menuEl.hidden = true; resEl.hidden = true; pauseEl.hidden = true; pbtn.hidden = false;
   touchEl.hidden = NET.src !== 'touch'; G.hudTop = NET.src === 'touch';
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
@@ -6719,6 +6734,7 @@ $('#trBoxes').addEventListener('click', () => { G.showBoxes = !G.showBoxes; setP
 $('#kbReset').addEventListener('click', () => { settings.keys = null; kbWait = null; save(); applyKeymaps(); renderControls(); $('#kbNote').textContent = 'Standaardtoetsen hersteld.'; });
 $('#resume').addEventListener('click', () => setPause(false));
 $('#quit').addEventListener('click', () => { if (G.net) netLeave(); else showMenu(); });
+$('#toLobby').addEventListener('click', () => { if (G.net && NET.role === 'host') netBackToLobby(); });
 $('#again').addEventListener('click', () => { if (G.net) netStartMatch(); else goFight(); });
 $('#toMenu').addEventListener('click', () => { if (G.net) { if (NET.role === 'host') netBackToLobby(); else netLeave(); } else showMenu(); });
 pbtn.addEventListener('click', () => setPause(pauseEl.hidden));
