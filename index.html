@@ -3096,7 +3096,13 @@ class Fighter {
   sdi() {
     const P = this.ctrl.p, sx = (P.r ? 1 : 0) - (P.l ? 1 : 0), sy = (P.d ? 1 : 0) - (P.u ? 1 : 0);
     if (!sx && !sy) return;
-    const n = Math.hypot(sx, sy); this.x += sx / n * 7; if (!this.grounded) this.y += sy / n * 7; this.px = this.x; this.py = this.y;
+    const n = Math.hypot(sx, sy), y0 = this.y; this.x += sx / n * 7;
+    if (!this.grounded) {
+      this.y += sy / n * 7;
+      // never into the floor: stop on the highest surface it was standing over
+      if (sy > 0) for (const p of G.stage.surf) if (this.x >= p.x1 - 1 && this.x <= p.x2 + 1 && y0 <= p.y + 0.5 && this.y > p.y) this.y = p.y;
+    }
+    this.px = this.x; this.py = this.y;
     addP({ type: 'ghost', x: this.x - sx / n * 7, y: this.y, life: 8, max: 8, size: this.c.h, w: this.c.w, color: '#ffffff' });
   }
   setState(s) { this.state = s; this.t = 0; if (s !== 'attack') this.move = null; if (s !== 'land') this.wd = false; }
@@ -3452,6 +3458,8 @@ class Fighter {
       const top = this.y - H;
       if (this.y > m.y + 1 && top < m.y + m.h && this.x + hw > m.x1 && this.x - hw < m.x2) {
         if (this.py - H >= m.y + m.h - 2) { this.y = m.y + m.h + H; if (this.vy < 0) this.vy = 0; if (this.lvy < 0) this.lvy = -this.lvy * 0.4; }
+        // sunk in from above (not rising): back on top, closer than either side
+        else if (this.vy + this.lvy >= 0 && this.y - m.y < Math.min(this.x + hw - m.x1, m.x2 - (this.x - hw))) { this.y = m.y; this.land(m); }
         else if (this.x < (m.x1 + m.x2) / 2) { this.x = m.x1 - hw; if (this.lvx > 0) this.lvx = -this.lvx * 0.4; if (this.vx > 0) this.vx = 0; }
         else { this.x = m.x2 + hw; if (this.lvx < 0) this.lvx = -this.lvx * 0.4; if (this.vx < 0) this.vx = 0; }
       }
