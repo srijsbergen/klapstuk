@@ -438,6 +438,7 @@ window.KlapP2P = (() => {
             <div class="opt" id="cpuOpt" hidden><span>Lege plekken vullen met CPU's</span><button class="tog" id="netCpu" aria-pressed="false">Uit</button></div>
             <div class="opt"><span>Muziek</span><div class="vol"><label class="sr" for="musVol">Volume muziek</label><input type="range" id="musVol" min="0" max="100"><button class="tog" id="mus" aria-pressed="true">Aan</button></div></div>
             <div class="opt"><span>Effecten</span><div class="vol"><label class="sr" for="sfxVol">Volume effecten</label><input type="range" id="sfxVol" min="0" max="100"><button class="tog" id="snd" aria-pressed="true">Aan</button></div></div>
+            <div class="opt"><span>Detail</span><button class="tog" id="dtl" aria-pressed="true" title="Schaduw en fijnere lijnen op de vechters; zet het uit als het spel hapert">Aan</button></div>
           </div>
           <button class="go" id="go">Vechten!</button>
           <button class="btn" id="train">Training: bokszak</button>
@@ -524,7 +525,7 @@ let settings = {
     { type: 'cpu', ch: 'brick', lvl: 4 },
     { type: 'off', ch: 'sable', lvl: 5 },
     { type: 'off', ch: 'pip', lvl: 5 },
-  ], stage: 'ruins', stocks: 3, items: true, ioff: [], sound: true, music: true, musVol: 50, sfxVol: 80, mus: {},
+  ], stage: 'ruins', stocks: 3, items: true, ioff: [], sound: true, music: true, musVol: 50, sfxVol: 80, mus: {}, detail: !isTouch,
 };
 function save() { try { localStorage.setItem('klapstuk-v1', JSON.stringify(settings)); } catch (e) {} }
 function loadSaved() {
@@ -4483,7 +4484,118 @@ function limbPts(ox, oy, a1, a2, L1, L2) {
   const kx = ox + Math.sin(a1) * L1, ky = oy + Math.cos(a1) * L1;
   return [ox, oy, kx, ky, kx + Math.sin(a1 + a2) * L2, ky + Math.cos(a1 + a2) * L2];
 }
+// ---- the detailed look ----
+// With the Detail option on, a fighter is lit from the front and above (a cel shadow on torso, head and limbs, tapered
+// limbs with a thin highlight, fists and shoes), drawn with thinner ink lines on a layer of its own, and that layer gets
+// one ink contour around the whole silhouette, as thick as the old outlines. DET and THIN are only on while that happens.
+let DET = false, THIN = false, FXON = false, FXDIRTY = false, PUPA = null, PUPB = null, PUPC = null;
+const SHADOW = 'rgba(52,28,96,0.30)', LIGHT = 'rgba(255,255,255,0.22)';
+{
+  // while THIN is on, ink lines get thinner: plain outlines to 60%, the rims of stroked shapes lose a pixel and a half
+  const st = CanvasRenderingContext2D.prototype.stroke;
+  CanvasRenderingContext2D.prototype.stroke = function (...a) {
+    if (!THIN || this.strokeStyle !== INK) return st.apply(this, a);
+    const w = this.lineWidth; this.lineWidth = w <= 3.5 ? w * 0.6 : w - 1.6; st.apply(this, a); this.lineWidth = w;
+  };
+}
+function tone(c, k) {
+  // a colour made darker (k < 1) or lighter toward white (k > 1); takes #rrggbb or rgb()
+  let r, gg, b;
+  if (c[0] === '#') { const n = parseInt(c.slice(1), 16); r = n >> 16 & 255; gg = n >> 8 & 255; b = n & 255; }
+  else [r, gg, b] = c.match(/\d+/g).map(Number);
+  const f = v => k <= 1 ? v * k : v + (255 - v) * Math.min(1, k - 1);
+  return `rgb(${f(r) | 0},${f(gg) | 0},${f(b) | 0})`;
+}
+function fxCtx(g) {
+  // glows and other see-through effects go on a layer of their own, so they get no ink contour
+  if (!FXON || g.canvas !== PUPA) return g;
+  const q = PUPC.getContext('2d'); q.setTransform(g.getTransform()); FXDIRTY = true; return q;
+}
+function capsule(g, x0, y0, r0, x1, y1, r1) {
+  const a = Math.atan2(y1 - y0, x1 - x0), q = Math.PI / 2;
+  g.moveTo(x0 + Math.cos(a + q) * r0, y0 + Math.sin(a + q) * r0);
+  g.arc(x0, y0, r0, a + q, a + 3 * q); g.arc(x1, y1, r1, a - q, a + q); g.closePath();
+}
+function strokeLimbD(g, p, col, lw) {
+  // a limb that tapers toward the hand or foot, with a shadow on the side away from the light and a thin highlight
+  const r0 = lw * 0.64, r1 = lw * 0.5, r2 = lw * 0.42;
+  g.beginPath(); capsule(g, p[0], p[1], r0, p[2], p[3], r1); capsule(g, p[2], p[3], r1, p[4], p[5], r2);
+  g.strokeStyle = INK; g.lineWidth = 5; g.stroke(); g.fillStyle = col; g.fill();
+  g.save(); g.clip();
+  const LX = 0.55, LY = -0.83, line = (o, w, st) => { g.beginPath(); g.moveTo(p[0] + LX * o, p[1] + LY * o); g.lineTo(p[2] + LX * o, p[3] + LY * o); g.lineTo(p[4] + LX * o, p[5] + LY * o); g.strokeStyle = st; g.lineWidth = w; g.stroke(); };
+  line(-lw * 0.62, lw * 0.5, SHADOW); line(lw * 0.24, lw * 0.15, LIGHT);
+  g.restore();
+}
+function hand(g, a, r, col) {
+  if (!DET) return dot(g, a[4], a[5], r, col);
+  // a fist along the forearm, shaded underneath, with the line of the thumb and the knuckles
+  g.save(); g.translate(a[4], a[5]); g.rotate(Math.atan2(a[5] - a[3], a[4] - a[2]));
+  g.lineWidth = 2.2; g.strokeStyle = INK; g.fillStyle = col;
+  g.beginPath(); g.ellipse(r * 0.12, 0, r * 1.1, r * 0.95, 0, 0, TAU); g.fill(); g.stroke();
+  g.save(); g.clip(); g.fillStyle = SHADOW; g.beginPath(); g.rect(-r * 3, -r * 3, r * 6, r * 6); g.arc(r * 0.3, -r * 0.35, r * 1.05, 0, TAU); g.fill('evenodd'); g.restore();
+  g.strokeStyle = tone(col, 0.6); g.lineWidth = 1.3; g.beginPath(); g.moveTo(-r * 0.5, -r * 0.35); g.quadraticCurveTo(r * 0.2, -r * 0.1, r * 0.55, -r * 0.5); g.moveTo(r * 0.8, -r * 0.25); g.lineTo(r * 0.85, r * 0.4); g.stroke();
+  g.restore();
+}
+function shoe(g, p, r, col) {
+  if (!DET) return dot(g, p[4], p[5], r, col);
+  // a shoe that points forward and tilts along with the shin
+  const sa = Math.atan2(p[5] - p[3], p[4] - p[2]) - Math.PI / 2;
+  g.save(); g.translate(p[4], p[5]); g.rotate(clamp(sa, -1.3, 1.3) * 0.8);
+  g.beginPath(); g.moveTo(-r * 0.95, -r * 0.7); g.quadraticCurveTo(-r * 1.1, r * 0.95, 0, r * 0.95); g.lineTo(r * 1.4, r * 0.95); g.quadraticCurveTo(r * 2.0, r * 0.9, r * 1.7, r * 0.1); g.quadraticCurveTo(r * 1.1, -r * 0.55, r * 0.25, -r * 0.95); g.closePath();
+  g.fillStyle = col; g.fill(); g.lineWidth = 2.2; g.strokeStyle = INK; g.stroke();
+  g.save(); g.clip(); g.fillStyle = tone(col, 0.55); g.fillRect(-r * 2, r * 0.5, r * 5, r); g.fillStyle = LIGHT; g.beginPath(); g.ellipse(r * 0.9, -r * 0.05, r * 0.5, r * 0.18, -0.35, 0, TAU); g.fill(); g.restore();
+  g.restore();
+}
+function torsoShade(g, tw, tl) {
+  // a cel shadow down the back and under the chest, the shadow of the head at the neck, a soft highlight
+  rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.save(); g.clip();
+  g.fillStyle = SHADOW; g.beginPath(); g.rect(-tw * 2, -tl * 2, tw * 4, tl * 4); g.ellipse(tw * 0.24, -tl * 0.6, tw * 0.6, tl * 0.84, 0, 0, TAU); g.fill('evenodd');
+  g.beginPath(); g.ellipse(tw * 0.08, -tl - 4, tw * 0.4, tl * 0.17, 0, 0, TAU); g.fill();
+  g.fillStyle = LIGHT; g.beginPath(); g.ellipse(tw * 0.24, -tl * 0.66, tw * 0.12, tl * 0.2, -0.3, 0, TAU); g.fill();
+  g.restore();
+}
+let HEADL = null;
+function headLayerBegin(g, hr) {
+  // the head goes on its own small layer, so hair and face are shaded together as one shape
+  const m = g.getTransform(), S = Math.hypot(m.a, m.b), size = Math.ceil(hr * 8 * S / 2) * 2;
+  if (!HEADL) HEADL = document.createElement('canvas');
+  if (HEADL.width < size || HEADL.height < size) HEADL.width = HEADL.height = Math.max(size, HEADL.width);
+  const L = HEADL.getContext('2d'), ox = Math.floor(m.e) - size / 2, oy = Math.floor(m.f) - size / 2;
+  L.setTransform(1, 0, 0, 1, 0, 0); L.clearRect(0, 0, size, size);
+  L.setTransform(m.a, m.b, m.c, m.d, m.e - ox, m.f - oy); L.lineCap = 'round'; L.lineJoin = 'round';
+  return { L, ox, oy, size };
+}
+function headLayerEnd(g, st, hr) {
+  const L = st.L;
+  L.save(); L.globalCompositeOperation = 'source-atop'; L.fillStyle = SHADOW;
+  L.beginPath(); L.rect(-hr * 6, -hr * 6, hr * 12, hr * 12); L.arc(hr * 0.45, -hr * 0.8, hr * 1.9, 0, TAU); L.fill('evenodd');
+  L.restore();
+  g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(HEADL, 0, 0, st.size, st.size, st.ox, st.oy, st.size, st.size); g.restore();
+}
+function drawPuppet(g, ck, col, P, o = {}) {
+  if (!settings.detail || DET) return drawPuppetBase(g, ck, col, P, o);
+  // the fighter on layer A with thin lines and its glows on layer C; B becomes A's silhouette grown by 0.8 in ink
+  const m = g.getTransform(), S = Math.hypot(m.a, m.b), h = CHARS[ck].h, size = Math.min(2048, Math.ceil(h * 4.4 * S / 2) * 2);
+  if (!PUPA) { PUPA = document.createElement('canvas'); PUPB = document.createElement('canvas'); PUPC = document.createElement('canvas'); }
+  if (PUPA.width < size) for (const cv of [PUPA, PUPB, PUPC]) cv.width = cv.height = size;
+  const cx = m.c * -h / 2 + m.e, cy = m.d * -h / 2 + m.f, ox = Math.floor(cx) - size / 2, oy = Math.floor(cy) - size / 2;
+  const A = PUPA.getContext('2d'), B = PUPB.getContext('2d'), C = PUPC.getContext('2d');
+  A.setTransform(1, 0, 0, 1, 0, 0); A.clearRect(0, 0, size, size); A.setTransform(m.a, m.b, m.c, m.d, m.e - ox, m.f - oy);
+  if (FXDIRTY) { C.setTransform(1, 0, 0, 1, 0, 0); C.clearRect(0, 0, PUPC.width, PUPC.height); FXDIRTY = false; }
+  DET = THIN = FXON = true;
+  try { drawPuppetBase(A, ck, col, P, o); } finally { DET = THIN = FXON = false; }
+  B.setTransform(1, 0, 0, 1, 0, 0); B.globalCompositeOperation = 'source-over'; B.clearRect(0, 0, size, size);
+  const R = 0.8 * S;
+  for (let i = 0; i < 8; i++) { const a = i * TAU / 8; B.drawImage(PUPA, 0, 0, size, size, Math.cos(a) * R, Math.sin(a) * R, size, size); }
+  B.globalCompositeOperation = 'source-in'; B.fillStyle = INK; B.fillRect(0, 0, size, size); B.globalCompositeOperation = 'source-over';
+  g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
+  g.drawImage(PUPB, 0, 0, size, size, ox, oy, size, size);
+  if (FXDIRTY) { const op = g.globalCompositeOperation; g.globalCompositeOperation = 'lighter'; g.drawImage(PUPC, 0, 0, size, size, ox, oy, size, size); g.globalCompositeOperation = op; }
+  g.drawImage(PUPA, 0, 0, size, size, ox, oy, size, size);
+  g.restore();
+}
 function strokeLimb(g, p, col, lw) {
+  if (DET) return strokeLimbD(g, p, col, lw);
   g.beginPath(); g.moveTo(p[0], p[1]); g.lineTo(p[2], p[3]); g.lineTo(p[4], p[5]);
   g.strokeStyle = INK; g.lineWidth = lw + 5; g.stroke(); g.strokeStyle = col; g.lineWidth = lw; g.stroke();
 }
@@ -4555,14 +4667,14 @@ function nevelBlade(g, a, L, blade, edge, glow) {
   // a slim one-handed sword; during a sword skill it glows in the skill's colour
   const fa = Math.atan2(a[4] - a[2], a[5] - a[3]), dx = Math.sin(fa), dy = Math.cos(fa), ex = a[4] + dx * L, ey = a[5] + dy * L;
   g.lineCap = 'round';
-  if (glow) { g.save(); g.strokeStyle = hexA(glow, 0.6); g.lineWidth = 15; g.beginPath(); g.moveTo(a[4] + dx * 8, a[5] + dy * 8); g.lineTo(ex + dx * 4, ey + dy * 4); g.stroke(); g.restore(); }
+  if (glow) { const q = fxCtx(g); q.save(); q.lineCap = 'round'; q.strokeStyle = hexA(glow, 0.6); q.lineWidth = 15; q.beginPath(); q.moveTo(a[4] + dx * 8, a[5] + dy * 8); q.lineTo(ex + dx * 4, ey + dy * 4); q.stroke(); q.restore(); }
   g.strokeStyle = INK; g.lineWidth = 8; g.beginPath(); g.moveTo(a[4] - dx * 7, a[5] - dy * 7); g.lineTo(ex, ey); g.stroke();
   g.strokeStyle = blade; g.lineWidth = 4.5; g.beginPath(); g.moveTo(a[4] + dx * 6, a[5] + dy * 6); g.lineTo(ex, ey); g.stroke();
   g.strokeStyle = edge; g.lineWidth = 1.5; g.beginPath(); g.moveTo(a[4] + dx * 10, a[5] + dy * 10); g.lineTo(ex - dx * 3, ey - dy * 3); g.stroke();
   g.strokeStyle = INK; g.lineWidth = 7; g.beginPath(); g.moveTo(a[4] + dx * 5 + dy * 8, a[5] + dy * 5 - dx * 8); g.lineTo(a[4] + dx * 5 - dy * 8, a[5] + dy * 5 + dx * 8); g.stroke();
   g.strokeStyle = edge; g.lineWidth = 3.5; g.stroke();
 }
-function drawPuppet(g, ck, col, P, o = {}) {
+function drawPuppetBase(g, ck, col, P, o = {}) {
   const c = CHARS[ck], h = c.h, lw = c.limb, cr = P.crouch || 0, fr = o.fr || 0, lean = P.lean || 0;
   const hipH = h * 0.42 * (1 - cr * 0.38), LL = h * 0.22, AL = h * (c.arm || 0.165), tl = h * 0.3 * (1 - cr * 0.12);
   const hr = h * (c.hr || 0.155);
@@ -4588,7 +4700,7 @@ function drawPuppet(g, ck, col, P, o = {}) {
   // back limbs
   const backCol = ck === 'lente' ? shade(col.dark, 0.85) : ck === 'sterre' ? shade(col.skin, 0.9) : ck === 'klauw' ? shade(col.body, 0.78) : ck === 'lonk' ? '#cdc3aa' : ck === 'volt' ? shade(col.jacket, 0.78) : ck === 'techno' ? '#25202e' : ck === 'joep' ? col.shorts || col.dark : col.dark;
   strokeLimb(g, lB, backCol, lw); foot(g, ck, lB, lw, col);
-  strokeLimb(g, aB, ck === 'rekker' || ck === 'lente' ? shade(col.skin, 0.88) : backCol, lw * 0.9); dot(g, aB[4], aB[5], lw * (ck === 'gloei' ? 0.95 : ck === 'bongo' ? 0.8 : ck === 'klauw' ? 0.7 : 0.6), handCol);
+  strokeLimb(g, aB, ck === 'rekker' || ck === 'lente' ? shade(col.skin, 0.88) : backCol, lw * 0.9); hand(g, aB, lw * (ck === 'gloei' ? 0.95 : ck === 'bongo' ? 0.8 : ck === 'klauw' ? 0.7 : 0.6), handCol);
   if (ck === 'lonk') drawShieldL(g, aB[4], aB[5], h);
   if (ck === 'lente') { lenteSleeve(g, aB, lw * 0.9, shade(col.body, 0.82)); lenteBracelet(g, aB, lw * 0.9); }
   if (ck === 'nevel' && o.dual) nevelBlade(g, aB, h * 0.58, '#dff4f2', '#7fd8d0', o.skc);
@@ -4724,11 +4836,12 @@ function drawPuppet(g, ck, col, P, o = {}) {
     else if (ck === 'draai') { g.save(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.clip(); g.fillStyle = col.dark; g.fillRect(-tw, -tl - 6, tw * 2, tl * 0.38); g.restore(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.lineWidth = 3; g.strokeStyle = INK; g.stroke(); g.strokeStyle = '#f4f1ea'; g.lineWidth = 2; g.beginPath(); g.moveTo(tw * 0.1, -tl * 0.62); g.lineTo(tw * 0.1, tl * 0.1); g.stroke(); }
     else if (ck === 'aardbei') { g.fillStyle = '#f4f1ea'; g.beginPath(); g.moveTo(-tw * 0.26, -tl - 2); g.lineTo(tw * 0.3, -tl - 2); g.lineTo(tw * 0.05, -tl * 0.55); g.closePath(); g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke(); g.strokeStyle = '#b3262f'; g.lineWidth = 5; g.beginPath(); g.moveTo(-tw * 0.45, -tl * 0.95); g.lineTo(tw * 0.4, -tl * 0.05); g.stroke(); }
     else { g.strokeStyle = col.acc; g.lineWidth = 6; g.beginPath(); g.moveTo(-tw / 2 + 2, -tl * 0.15); g.lineTo(tw / 2 - 2, -tl * 0.32); g.stroke(); }
+    if (DET) torsoShade(g, tw, tl);
   }
   g.restore();
   // head
   g.save(); g.translate(hd.x, hd.y); g.rotate(lean * 0.5);
-  const hurt = o.hurt;
+  const hurt = o.hurt, HL = DET && !['brick', 'bliep', 'techno', 'kwak'].includes(ck) ? headLayerBegin(g, hr) : null, g0 = g; if (HL) g = HL.L;
   if (ck === 'brick') {
     rr(g, -hr * 1.05, -hr * 1.05, hr * 2.1, hr * 2.0, hr * 0.45); g.fillStyle = col.body; g.fill(); g.lineWidth = 3.5; g.strokeStyle = INK; g.stroke();
     rr(g, hr * 0.05, -hr * 0.35, hr * 0.95, hr * 0.42, 3); g.fillStyle = hurt ? INK : col.acc; g.fill(); g.lineWidth = 2; g.stroke();
@@ -4990,6 +5103,7 @@ function drawPuppet(g, ck, col, P, o = {}) {
     g.fillStyle = col.body; g.fill(); g.lineWidth = 3; g.stroke();
     g.fillStyle = col.acc; star(g, -hr * 0.15, -hr * 1.05, hr * 0.32); g.fill();
   }
+  if (HL) { g = g0; headLayerEnd(g, HL, hr); }
   g.restore();
   // front leg & arm
   strokeLimb(g, lF, ck === 'lente' ? col.dark : ck === 'sterre' ? col.skin : ck === 'joep' ? col.shorts || col.dark : ck === 'pip' || ck === 'rekker' || ck === 'bot' ? col.dark : ck === 'lonk' ? '#ece3cc' : ck === 'volt' ? col.jacket : ck === 'techno' ? '#3b3046' : col.body, lw); foot(g, ck, lF, lw, col);
@@ -5026,7 +5140,7 @@ function drawPuppet(g, ck, col, P, o = {}) {
     const L = h * 0.66, dx = Math.sin(fa), dy = Math.cos(fa), nx = dy, ny = -dx, ex = aF[4] + dx * L, ey = aF[5] + dy * L, tx = ex + dx * 6, ty = ey + dy * 6;
     g.lineCap = 'round'; g.strokeStyle = INK; g.lineWidth = 8; g.beginPath(); g.moveTo(aF[4] - dx * 18, aF[5] - dy * 18); g.quadraticCurveTo(aF[4] + dx * L * 0.5 + nx * 5, aF[5] + dy * L * 0.5 + ny * 5, ex, ey); g.stroke();
     g.strokeStyle = '#9a6a3a'; g.lineWidth = 4.5; g.stroke();
-    if (o.skc) { g.save(); g.globalCompositeOperation = 'lighter'; const rg = g.createRadialGradient(tx, ty, 0, tx, ty, 18); rg.addColorStop(0, hexA(o.skc, 0.9)); rg.addColorStop(1, hexA(o.skc, 0)); g.fillStyle = rg; g.beginPath(); g.arc(tx, ty, 18, 0, TAU); g.fill(); g.restore(); }
+    if (o.skc) { const q = fxCtx(g); q.save(); q.globalCompositeOperation = 'lighter'; const rg = q.createRadialGradient(tx, ty, 0, tx, ty, 18); rg.addColorStop(0, hexA(o.skc, 0.9)); rg.addColorStop(1, hexA(o.skc, 0)); q.fillStyle = rg; q.beginPath(); q.arc(tx, ty, 18, 0, TAU); q.fill(); q.restore(); }
     g.beginPath(); g.arc(tx, ty, 8, 0, TAU); g.fillStyle = '#8a5a2e'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
     g.beginPath(); g.ellipse(tx + dx * 5 + nx * 8, ty + dy * 5 + ny * 8, 7, 3.5, Math.atan2(dy, dx) - 0.9, 0, TAU); g.fillStyle = '#6cc04a'; g.fill(); g.lineWidth = 2; g.stroke();
   } else if (ck === 'nevel' && o.sword) {
@@ -5071,13 +5185,13 @@ function drawPuppet(g, ck, col, P, o = {}) {
     g.strokeStyle = INK; g.lineWidth = 5; g.stroke(); g.strokeStyle = '#5fc7c9'; g.lineWidth = 2.5; g.stroke();
   }
   if (o.totem) {
-    g.save(); g.translate(aF[4], aF[5] - 6); g.globalCompositeOperation = 'lighter'; g.fillStyle = 'rgba(255,220,90,.35)'; g.beginPath(); g.arc(0, -2, 16, 0, TAU); g.fill(); g.globalCompositeOperation = 'source-over';
+    g.save(); g.translate(aF[4], aF[5] - 6); { const q = fxCtx(g); q.save(); q.globalCompositeOperation = 'lighter'; q.fillStyle = 'rgba(255,220,90,.35)'; q.beginPath(); q.arc(0, -2, 16, 0, TAU); q.fill(); q.restore(); }
     g.fillStyle = '#5bbf4a'; g.fillRect(-11, -4, 6, 7); g.fillRect(5, -4, 6, 7);
     rr(g, -6, -11, 12, 17, 3); g.fillStyle = '#f2c94c'; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke();
     g.fillStyle = '#2f9a3a'; g.fillRect(-4, -7, 3, 3); g.fillRect(1, -7, 3, 3); g.restore();
   }
   if (o.held) drawHeld(g, o.held, aF[4], aF[5], fa, h);
-  dot(g, aF[4], aF[5], lw * (ck === 'brick' || ck === 'bongo' ? 0.85 : ck === 'gloei' ? 1.0 : ck === 'klauw' ? 0.72 : 0.62), handCol);
+  hand(g, aF, lw * (ck === 'brick' || ck === 'bongo' ? 0.85 : ck === 'gloei' ? 1.0 : ck === 'klauw' ? 0.72 : 0.62), handCol);
   if (P.balloon) {
     g.strokeStyle = INK; g.lineWidth = 1.5; g.beginPath(); g.moveTo(aF[4], aF[5]); g.lineTo(aF[4] - 4, aF[5] - 52); g.stroke();
     g.beginPath(); g.ellipse(aF[4] - 4, aF[5] - 74, 18, 23, 0, 0, TAU); g.fillStyle = col.acc; g.fill(); g.lineWidth = 3; g.stroke();
@@ -5247,12 +5361,12 @@ function drawPoef(g, col, P, o) {
   const arm = ([x, y, ang], c2) => { g.save(); g.translate(x, y); g.rotate(-ang); g.beginPath(); g.ellipse(0, 0, R * 0.25, R * 0.33, 0, 0, TAU); g.fillStyle = c2; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke(); g.restore(); };
   const aB = armAt(P.aB[0]), aF = armAt(P.aF[0]);
   if (o.inhale) {
-    g.save(); g.lineCap = 'round'; g.strokeStyle = 'rgba(255,255,255,.75)'; g.lineWidth = 2.5;
+    const q = fxCtx(g); q.save(); q.lineCap = 'round'; q.strokeStyle = 'rgba(255,255,255,.75)'; q.lineWidth = 2.5;
     for (let i = 0; i < 5; i++) {
       const ph = (fr * 0.07 + i / 5) % 1, d = R * (1.1 + (1 - ph) * 3.4), y = cy + R * 0.1 + (i - 2) * R * 0.32 * (1 - ph * 0.8);
-      g.globalAlpha = 0.25 + ph * 0.6; g.beginPath(); g.moveTo(d, y); g.lineTo(d + R * 0.55, y + (i - 2) * R * 0.08); g.stroke();
+      q.globalAlpha = 0.25 + ph * 0.6; q.beginPath(); q.moveTo(d, y); q.lineTo(d + R * 0.55, y + (i - 2) * R * 0.08); q.stroke();
     }
-    g.restore();
+    q.restore();
   }
   if (o.wings) {
     const fl = Math.sin(fr * 0.35) * 0.35; g.save(); g.translate(-R * 0.5, cy - R * 0.2);
@@ -5303,7 +5417,7 @@ function foot(g, ck, p, lw, col) {
   if (ck === 'lente') { g.lineCap = 'round'; g.strokeStyle = '#f4f2ec'; g.lineWidth = lw - 2; g.beginPath(); g.moveTo(p[2] + (p[4] - p[2]) * 0.45, p[3] + (p[5] - p[3]) * 0.45); g.lineTo(p[4], p[5]); g.stroke(); }
   if (ck === 'sterre') { g.lineCap = 'round'; g.strokeStyle = col.dark; g.lineWidth = lw - 2; g.beginPath(); g.moveTo(p[2] + (p[4] - p[2]) * 0.3, p[3] + (p[5] - p[3]) * 0.3); g.lineTo(p[4], p[5]); g.stroke(); }
   if (ck === 'sleutel' || ck === 'bot') { g.save(); g.translate(p[4], p[5]); const big = ck === 'sleutel'; rr(g, big ? -8 : -6, big ? -7 : -5, big ? 24 : 18, big ? 13 : 9, big ? 6 : 4); g.fillStyle = big ? '#f2c230' : col.acc; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke(); g.restore(); return; }
-  if (ck !== 'schim') { dot(g, p[4], p[5], lw * 0.62, ck === 'brick' ? INK : ck === 'joep' ? col.acc : ck === 'klauw' ? col.body : ck === 'bongo' ? col.skin : ck === 'lonk' ? '#6b4423' : ck === 'rat' ? col.body : ck === 'volt' ? '#ececf2' : ck === 'techno' ? '#1b1720' : ck === 'ninja' ? '#3a3a44' : ck === 'sterre' ? col.dark : ck === 'lente' ? '#f4f2ec' : col.dark); return; }
+  if (ck !== 'schim') { shoe(g, p, lw * 0.62, ck === 'brick' ? INK : ck === 'joep' ? col.acc : ck === 'klauw' ? col.body : ck === 'bongo' ? col.skin : ck === 'lonk' ? '#6b4423' : ck === 'rat' ? col.body : ck === 'volt' ? '#ececf2' : ck === 'techno' ? '#1b1720' : ck === 'ninja' ? '#3a3a44' : ck === 'sterre' ? col.dark : ck === 'lente' ? '#f4f2ec' : col.dark); return; }
   g.save(); g.translate(p[4], p[5]); rr(g, -7, -6, 20, 10, 4); g.fillStyle = '#f4f4f4'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
   g.fillStyle = col.acc; g.fillRect(-1, -5, 5, 8); g.fillStyle = col.fx; g.globalAlpha *= 0.7; g.fillRect(-5, 4, 16, 3); g.restore();
 }
@@ -6714,6 +6828,7 @@ function buildMenu() {
   $('#itm').onclick = () => { setOpt('items', !optCfg().items); SFX.ui(); restartDemoSoon(); };
   buildItemSet();
   $('#netCpu').onclick = () => { setOpt('cpu', !optCfg().cpu); SFX.ui(); };
+  $('#dtl').onclick = () => { settings.detail = !settings.detail; syncAudioUI(); save(); SFX.ui(); };
   $('#snd').onclick = $('#pSnd').onclick = () => { settings.sound = !settings.sound; syncAudioUI(); save(); SFX.init(); SFX.ui(); };
   for (const id of ['#mus', '#pMus', '#musTop']) $(id).addEventListener('click', toggleMusic);
   for (const id of ['#musVol', '#pMusVol']) $(id).addEventListener('input', e => { settings.musVol = +e.target.value; if (settings.musVol > 0) settings.music = true; SFX.init(); syncAudioUI(); save(); });
@@ -6743,6 +6858,7 @@ function syncAudioUI() {
     $(vol).value = settings[v]; $(tog).setAttribute('aria-pressed', String(!!settings[on])); $(tog).textContent = settings[on] ? 'Aan' : 'Uit';
   }
   $('#musTop').setAttribute('aria-pressed', String(!!settings.music));
+  $('#dtl').setAttribute('aria-pressed', String(!!settings.detail)); $('#dtl').textContent = settings.detail ? 'Aan' : 'Uit';
 }
 function toggleMusic() { settings.music = !settings.music; SFX.init(); syncAudioUI(); save(); }
 // which music plays on the chosen stage, with a button to listen first
