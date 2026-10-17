@@ -1050,7 +1050,7 @@ Object.assign(CHARS, {
     col: { body: '#7a4a2a', dark: '#4f2d17', acc: '#d8262f', skin: '#e8b98a', fx: '#ffd36b' }, alt: { body: '#45454f', dark: '#2a2a31', acc: '#3d8bff', skin: '#c9a98a', fx: '#9fd6ff' } },
   lonk: { name: 'Lonk', blurb: 'Zwaardvechter met schild en puntmuts. Een boog met oplaadbare pijlen, een boemerang die terugkomt, een draaiaanval en bommen die je vasthoudt en gooit. Zijn schild houdt projectielen van voren tegen zolang hij stilstaat, loopt of bukt.', weight: 104, run: 6.2, acc: 0.95, jump: 14.5, djump: 13.5, grav: 0.86, fall: 12.8, ffall: 17.5, air: 4.5, airAcc: 0.45, airJumps: 1, w: 42, h: 80, pow: 1.08, reach: 1.25, lag: 0, limb: 10, zoner: 'side', hr: 0.16,
     col: { body: '#3f9a3a', dark: '#2b6b28', acc: '#e8c547', skin: '#f6cfa8', fx: '#9ff0ff' }, alt: { body: '#c8402f', dark: '#8a2a1f', acc: '#e8c547', skin: '#f6cfa8', fx: '#ffb36b' } },
-  rat: { name: 'Bliksemrat', blurb: 'Kleine, snelle elektrische rat. Stroomballen over de grond, een oplaadbare kopstoot, een zigzaggende flitssprong en een bliksem uit de lucht.', weight: 79, run: 7.2, acc: 1.1, jump: 15, djump: 13.5, grav: 0.85, fall: 12, ffall: 17.5, air: 4.8, airAcc: 0.5, airJumps: 1, w: 40, h: 60, pow: 0.95, reach: 0.95, lag: -1, limb: 9, zoner: true, sideRec: true, hr: 0.25, arm: 0.1, leg: 0.13,
+  rat: { name: 'Bliksemrat', blurb: 'Kleine, snelle elektrische rat. Stroomballen over de grond, een oplaadbare kopstoot, een zigzaggende flitssprong en een bliksem uit de lucht.', weight: 79, run: 7.2, acc: 1.1, jump: 15, djump: 13.5, grav: 0.85, fall: 12, ffall: 17.5, air: 4.8, airAcc: 0.5, airJumps: 1, w: 40, h: 60, pow: 0.95, reach: 0.95, lag: -1, limb: 9, zoner: true, sideRec: true, hr: 0.25, arm: 0.1, leg: 0.13, neck: 0.65, shY: 11,
     col: { body: '#ffd84a', dark: '#d9a514', acc: '#e8323c', skin: '#ffe98a', fx: '#fff27a' }, alt: { body: '#ffb34a', dark: '#c77a14', acc: '#ff6b9a', skin: '#ffd08a', fx: '#ffe08a' } },
   kakel: { name: 'Kakelninja', blurb: 'Kip die in een ninja verandert. De kip is licht en sterk in de lucht: vier sprongetjes, eieren van afstand en een fladderend herstel. De ninja is snel en sterk op de grond, met een jodelgolf (te kantelen), een rookdash en een bladerwervel, maar komt slechter terug. Speciaal omlaag wisselt van vorm.', weight: 74, run: 5.9, acc: 1, jump: 13, djump: 7.5, grav: 0.45, fall: 6.5, ffall: 10, air: 5.2, airAcc: 0.52, airJumps: 4, w: 40, h: 62, pow: 1, reach: 1, lag: 0, limb: 8, zoner: true, pz: 2.0,
     col: { body: '#f7f3ea', dark: '#c9c2b0', acc: '#e0302f', skin: '#f2b632', fx: '#fff1b0' }, alt: { body: '#b5713a', dark: '#7d4a22', acc: '#e0302f', skin: '#f2b632', fx: '#ffd08a' } },
@@ -4695,7 +4695,7 @@ function drawPuppetBase(g, ck, col, P, o = {}) {
   if (ck === 'bag') { drawBag(g, col, P, o); g.restore(); return; }
   if (ck === 'kakel') { drawFarm(g, ck, col, P, o); g.restore(); return; }
   const hip = { x: 0, y: -hipH }, sh = { x: Math.sin(lean) * tl, y: -hipH - Math.cos(lean) * tl };
-  const hd = { x: sh.x + Math.sin(lean) * hr * 0.95, y: sh.y - Math.cos(lean) * hr * 0.95 };
+  const nk = hr * (c.neck || 0.95), hd = { x: sh.x + Math.sin(lean) * nk, y: sh.y - Math.cos(lean) * nk };
   const leg = k => {
     let [u, l] = P[k];
     if (o.grounded && (P.plant === 'both' || (P.plant === 'B' && k === 'lB'))) {
@@ -4705,7 +4705,7 @@ function drawPuppetBase(g, ck, col, P, o = {}) {
   };
   const lB = leg('lB'), lF = leg('lF');
   // elbows are hinges that only flex one way (forearm turns toward the front), unlike knees
-  const aB = limbPts(sh.x, sh.y + 3, P.aB[0] + lean, Math.abs(P.aB[1]), AL, AL), aF = limbPts(sh.x, sh.y + 3, P.aF[0] + lean, Math.abs(P.aF[1]), AL, AL);
+  const shY = sh.y + (c.shY || 3), aB = limbPts(sh.x, shY, P.aB[0] + lean, Math.abs(P.aB[1]), AL, AL), aF = limbPts(sh.x, shY, P.aF[0] + lean, Math.abs(P.aF[1]), AL, AL);
   const handCol = { techno: col.body, ninja: col.dark, rat: col.body, lonk: '#8a5a2b', klauw: col.body, bongo: col.skin, brick: col.dark, sable: col.dark, volt: col.skin, gloei: col.acc, kwak: col.body, bliep: col.dark, schim: '#f4f4f4', eik: col.dark, nevel: col.dark }[ck] || col.skin;
   // back limbs
   const backCol = ck === 'lente' ? shade(col.dark, 0.85) : ck === 'sterre' ? shade(col.skin, 0.9) : ck === 'klauw' ? shade(col.body, 0.78) : ck === 'lonk' ? '#cdc3aa' : ck === 'volt' ? shade(col.jacket, 0.78) : ck === 'techno' ? '#25202e' : ck === 'joep' ? col.shorts || col.dark : col.dark;
@@ -4816,6 +4816,7 @@ function drawPuppetBase(g, ck, col, P, o = {}) {
   } else if (ck === 'kwak') {
     g.beginPath(); g.ellipse(0, -tl * 0.45, c.w * 0.42, tl * 0.72, 0, 0, TAU); g.fillStyle = col.body; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke();
     g.beginPath(); g.ellipse(c.w * 0.1, -tl * 0.4, c.w * 0.26, tl * 0.55, 0, 0, TAU); g.fillStyle = col.skin; g.fill();
+  } else if (ck === 'rat') {
   } else if (ck === 'bliep') {
     rr(g, -c.w * 0.42, -tl - 2, c.w * 0.84, tl + 10, 8); g.fillStyle = col.body; g.fill(); g.lineWidth = 3.5; g.strokeStyle = INK; g.stroke();
     rr(g, -c.w * 0.18, -tl * 0.75, c.w * 0.4, tl * 0.4, 4); g.fillStyle = col.skin; g.fill(); g.lineWidth = 2; g.stroke();
@@ -4827,7 +4828,6 @@ function drawPuppetBase(g, ck, col, P, o = {}) {
     if (ck === 'volt') { g.save(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.clip(); g.fillStyle = col.jacket; g.fillRect(-tw, -tl - 6, tw * 2, tl + 20); g.fillStyle = col.skin; g.fillRect(-tw * 0.02, -tl - 6, tw * 0.36, tl * 0.82); g.fillStyle = '#3a2a1a'; g.fillRect(-tw, -tl * 0.14, tw * 2, tl * 0.11); g.restore(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.lineWidth = 3; g.strokeStyle = INK; g.stroke(); }
     else if (ck === 'techno') { g.save(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.clip(); g.fillStyle = col.acc; g.fillRect(-tw, -tl - 6, tw * 2, tl + 20); g.fillStyle = '#f4f1ea'; g.fillRect(-tw * 0.06, -tl - 6, tw * 0.24, tl + 20); g.fillStyle = INK; for (const yy of [0.75, 0.45, 0.15]) g.fillRect(tw * 0.03, -tl * yy, 3, 3); g.restore(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.lineWidth = 3; g.strokeStyle = INK; g.stroke(); rr(g, -tw * 0.62, -tl - 7, tw * 1.24, tl * 0.2, 6); g.fillStyle = '#f4f1ea'; g.fill(); g.lineWidth = 2.5; g.stroke(); g.fillStyle = INK; for (const xx of [-0.35, 0, 0.35]) g.fillRect(tw * xx, -tl - 3, 3, 3); }
     else if (ck === 'ninja') { g.fillStyle = '#f2b632'; g.fillRect(-tw / 2 + 1, -tl * 0.24, tw - 2, tl * 0.13); g.strokeStyle = col.dark; g.lineWidth = 2.5; g.beginPath(); g.moveTo(-tw * 0.3, -tl + 2); g.lineTo(tw * 0.1, -tl * 0.45); g.lineTo(tw * 0.32, -tl + 2); g.stroke(); }
-    else if (ck === 'rat') { g.strokeStyle = '#8a5a22'; g.lineWidth = 4; g.lineCap = 'round'; for (const q of [-0.72, -0.48]) { g.beginPath(); g.moveTo(-tw * 0.46, tl * q); g.lineTo(-tw * 0.18, tl * (q + 0.05)); g.stroke(); } }
     else if (ck === 'lonk') { g.beginPath(); g.moveTo(-tw * 0.5, 2); g.lineTo(tw * 0.5, 2); g.lineTo(tw * 0.64, hipH * 0.32); g.lineTo(-tw * 0.64, hipH * 0.32); g.closePath(); g.fillStyle = col.body; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke(); g.fillStyle = '#6b4423'; g.fillRect(-tw / 2, -tl * 0.26, tw, tl * 0.14); g.fillStyle = col.acc; g.fillRect(tw * 0.1, -tl * 0.27, tw * 0.2, tl * 0.16); }
     else if (ck === 'klauw') { g.beginPath(); g.ellipse(tw * 0.14, -tl * 0.45, tw * 0.34, tl * 0.5, 0, 0, TAU); g.fillStyle = col.skin; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke(); g.strokeStyle = 'rgba(21,17,31,.35)'; for (const q of [-0.72, -0.47, -0.22]) { g.beginPath(); g.moveTo(-tw * 0.12, tl * q); g.lineTo(tw * 0.42, tl * q); g.stroke(); } }
     else if (ck === 'bongo') { g.beginPath(); g.ellipse(tw * 0.14, -tl * 0.52, tw * 0.36, tl * 0.32, 0, 0, TAU); g.fillStyle = col.skin; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke();
@@ -4917,7 +4917,14 @@ function drawPuppetBase(g, ck, col, P, o = {}) {
       ear(); g.fillStyle = col.body; g.fill(); g.save(); ear(); g.clip(); g.fillStyle = INK; g.fillRect(-hr, -hr * 1.9, hr * 2, hr * 0.62); g.restore(); ear(); g.stroke();
       g.restore();
     }
-    g.beginPath(); g.ellipse(0, 0, hr * 1.08, hr * 0.95, 0, 0, TAU); g.fillStyle = col.body; g.fill(); g.stroke();
+    // body and head as one shape: both outlines, then both fills over them
+    const tw = c.w * 0.72, body = () => { g.rotate(-lean * 0.5); g.translate(hip.x - hd.x, hip.y - hd.y); g.rotate(lean); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); };
+    const skull = () => { g.beginPath(); g.ellipse(0, 0, hr * 1.08, hr * 0.95, 0, 0, TAU); };
+    g.save(); body(); g.stroke(); g.restore(); skull(); g.stroke();
+    g.save(); body(); g.fillStyle = col.body; g.fill();
+    g.strokeStyle = '#8a5a22'; g.lineWidth = 4; for (const q of [-0.5, -0.28]) { g.beginPath(); g.moveTo(-tw * 0.48, tl * q); g.lineTo(-tw * 0.2, tl * (q + 0.05)); g.stroke(); }
+    if (DET) torsoShade(g, tw, tl); g.restore();
+    skull(); g.fillStyle = col.body; g.fill(); g.lineWidth = 3; g.strokeStyle = INK;
     g.beginPath(); g.arc(hr * 0.5, hr * 0.38, hr * 0.24, 0, TAU); g.fillStyle = col.acc; g.fill();
     if (hurt) eye(g, hr * 0.42, -hr * 0.12, hr * 0.22, true);
     else { g.beginPath(); g.ellipse(hr * 0.42, -hr * 0.12, hr * 0.15, hr * 0.2, 0, 0, TAU); g.fillStyle = INK; g.fill(); g.beginPath(); g.arc(hr * 0.45, -hr * 0.2, hr * 0.06, 0, TAU); g.fillStyle = '#ffffff'; g.fill(); }
@@ -5113,7 +5120,7 @@ function drawPuppetBase(g, ck, col, P, o = {}) {
     g.fillStyle = col.body; g.fill(); g.lineWidth = 3; g.stroke();
     g.fillStyle = col.acc; star(g, -hr * 0.15, -hr * 1.05, hr * 0.32); g.fill();
   }
-  if (DET && !SIL && !['brick', 'bliep', 'techno', 'kwak'].includes(ck)) headShade(g, hr);
+  if (DET && !SIL && !['brick', 'bliep', 'techno', 'kwak', 'rat'].includes(ck)) headShade(g, hr);
   g.restore();
   // front leg & arm
   strokeLimb(g, lF, ck === 'lente' ? col.dark : ck === 'sterre' ? col.skin : ck === 'joep' ? col.shorts || col.dark : ck === 'pip' || ck === 'rekker' || ck === 'bot' ? col.dark : ck === 'lonk' ? '#ece3cc' : ck === 'volt' ? col.jacket : ck === 'techno' ? '#3b3046' : col.body, lw); foot(g, ck, lF, lw, col);
@@ -6435,7 +6442,7 @@ function drawFighter(g, f, fr, z) {
   if (f.state === 'dizzy') for (let i = 0; i < 3; i++) { const a = fr * 0.12 + i * TAU / 3; g.fillStyle = '#ffe14d'; star(g, f.x + Math.cos(a) * 22, f.y - c.h - 10 + Math.sin(a) * 6, 6); g.fill(); }
   // indicator
   if (G.mode !== 'demo' && f.key !== 'bag') {
-    const s = 1 / z, ty = f.y - c.h - (f.state === 'ledge' ? -6 : 14) * s - (P.balloon ? 96 : 0) - (f.key === 'pip' ? 30 : f.key === 'volt' ? 12 : f.key === 'rat' ? 18 : 0);
+    const s = 1 / z, ty = f.y - c.h - (f.state === 'ledge' ? -6 : 14) * s - (P.balloon ? 96 : 0) - (f.key === 'pip' ? 30 : f.key === 'volt' ? 12 : f.key === 'rat' ? 4 : 0);
     g.fillStyle = f.pc; g.beginPath(); g.moveTo(f.x, ty); g.lineTo(f.x - 8 * s, ty - 11 * s); g.lineTo(f.x + 8 * s, ty - 11 * s); g.closePath(); g.fill();
     g.font = `${13 * s}px Impact, 'Arial Black', sans-serif`; g.textAlign = 'center'; g.lineWidth = 4 * s; g.strokeStyle = INK;
     const lbl = f.cpu ? 'CPU' : 'P' + (f.slot + 1); g.strokeText(lbl, f.x, ty - 14 * s); g.fillText(lbl, f.x, ty - 14 * s);
