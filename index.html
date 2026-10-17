@@ -519,7 +519,7 @@ let settings = {
     { type: 'cpu', ch: 'brick', lvl: 4 },
     { type: 'off', ch: 'sable', lvl: 5 },
     { type: 'off', ch: 'pip', lvl: 5 },
-  ], stage: 'ruins', stocks: 3, items: true, ioff: [], sound: true, music: true, musVol: 60, sfxVol: 70, mus: {},
+  ], stage: 'ruins', stocks: 3, items: true, ioff: [], sound: true, music: true, musVol: 50, sfxVol: 80, mus: {},
 };
 function save() { try { localStorage.setItem('klapstuk-v1', JSON.stringify(settings)); } catch (e) {} }
 function loadSaved() {
@@ -527,14 +527,20 @@ function loadSaved() {
 }
 
 /* ---------------- sound ---------------- */
+// slider positions follow the ear: half way is clearly softer, not just a little; the effects get far more headroom than the music
+const sfxGain = () => 2.5 * Math.pow(settings.sfxVol / 100, 1.5), musGain = () => 0.6 * Math.pow(settings.musVol / 100, 1.5);
 const SFX = {
   ac: null, out: null, nb: null,
   init() {
     if (this.ac) { if (this.ac.state === 'suspended') this.ac.resume(); return; }
     try {
       const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
-      this.ac = new AC(); this.out = this.ac.createGain(); this.out.gain.value = 0.6 * settings.sfxVol / 100;
-      const comp = this.ac.createDynamicsCompressor(); this.out.connect(comp); comp.connect(this.ac.destination);
+      this.ac = new AC(); this.out = this.ac.createGain(); this.out.gain.value = sfxGain();
+      // a mild compressor (the default one squashed every hit), then one limiter that music and effects share
+      const comp = this.ac.createDynamicsCompressor(), lim = this.lim = this.ac.createDynamicsCompressor();
+      comp.threshold.value = -6; comp.knee.value = 6; comp.ratio.value = 3; comp.attack.value = 0.002; comp.release.value = 0.15;
+      lim.threshold.value = -2; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.001; lim.release.value = 0.1;
+      this.out.connect(comp); comp.connect(lim); lim.connect(this.ac.destination);
       const len = this.ac.sampleRate; this.nb = this.ac.createBuffer(1, len, this.ac.sampleRate);
       const d = this.nb.getChannelData(0); for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
     } catch (e) { this.ac = null; }
@@ -817,7 +823,7 @@ const MUSIC = (() => {
   function ready() {
     if (out || !SFX.ac) return;
     const ac = SFX.ac, comp = ac.createDynamicsCompressor(); out = ac.createGain(); out.gain.value = 0;
-    comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 5; out.connect(comp); comp.connect(ac.destination);
+    comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 5; out.connect(comp); comp.connect(SFX.lim || ac.destination);
     setInterval(tick, 50);
   }
   // what should be playing: nothing, a preview from the stage picker, the match's track, or the menu playlist
@@ -841,7 +847,7 @@ const MUSIC = (() => {
       if (cur.tr.st === 'menu' && cur.tr === w && cur.loops >= 1) menuIdx = (menuIdx + 1 + (Math.random() * (MENU.length - 1) | 0)) % MENU.length;
     }
     // quieter while paused, during a final smash and on the results
-    let v = settings.musVol / 100 * 0.6;
+    let v = musGain();
     if (G.paused) v *= 0.45; else if (G.mode !== 'demo' && fsNow()) v *= 0.4;
     if (G.mode === 'results') v *= 0.7;
     if (Math.abs(v - gainNow) > 0.001) { out.gain.setTargetAtTime(v, ac.currentTime, 0.12); gainNow = v; }
@@ -5723,7 +5729,7 @@ function buildMenu() {
   for (const id of ['#mus', '#pMus', '#musTop']) $(id).addEventListener('click', toggleMusic);
   for (const id of ['#musVol', '#pMusVol']) $(id).addEventListener('input', e => { settings.musVol = +e.target.value; if (settings.musVol > 0) settings.music = true; SFX.init(); syncAudioUI(); save(); });
   for (const id of ['#sfxVol', '#pSfxVol']) {
-    $(id).addEventListener('input', e => { settings.sfxVol = +e.target.value; if (settings.sfxVol > 0) settings.sound = true; SFX.init(); if (SFX.out) SFX.out.gain.value = 0.6 * settings.sfxVol / 100; syncAudioUI(); save(); });
+    $(id).addEventListener('input', e => { settings.sfxVol = +e.target.value; if (settings.sfxVol > 0) settings.sound = true; SFX.init(); if (SFX.out) SFX.out.gain.value = sfxGain(); syncAudioUI(); save(); });
     $(id).addEventListener('change', () => SFX.ui());
   }
   $('#musSel').addEventListener('change', e => { const k = optCfg().stage; settings.mus = Object.assign({}, settings.mus, { [k]: e.target.value }); save(); if (MUSIC.previewing()) MUSIC.preview(e.target.value === 'random' ? MUSIC.forStage(k)[0].id : e.target.value); });
