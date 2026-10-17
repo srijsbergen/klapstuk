@@ -207,13 +207,14 @@ button:focus-visible,select:focus-visible,input:focus-visible,canvas:focus-visib
 .res .nm{font-weight:700;font-size:17px}
 .res .st{color:var(--mute);font-size:13px;font-variant-numeric:tabular-nums}
 #fps{position:absolute;top:calc(56px + env(safe-area-inset-top,0px));right:12px;width:42px;text-align:center;font:600 11px/1 ui-monospace,Consolas,monospace;color:rgba(255,255,255,.75);text-shadow:0 1px 2px rgba(0,0,0,.8);pointer-events:none}
-#rbar{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);width:min(640px,calc(100% - 24px));display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:12px;background:rgba(18,14,29,.78);border:1px solid rgba(255,255,255,.2)}
-#rbar[hidden],#rpBtns[hidden]{display:none}
-#rbar button{flex:none;min-width:40px;height:36px;padding:0 10px;border-radius:9px;background:var(--panel-2);border:1px solid var(--line);font-weight:700}
-#rbar input{flex:1;min-width:40px;accent-color:var(--gold)}
-#rbar .rl{font-family:var(--display);color:var(--gold);font-size:18px;letter-spacing:.03em;padding-left:4px}
-#rbar .rt{font:600 12.5px/1 ui-monospace,Consolas,monospace;color:var(--mute);white-space:nowrap}
-@media (max-width:480px){#rbar .rl{display:none}}
+#rbar,#vbar{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);width:min(640px,calc(100% - 24px));display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:12px;background:rgba(18,14,29,.78);border:1px solid rgba(255,255,255,.2)}
+#rbar[hidden],#vbar[hidden],#rpBtns[hidden],#rbar button[hidden]{display:none}
+#rbar button,#vbar button{flex:none;min-width:40px;height:36px;padding:0 10px;border-radius:9px;background:var(--panel-2);border:1px solid var(--line);font-weight:700}
+#rbar input,#vbar progress{flex:1;min-width:40px;accent-color:var(--gold)}
+#rbar .rl,#vbar .rl{font-family:var(--display);color:var(--gold);font-size:18px;letter-spacing:.03em;padding-left:4px}
+#rbar .rt,#vbar .rt{font:600 12.5px/1 ui-monospace,Consolas,monospace;color:var(--mute);white-space:nowrap}
+@media (max-width:480px){#rbar .rl,#vbar .vh{display:none}#rbar{flex-wrap:wrap;justify-content:space-between}#rbar input{order:9;flex-basis:100%;margin:2px 4px 0}}
+#cv.exp{object-fit:contain;background:#000}
 #pbtn{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:12px;width:42px;height:42px;border-radius:10px;background:rgba(18,14,29,.6);border:1px solid rgba(255,255,255,.25);font-weight:700;letter-spacing:-.05em}
 #touch{position:absolute;inset:0;pointer-events:none}
 #dpad{position:absolute;left:calc(18px + env(safe-area-inset-left,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));width:148px;height:148px;border-radius:50%;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.22);pointer-events:auto;touch-action:none}
@@ -464,7 +465,7 @@ window.KlapP2P = (() => {
         <button class="btn small" id="kbReset">Standaardtoetsen herstellen</button>
         <ul class="tips">
           <li><b>Muziek</b>: druk <b>N</b> om de muziek aan of uit te zetten, ook tijdens een gevecht. In het menu en in het pauzescherm stel je met twee schuifjes de verhouding tussen muziek en effecten in.</li>
-          <li><b>Replays</b>: elk gevecht wordt opgenomen. Op het uitslagscherm kijk je het terug of bewaar je het als .klap-bestand (ook bij online spelen); met <b>Replay openen</b> in het menu speel je zo'n bestand later weer af. Tijdens een replay pauzeert spatie, spoelen pijltjes links en rechts 5 seconden, veranderen omhoog en omlaag de snelheid en sluit Esc.</li>
+          <li><b>Replays</b>: elk gevecht wordt opgenomen. Op het uitslagscherm kijk je het terug of bewaar je het als .klap-bestand (ook bij online spelen); met <b>Replay openen</b> in het menu speel je zo'n bestand later weer af. Tijdens een replay pauzeert spatie, spoelen pijltjes links en rechts 5 seconden, veranderen omhoog en omlaag de snelheid en sluit Esc. Met <b>Video</b> in de replaybalk maak je er een videobestand van (1280×720, met geluid); dat speelt de replay één keer in gewone snelheid af, dus laat het tabblad zolang open.</li>
           <li><b>Omhoog + speciaal</b> is je herstelsprong: daarna kun je niets tot je landt of de rand pakt.</li>
           <li><b>Korte sprong</b>: tik springen kort aan, of druk springen en aanval (vrijwel) tegelijk, voor een lage sprong met meteen een luchtaanval. Houd springen vast voor een volle sprong. Land je tijdens of vlak na een luchtaanval, dan sta je bijna meteen weer klaar voor de volgende aanval.</li>
           <li><b>Luchtaanval omlaag of omhoog</b>: omlaag + aanval geeft een dair zonder dat je snel gaat vallen, en omhoog + aanval een uair zonder je tweede sprong te verbruiken. Tik omlaag nog eens om toch snel te vallen.</li>
@@ -508,7 +509,8 @@ window.KlapP2P = (() => {
   </div>
 
   <button id="pbtn" hidden aria-label="Pauze">II</button>
-  <div id="rbar" hidden role="group" aria-label="Replay"><span class="rl">Replay</span><button id="rpPlay" aria-label="Pauze">❚❚</button><input type="range" id="rpPos" min="0" max="1000" value="0" aria-label="Positie in de replay"><span class="rt" id="rpTime">0:00 / 0:00</span><button id="rpSpeed" aria-label="Snelheid">1×</button><button id="rpClose" aria-label="Replay sluiten">✕</button></div>
+  <div id="rbar" hidden role="group" aria-label="Replay"><span class="rl">Replay</span><button id="rpPlay" aria-label="Pauze">❚❚</button><input type="range" id="rpPos" min="0" max="1000" value="0" aria-label="Positie in de replay"><span class="rt" id="rpTime">0:00 / 0:00</span><button id="rpSpeed" aria-label="Snelheid">1×</button><button id="rpVid" title="Exporteer als video" aria-label="Exporteer als video">Video</button><button id="rpClose" aria-label="Replay sluiten">✕</button></div>
+  <div id="vbar" hidden role="status"><span class="rl">Video maken</span><span class="rt vh">laat dit tabblad open</span><progress id="vProg" max="1000" value="0" aria-label="Voortgang"></progress><span class="rt" id="vTime">0:00 / 0:00</span><button id="vStop">Annuleren</button></div>
   <div id="fps" hidden aria-hidden="true"></div>
   <div id="touch" hidden>
     <div id="dpad" aria-label="Richting"><span id="knob"></span></div>
@@ -7239,15 +7241,22 @@ function recTick(ran) {
   const R = G.rec; if (!R || G.training) return;
   R.t++; if (ran && R.s.length < REC_MAX) R.s.push(JSON.stringify(Object.assign({ q: R.t }, gameSnap())));
 }
+function recName(ro, d) {
+  let t = new Date(d); if (isNaN(t)) t = new Date();
+  const p = n => String(n).padStart(2, '0');
+  return `klapstuk-${t.getFullYear()}-${p(t.getMonth() + 1)}-${p(t.getDate())}-${p(t.getHours())}${p(t.getMinutes())}-${ro.map(r => String(r[1]).replace(/[^a-z0-9]/gi, '')).join('-')}`;
+}
+function saveBlob(blob, name) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+}
 async function recSave() {
   if (!recOk()) return;
-  const R = G.rec, d = new Date(R.d), p = n => String(n).padStart(2, '0'), b = $('#rpSave');
+  const R = G.rec, b = $('#rpSave');
   const txt = '{"klapstuk":"replay","v":1,"d":' + JSON.stringify(R.d) + ',"st":' + JSON.stringify(R.st) + ',"mu":' + JSON.stringify(R.mu) + ',"ro":' + JSON.stringify(R.ro) + ',"s":[' + R.s.join(',') + ']}';
   let blob = new Blob([txt], { type: 'application/json' });
   try { if (typeof CompressionStream === 'function') blob = await new Response(blob.stream().pipeThrough(new CompressionStream('gzip'))).blob(); } catch (e) {}
-  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([blob], { type: 'application/octet-stream' }));
-  a.download = `klapstuk-${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}-${R.ro.map(r => r[1]).join('-')}.klap`;
-  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+  saveBlob(new Blob([blob], { type: 'application/octet-stream' }), recName(R.ro, R.d) + '.klap');
   b.textContent = 'Bewaard'; setTimeout(() => { b.textContent = 'Bewaar replay'; }, 1600);
 }
 async function recLoad(file) {
@@ -7259,14 +7268,14 @@ async function recLoad(file) {
     const ro = Array.isArray(o.ro) ? o.ro.slice(0, 4) : [], s = Array.isArray(o.s) ? o.s.filter(x => x && typeof x.q === 'number' && Array.isArray(x.F) && x.m !== 2) : [];
     if (o.klapstuk !== 'replay' || !ro.length || !ro.every(Array.isArray) || s.length < 2) throw new Error('geen replay');
     s.sort((a, b) => a.q - b.q); msg.textContent = '';
-    replayStart({ st: o.st, mu: o.mu, ro, s }, null);
+    replayStart({ st: o.st, mu: o.mu, ro, s, d: o.d }, null);
   } catch (e) { msg.textContent = 'Dit bestand is geen Klapstuk-replay, of het is beschadigd.'; }
 }
 function replayWatch() {
   if (!recOk() || G.net) return;
   // keep the finished match, so closing the replay goes back to this results screen
   const back = {}; for (const k of ['stage', 'fighters', 'projs', 'items', 'parts', 'kos', 'frame', 'mode', 'musicId', 'countdown', 'endT', 'winner', 'stocks', 'useItems', 'shake', 'flash']) back[k] = G[k];
-  const R = G.rec; replayStart({ st: R.st, mu: R.mu, ro: R.ro, s: R.s.map(x => JSON.parse(x)) }, back);
+  const R = G.rec; replayStart({ st: R.st, mu: R.mu, ro: R.ro, s: R.s.map(x => JSON.parse(x)), d: R.d }, back);
 }
 function replayStart(rp, back) {
   const S = makeStage(STAGES[rp.st] ? rp.st : 'ruins');
@@ -7277,13 +7286,15 @@ function replayStart(rp, back) {
   });
   G.musicId = MUSIC.valid(rp.mu) ? rp.mu : null;
   const s = rp.s;
-  G.replay = { s, q0: s[0].q, end: s[s.length - 1].q, t: s[0].q, i: 0, speed: 1, paused: false, drag: false, back, ui: 0 };
+  G.replay = { s, q0: s[0].q, end: s[s.length - 1].q, t: s[0].q, i: 0, speed: 1, paused: false, drag: false, back, ui: 0, ro: rp.ro, d: rp.d, exp: null };
+  $('#rpVid').hidden = !vidMime();
   menuEl.hidden = true; resEl.hidden = true; pauseEl.hidden = true; pbtn.hidden = true; touchEl.hidden = true; rbar.hidden = false;
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   SFX.init(); replayShow(true); replayUI();
 }
 function replayClose() {
   const R = G.replay; if (!R) return;
+  if (R.exp) vidStop(true);
   G.replay = null; rbar.hidden = true;
   if (R.back) { Object.assign(G, R.back); showResults(); } else showMenu();
 }
@@ -7306,6 +7317,13 @@ function replayShow(seek) {
 }
 function replayTick() {
   const R = G.replay;
+  if (R.exp) {
+    // the video always runs at normal speed, and holds the last moment a little before it ends
+    R.t = Math.min(R.end, R.t + 1); replayShow(false);
+    if (R.t >= R.end && ++R.exp.tail === 45) vidStop(false);
+    if (++R.ui % 6 === 0) vidUI();
+    return;
+  }
   if (R.paused || R.drag) return;
   R.t = Math.min(R.end, R.t + R.speed); replayShow(false);
   if (R.t >= R.end) R.paused = true;
@@ -7321,14 +7339,15 @@ function replayUI() {
   $('#rpSpeed').textContent = (R.speed === 0.5 ? '½' : R.speed) + '×';
 }
 function replayToggle() {
-  const R = G.replay; if (!R) return;
+  const R = G.replay; if (!R || R.exp) return;
   if (R.paused && R.t >= R.end) { R.t = R.q0; replayShow(true); }
   R.paused = !R.paused; replayUI();
 }
-function replaySeek(t) { const R = G.replay; if (!R) return; R.t = clamp(t, R.q0, R.end); replayShow(true); replayUI(); }
+function replaySeek(t) { const R = G.replay; if (!R || R.exp) return; R.t = clamp(t, R.q0, R.end); replayShow(true); replayUI(); }
 // d 0 cycles ½× 1× 2×, ±1 steps
 function replaySpeed(d) { const L = [0.5, 1, 2], R = G.replay; if (!R) return; const j = L.indexOf(R.speed); R.speed = L[d ? clamp(j + d, 0, 2) : (j + 1) % 3]; replayUI(); }
 function replayKey(e) {
+  if (G.replay.exp) { if (e.code === 'Escape') { e.preventDefault(); vidStop(true); } return; }
   if (e.code === 'Escape') { e.preventDefault(); replayClose(); return; }
   // with a bar button or the slider focused, let it handle its own keys
   const a = document.activeElement;
@@ -7336,6 +7355,55 @@ function replayKey(e) {
   if (e.code === 'Space' || e.code === 'KeyK' || e.code === 'Enter') { e.preventDefault(); if (!e.repeat) replayToggle(); }
   else if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') { e.preventDefault(); replaySeek(G.replay.t + (e.code === 'ArrowLeft' ? -300 : 300)); }
   else if (e.code === 'ArrowUp' || e.code === 'ArrowDown') { e.preventDefault(); replaySpeed(e.code === 'ArrowUp' ? 1 : -1); }
+}
+
+// Exporteer als video: plays the replay from the start at normal speed into a fixed 1280x720 canvas (shown letterboxed
+// meanwhile) and records it with MediaRecorder, with the shared limiter as sound; recording goes no faster than the replay
+const VID_W = 1280, VID_H = 720;
+function vidMime() {
+  if (typeof MediaRecorder !== 'function' || typeof MediaStream !== 'function' || !cv.captureStream) return null;
+  return ['video/mp4;codecs=avc1.42E01F,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
+    .find(m => { try { return MediaRecorder.isTypeSupported(m); } catch (e) { return false; } }) || null;
+}
+function vidStart() {
+  const R = G.replay, mime = vidMime(); if (!R || R.exp || !mime) return;
+  SFX.init();
+  let tracks = [], dest = null, rec = null;
+  try {
+    tracks = cv.captureStream(60).getVideoTracks();
+    if (SFX.ac && SFX.lim) { try { dest = SFX.ac.createMediaStreamDestination(); SFX.lim.connect(dest); tracks.push(...dest.stream.getAudioTracks()); } catch (e) { dest = null; } }
+    rec = new MediaRecorder(new MediaStream(tracks), { mimeType: mime, videoBitsPerSecond: 4e6, audioBitsPerSecond: 128e3 });
+  } catch (e) {
+    tracks.forEach(t => t.stop()); if (dest) try { SFX.lim.disconnect(dest); } catch (e2) {}
+    $('#rpVid').hidden = true; return;
+  }
+  const X = R.exp = { rec, mime, dest, tracks, chunks: [], tail: 0, cancel: false, stopping: false, done: false, name: recName(R.ro, R.d) };
+  rec.ondataavailable = e => { if (e.data && e.data.size) X.chunks.push(e.data); };
+  rec.onstop = () => vidDone(X);
+  view.W = VID_W; view.H = VID_H; view.dpr = 1; cv.width = VID_W; cv.height = VID_H; cv.classList.add('exp');
+  R.speed = 1; R.paused = false; R.t = R.q0; replayShow(true);
+  rbar.hidden = true; $('#vbar').hidden = false; vidUI();
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  rec.start(1000);
+}
+function vidStop(cancel) {
+  const X = G.replay && G.replay.exp; if (!X || X.stopping) return;
+  X.cancel = cancel; X.stopping = true;
+  try { X.rec.stop(); } catch (e) { vidDone(X); }
+}
+function vidDone(X) {
+  if (X.done) return; X.done = true;
+  const R = G.replay; if (R && R.exp === X) R.exp = null;
+  X.tracks.forEach(t => t.stop()); if (X.dest) try { SFX.lim.disconnect(X.dest); } catch (e) {}
+  cv.classList.remove('exp'); resize(); $('#vbar').hidden = true;
+  if (R && G.replay === R) { R.paused = true; rbar.hidden = false; updateCam(true); replayUI(); }
+  if (X.cancel || !X.chunks.length) return;
+  saveBlob(new Blob(X.chunks, { type: X.mime.split(';')[0] }), X.name + (X.mime.startsWith('video/mp4') ? '.mp4' : '.webm'));
+}
+function vidUI() {
+  const R = G.replay; if (!R || !R.exp) return;
+  const len = Math.max(1, R.end - R.q0);
+  $('#vProg').value = Math.round((R.t - R.q0) / len * 1000); $('#vTime').textContent = fmtT(R.t - R.q0) + ' / ' + fmtT(len);
 }
 
 /* ---------------- online ---------------- */
@@ -7790,6 +7858,8 @@ $('#rpFile').addEventListener('change', e => { const fl = e.target.files && e.ta
 $('#rpPlay').addEventListener('click', replayToggle);
 $('#rpSpeed').addEventListener('click', () => replaySpeed(0));
 $('#rpClose').addEventListener('click', replayClose);
+$('#rpVid').addEventListener('click', vidStart);
+$('#vStop').addEventListener('click', () => vidStop(true));
 $('#rpPos').addEventListener('pointerdown', () => { if (G.replay) G.replay.drag = true; });
 $('#rpPos').addEventListener('input', e => { const R = G.replay; if (R) replaySeek(R.q0 + (+e.target.value / 1000) * (R.end - R.q0)); });
 for (const ev of ['pointerup', 'pointercancel']) addEventListener(ev, () => { if (G.replay && G.replay.drag) { G.replay.drag = false; replayUI(); } });
@@ -7883,6 +7953,7 @@ function pollPadStart() {
   }
 }
 function resize() {
+  if (G.replay && G.replay.exp) return;
   const r = app.getBoundingClientRect(); view.W = Math.max(1, r.width); view.H = Math.max(1, r.height); view.dpr = Math.min(2, window.devicePixelRatio || 1);
   cv.width = Math.round(view.W * view.dpr); cv.height = Math.round(view.H * view.dpr);
 }
