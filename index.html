@@ -682,7 +682,7 @@ const MUSIC = (() => {
     { id: 'castle4', group: 'Burchtmuur', name: 'Vaandels', mood: 'feestelijk', bpm: 146, root: 58, mode: 'major', sec: { A: [0, 4, 5, 3], B: [3, 4, 0, 0] }, form: 'AABA', bass: 'octave', bassWave: 'sawtooth', pad: { vol: 0.05 }, lead: { wave: 'square', oct: 1, dens: 0.7, seed: 5404, cut: 4000, vib: 0.006, dl: 0.15 }, drums: { k: 'x...x...x...x...', s: '....x.......x...', h: '..x...x...x...x.' }, crash: true, fill: true },
     { id: 'clouds1', group: 'Wolkeneiland', name: 'Hemelsbreed', mood: 'luchtig', bpm: 128, root: 60, mode: 'lydian', sec: { A: [0, 1, 5, 4], B: [3, 1, 0, 4] }, form: 'AABA', bass: 'sync', bassWave: 'sine', pad: { vol: 0.05 }, arp: { wave: 'triangle', rate: 16, oct: 1, vol: 0.04 }, lead: { wave: 'bell', oct: 1, dens: 0.45, seed: 6101, dl: 0.3, rv: 0.4 }, drums: { k: 'x.....x...x.....', s: '....x.......x...', h: '..x...x...x...x.' } },
     { id: 'clouds2', group: 'Wolkeneiland', name: 'Zwevend', mood: 'zorgeloos', bpm: 122, root: 55, mode: 'major', sec: { A: [0, 5, 3, 4], B: [3, 4, 2, 5] }, form: 'AABA', bass: 'sync', bassWave: 'triangle', pad: { vol: 0.045 }, lead: { wave: 'triangle', oct: 1, dens: 0.55, seed: 6202, cut: 4000, vib: 0.005, dl: 0.25, rv: 0.25 }, drums: { k: 'x.......x.x.....', s: '....x.......x...', h: 'x.x.x.x.x.x.x.x.' } },
-    { id: 'clouds3', group: 'Wolkeneiland', name: 'Windkracht', mood: 'stevige bries', bpm: 142, root: 62, mode: 'mixo', sec: { A: [0, 6, 3, 0], B: [3, 0, 6, 4] }, form: 'AABA', bass: 'eighth', bassWave: 'sawtooth', lead: { wave: 'pulse', oct: 1, dens: 0.7, seed: 6303, cut: 4500, dl: 0.15 }, drums: { k: 'x...x...x...x...', s: '....x.......x...', h: 'xgxgxgxgxgxgxgxg' }, fill: true },
+    { id: 'clouds3', group: 'Wolkeneiland', name: 'Windkracht', mood: 'stevige aang', bpm: 142, root: 62, mode: 'mixo', sec: { A: [0, 6, 3, 0], B: [3, 0, 6, 4] }, form: 'AABA', bass: 'eighth', bassWave: 'sawtooth', lead: { wave: 'pulse', oct: 1, dens: 0.7, seed: 6303, cut: 4500, dl: 0.15 }, drums: { k: 'x...x...x...x...', s: '....x.......x...', h: 'xgxgxgxgxgxgxgxg' }, fill: true },
     { id: 'clouds4', group: 'Wolkeneiland', name: 'Regenboog', mood: 'vrolijk, met swing', bpm: 136, root: 53, mode: 'major', sec: { A: [0, 3, 4, 0], B: [5, 3, 1, 4] }, form: 'AABA', swing: 0.1, bass: 'octave', bassWave: 'triangle', pad: { vol: 0.04 }, lead: { wave: 'square', oct: 1, dens: 0.6, seed: 6404, cut: 4000, vib: 0.006, dl: 0.15 }, drums: { k: 'x.......x.x.....', s: '....x.......x...', h: 'x.x.x.x.x.x.x.x.' } },
     { id: 'garden1', group: 'Theetuin', name: 'Koivijver', mood: 'kalm en vlot', bpm: 124, root: 57, mode: 'dorian', sec: { A: [0, 3, 0, 6], B: [2, 6, 3, 4] }, form: 'AABA', bass: 'sync', bassWave: 'sine', pad: { vol: 0.05 }, arp: { wave: 'sine', rate: 8, oct: 1, vol: 0.05 }, lead: { wave: 'bell', oct: 1, dens: 0.45, seed: 7101, dl: 0.3, rv: 0.4 }, drums: { k: 'x.....x...x.....', s: '....x.......x...', h: '..x...x...x...x.' } },
     { id: 'garden2', group: 'Theetuin', name: 'Bamboe', mood: 'ritmisch', bpm: 138, root: 52, mode: 'minor', sec: { A: [0, 5, 6, 0], B: [3, 5, 6, 6] }, form: 'AABA', bass: 'sync', bassWave: 'triangle', lead: { wave: 'triangle', oct: 1, dens: 0.6, seed: 7202, cut: 4000, vib: 0.008, dl: 0.2 }, drums: { k: 'x.....x...x..x..', s: '....x..g.g..x...', h: 'x.x.x.x.x.x.x.x.', t: '..........x.x...' } },
@@ -1088,7 +1088,7 @@ Object.assign(CHARS, {
     col: { body: '#f3f5fb', dark: '#2a2730', acc: '#3d6fd6', skin: '#f8dcc0', fx: '#ffd84a', hair: '#f5d36a' }, alt: { body: '#2a2f45', dark: '#1c1a22', acc: '#e0507a', skin: '#f8dcc0', fx: '#ff8fc8', hair: '#f5d36a' } },
   lente: { name: 'Lente', blurb: 'Kungfuvechter in een blauwe qipao, met haar haar in twee knotjes en zware ijzeren armbanden. Alles draait om haar benen: een Kikoken (een bal van qi), de Draaivogeltrap ondersteboven met gespreide benen (ook om zijwaarts terug te komen), de Hemeltrap omhoog en de Honderdtrap, een regen van trappen. Haar stamptrap in de lucht stuitert van tegenstanders af.', weight: 86, run: 7.6, acc: 1.15, jump: 16, djump: 15, grav: 0.85, fall: 12.5, ffall: 18, air: 5.2, airAcc: 0.52, airJumps: 1, w: 38, h: 80, pow: 1.02, reach: 1.05, lag: 0, limb: 10, hr: 0.16, zoner: true, sideRec: true,
     col: { body: '#2e63c9', dark: '#5a3b2e', acc: '#e8b83a', skin: '#f6d2b0', fx: '#7fc8ff', hair: '#3a2416' }, alt: { body: '#d9405a', dark: '#5a3b2e', acc: '#f0d060', skin: '#f6d2b0', fx: '#ffb0c0', hair: '#3a2416' } },
-  bries: { name: 'Bries', blurb: 'Jonge luchtmonnik met een blauwe pijl op zijn kale hoofd. Licht en zwevend, met twee extra sprongen in de lucht. Een Luchtstoot die tegenstanders wegblaast, de Luchtscooter (een bal van lucht om op te rijden, ook om zijwaarts terug te komen), zijn staf als zweefvlieger om omhoog terug te komen, en een rotszuil uit de grond (in de lucht gooit hij een rotsblok schuin naar beneden).', weight: 76, run: 7.8, acc: 1.15, jump: 15.5, djump: 13, grav: 0.72, fall: 10, ffall: 15.5, air: 5.6, airAcc: 0.56, airJumps: 2, w: 36, h: 74, pow: 0.94, reach: 1, lag: 0, limb: 9, hr: 0.2, zoner: true, sideRec: true,
+  aang: { name: 'Aang', blurb: 'Jonge luchtmonnik met een blauwe pijl op zijn kale hoofd. Licht en zwevend, met twee extra sprongen in de lucht. Hij beheerst alle vier de elementen. Lucht: een Luchtstoot die tegenstanders wegblaast, de Luchtscooter (een bal van lucht om op te rijden, ook om zijwaarts terug te komen) en zijn staf als zweefvlieger. Aarde: een rotszuil uit de grond (in de lucht gooit hij een rotsblok schuin naar beneden). Vuur: een vuurstoot als smash vooruit en een vurige trap in de lucht. Water: waterzwepen naar beide kanten als smash omlaag en een waterzweep achter zich in de lucht.', weight: 76, run: 7.8, acc: 1.15, jump: 15.5, djump: 13, grav: 0.72, fall: 10, ffall: 15.5, air: 5.6, airAcc: 0.56, airJumps: 2, w: 36, h: 74, pow: 0.94, reach: 1, lag: 0, limb: 9, hr: 0.2, zoner: true, sideRec: true,
     col: { body: '#f2a62a', dark: '#e0912a', acc: '#c9471f', skin: '#f7d7b5', fx: '#d6f1ff', tat: '#2f7fd8' }, alt: { body: '#b3302a', dark: '#2c2430', acc: '#7c1f1f', skin: '#f7d7b5', fx: '#ffd0b0', tat: '#2f7fd8' } },
 });
 const CHAR_KEYS = Object.keys(CHARS).filter(k => !CHARS[k].hidden);
@@ -1102,7 +1102,7 @@ const FINALS = {
   rat: ['storm', 'Donderstorm'], kakel: ['storm', 'Eierregen'], ninja: ['rush', 'Duizend Sneden'], techno: ['nova', 'Bloed voor de Bloedgod'],
   schim: ['nova', 'Chaosexplosie'], gokko: ['beam', 'Superstraal'], rekker: ['rush', 'Rubberstorm'], draai: ['rush', 'Klonenleger'],
   aardbei: ['beam', 'Zwarte Maansnede'], sleutel: ['storm', 'Sleutelregen'], bot: ['beam', 'Gasterkanon'], eik: ['rush', 'Grote Hemelsnede'],
-  nevel: ['rush', 'De Eclips'], marsepein: ['nova', 'Oude Magie'], sterre: ['nova', 'Urano Metria'], lente: ['nova', 'Kikosho'], bries: ['nova', 'Avatartoestand'],
+  nevel: ['rush', 'De Eclips'], marsepein: ['nova', 'Oude Magie'], sterre: ['nova', 'Urano Metria'], lente: ['nova', 'Kikosho'], aang: ['nova', 'Avatartoestand'],
 };
 // Joep's hand-made colourways: the magenta cap, black shirt and purple shorts of the classic look, and an all black-and-red one
 CHARS.joep.skins = [{ name: 'Roze pet', body: '#2a2830', dark: '#6a52a8', acc: '#d4458e', skin: '#f6cfa8', fx: '#ff9bd0' },
@@ -1160,7 +1160,7 @@ const THROWS = {
   volt:  { f: { d: 6, a: 40, b: 55, g: 45, fx: 'zap', pre: [3, 5], preD: 1 }, b: { d: 7, a: 135, b: 55, g: 50, fx: 'zap', pre: [4, 6], preD: 1 },
            u: { d: 5, a: 90, b: 72, g: 55, fx: 'zap', pre: [4, 6], preD: 1 }, d: { d: 3, a: 82, b: 42, g: 28, fx: 'zap', start: 12, end: 6, pre: [3, 5, 7, 9], preD: 1 } },
   brick: { f: { d: 11, a: 40, b: 70, g: 70, fx: 'slam' }, b: { d: 12, a: 140, b: 60, g: 95, fx: 'slam' }, u: { d: 9, a: 88, b: 65, g: 80 }, d: { d: 8, a: 75, b: 55, g: 50, fx: 'slam' } },
-  bries: { f: { d: 7, a: 38, b: 75, g: 48, fx: 'burst' }, b: { d: 8, a: 140, b: 60, g: 66, fx: 'burst' }, u: { d: 6, a: 90, b: 78, g: 52, fx: 'burst' }, d: { d: 5, a: 78, b: 46, g: 38, fx: 'slam' } },
+  aang: { f: { d: 7, a: 38, b: 75, g: 48, fx: 'fire' }, b: { d: 8, a: 140, b: 60, g: 66, fx: 'burst' }, u: { d: 6, a: 90, b: 78, g: 52, fx: 'burst' }, d: { d: 5, a: 78, b: 46, g: 38, fx: 'slam' } },
   marsepein: { f: { d: 7, a: 42, b: 60, g: 56, fx: 'burst' }, b: { d: 8, a: 135, b: 55, g: 66 }, u: { d: 7, a: 90, b: 68, g: 54, fx: 'burst' }, d: { d: 5, a: 75, b: 48, g: 40 } },
   nevel: { f: { d: 8, a: 40, b: 60, g: 60, fx: 'slash' }, b: { d: 9, a: 135, b: 52, g: 76, fx: 'slash' }, u: { d: 7, a: 90, b: 65, g: 55, fx: 'slash' }, d: { d: 5, a: 80, b: 45, g: 35, fx: 'slam' } },
   eik:   { f: { d: 8, a: 40, b: 68, g: 62, fx: 'slash' }, b: { d: 10, a: 140, b: 62, g: 72 }, u: { d: 8, a: 90, b: 70, g: 62, fx: 'slash' }, d: { d: 6, a: 75, b: 55, g: 45, fx: 'slam', end: 8 } },
@@ -1244,6 +1244,16 @@ const AIRS = {
     bair: M({ start: 6, active: 4, end: 16, pose: 'elbowB', aerial: true, afx: 'slash', ll: 10, hb: [H(-60, -46, 22, 13, 140, 38, 98), H(-30, -52, 20, 8, 140, 30, 80)] }),
     uair: M({ start: 5, active: 5, end: 13, pose: 'upswing', aerial: true, afx: 'slash', ll: 8, hb: [H(0, -112, 26, 12, 88, 34, 98, { nr: 1 }), H(26, -88, 22, 8, 80, 30, 80)] }),
     dair: M({ start: 9, active: 5, end: 18, pose: 'swingDown', aerial: true, afx: 'slash', ll: 15, hb: [H(0, 30, 26, 14, 275, 38, 90, { nr: 1 })] }),
+  }),
+  // Aang: fire and water in his smashes and aerials, air in the spin
+  aang: (M, H) => ({
+    // Vuurstoot: a jet of fire from the fist, further than a punch reaches
+    fsmash: M({ start: 12, active: 6, end: 26, pose: 'smashF', charge: true, afx: 'fire', hb: [H(66, -44, 22, 14, 38, 40, 102), H(38, -44, 19, 12, 38, 40, 98)] }),
+    // Waterzweep: two whips of water lash out to both sides
+    dsmash: M({ start: 9, active: 6, end: 26, pose: 'smashD', charge: true, afx: 'water', hb: [H(52, -14, 22, 13, 30, 36, 96), H(-52, -14, 22, 13, 150, 36, 96)] }),
+    nair: M({ start: 4, active: 12, end: 9, pose: 'nair', aerial: true, afx: 'spin', ll: 6, hb: [H(0, -40, 39, 9, 45, 30, 84, { nr: 1, f1: 4 }), H(0, -40, 34, 5, 45, 22, 70, { nr: 1, f0: 4 })] }),
+    fair: M({ start: 6, active: 4, end: 15, pose: 'fair', aerial: true, afx: 'fire', ll: 10, hb: [H(50, -40, 25, 11, 42, 34, 96), H(28, -54, 20, 9, 50, 30, 90)] }),
+    bair: M({ start: 6, active: 5, end: 14, pose: 'bair', aerial: true, afx: 'water', ll: 9, hb: [H(-58, -38, 25, 12, 145, 34, 98), H(-30, -40, 19, 9, 145, 28, 90)] }),
   }),
   // Lente: kicks, and a stomp that bounces off whoever she lands on
   lente: (M, H) => ({
@@ -1609,7 +1619,7 @@ const SPECIALS = {
       tick: (f, t) => { if (t === 4) { f.vy = -15; f.grounded = false; f.ground = null; SFX.swing(); } if (t > 4 && t < 24 && f.vy > -6) f.vy -= 0.3; } }),
     downB: M({ special: true, start: 5, active: 22, end: 18, pose: 'counter', counter: [5, 27], tick: f => { if (!f.grounded && f.vy > 1) f.vy = 1; } }),
   }),
-  bries: (M, H, s) => ({
+  aang: (M, H, s) => ({
     // Luchtstoot: a gust from both palms that blows whoever it touches away, with little damage
     neutralB: M({ special: true, start: 10, active: 1, end: 18, pose: 'cast',
       tick: (f, t) => {
@@ -1618,7 +1628,7 @@ const SPECIALS = {
         spawnProj({ type: 'gust', owner: f, x: f.x + f.facing * 30 * s, y: f.y - 42 * s, vx: f.facing * 8.5, r: 22, life: 28, pierce: true, reflect: false, hb: { d: 3, a: 32, b: 78, g: 22 } }); SFX.swoosh();
       } }),
     // Luchtscooter: he rides a spinning ball of air straight ahead, hitting a few times; in the air it keeps him up
-    sideB: M({ special: true, start: 6, active: 34, end: 12, pose: 'nair', poseFn: briesScooterPose, keepVel: true, noDrift: true, ll: 10, combo: true,
+    sideB: M({ special: true, start: 6, active: 34, end: 12, pose: 'nair', poseFn: aangScooterPose, keepVel: true, noDrift: true, ll: 10, combo: true,
       hb: [0, 1, 2, 3].map(i => H(0, -10, 30, 2, 70, 20, 0, { nr: 1, grp: i + 1, link: true, f0: i * 8, f1: i * 8 + 3 })).concat([H(8, -12, 34, 6, 45, 46, 84, { nr: 1, grp: 9, f0: 31 })]),
       noGrav: (f, t) => t <= 40,
       tick: (f, t) => {
@@ -1627,7 +1637,7 @@ const SPECIALS = {
         if (t <= 40) { f.vx = f.facing * 8; if (!f.grounded) f.vy = Math.min(f.vy + 0.08, 0.6); if (t % 8 === 6) SFX.swing(); } else f.vx *= 0.85;
       } }),
     // Zweefstok: a spinning leap with the staff, then the staff opens into a glider and he sails down slowly
-    upB: M({ special: true, start: 4, active: 70, end: 10, pose: 'spring', poseFn: briesGlidePose, helpless: true, ledgeOK: 10, noDrift: true, ll: 12,
+    upB: M({ special: true, start: 4, active: 70, end: 10, pose: 'spring', poseFn: aangGlidePose, helpless: true, ledgeOK: 10, noDrift: true, ll: 12,
       hb: [H(0, -50, 36, 6, 80, 50, 70, { nr: 1, f1: 10 })],
       noGrav: (f, t) => t <= 74,
       tick: (f, t) => {
@@ -4684,13 +4694,13 @@ function nevelSquarePose(f, t) {
   return mk(Object.assign(i % 2 ? { aB: [sw, -0.1], aF: [0.4, -1.2] } : { aF: [sw, -0.1], aB: [0.2, -1.2] }, L));
 }
 // Lente's kicks frame by frame
-// Bries rides his air scooter and sails under his glider
-function briesScooterPose(f, t) {
+// Aang rides his air scooter and sails under his glider
+function aangScooterPose(f, t) {
   if (t < 6) return mk({ crouch: 0.4, aF: [1.0, -0.6], aB: [-0.8, -0.5], lF: [0.6, -1.2], lB: [-0.3, -1.0], plant: 'both' });
   if (t > 40) return mix(mk({ crouch: 0.3, aF: [1.3, -0.3], aB: [-1.1, -0.3] }), mk({}), Math.min(1, (t - 40) / 12));
   const P = mk({ crouch: 0.5, lean: 0.12, aF: [1.5, -0.2], aB: [-1.3, -0.3], lF: [0.55, -1.1], lB: [-0.35, -0.9] }); P.dy = -16; return P;
 }
-function briesGlidePose(f, t) {
+function aangGlidePose(f, t) {
   if (t < 4) return mk({ crouch: 0.45, aF: [0.5, -1.0], aB: [0.3, -1.0], lF: [0.7, -1.3], lB: [-0.2, -1.0], plant: 'both' });
   if (t < 20) { const P = mk({ aF: [2.9, -0.1], aB: [2.7, -0.1], lF: [0.5, -1.2], lB: [-0.2, -1.0], crouch: 0.3 }); P.rot = -(t - 4) / 16 * TAU; return P; }
   return mk({ aF: [2.75, -0.15], aB: [2.95, -0.1], lF: [0.25, -0.4], lB: [-0.45, -0.3], lean: 0.2 });
@@ -4781,9 +4791,9 @@ function drawPuppetBase(g, ck, col, P, o = {}) {
   }
   const handCol = { techno: col.body, ninja: col.dark, rat: col.body, lonk: '#8a5a2b', klauw: col.body, bongo: col.skin, brick: col.dark, sable: col.dark, volt: col.skin, gloei: col.acc, kwak: col.body, bliep: col.dark, schim: '#f4f4f4', eik: col.dark, nevel: col.dark }[ck] || col.skin;
   // back limbs
-  const backCol = ck === 'lente' || ck === 'bries' ? shade(col.dark, 0.85) : ck === 'sterre' ? shade(col.skin, 0.9) : ck === 'klauw' ? shade(col.body, 0.78) : ck === 'lonk' ? '#cdc3aa' : ck === 'volt' ? shade(col.jacket, 0.78) : ck === 'techno' ? '#25202e' : ck === 'joep' ? col.shorts || col.dark : col.dark;
+  const backCol = ck === 'lente' || ck === 'aang' ? shade(col.dark, 0.85) : ck === 'sterre' ? shade(col.skin, 0.9) : ck === 'klauw' ? shade(col.body, 0.78) : ck === 'lonk' ? '#cdc3aa' : ck === 'volt' ? shade(col.jacket, 0.78) : ck === 'techno' ? '#25202e' : ck === 'joep' ? col.shorts || col.dark : col.dark;
   strokeLimb(g, lB, backCol, lw); foot(g, ck, lB, lw, col);
-  strokeLimb(g, aB, ck === 'bries' ? shade(col.body, 0.85) : ck === 'rekker' || ck === 'lente' ? shade(col.skin, 0.88) : backCol, lw * 0.9); hand(g, aB, lw * (ck === 'gloei' ? 0.95 : ck === 'bongo' ? 0.8 : ck === 'klauw' ? 0.7 : 0.6), handCol); if (ck === 'klauw') spikedCuff(g, aB, lw * 0.9);
+  strokeLimb(g, aB, ck === 'aang' ? shade(col.body, 0.85) : ck === 'rekker' || ck === 'lente' ? shade(col.skin, 0.88) : backCol, lw * 0.9); hand(g, aB, lw * (ck === 'gloei' ? 0.95 : ck === 'bongo' ? 0.8 : ck === 'klauw' ? 0.7 : 0.6), handCol); if (ck === 'klauw') spikedCuff(g, aB, lw * 0.9);
   if (ck === 'lente') { lenteSleeve(g, aB, lw * 0.9, shade(col.body, 0.82)); lenteBracelet(g, aB, lw * 0.9); }
   if (ck === 'nevel' && o.dual) nevelBlade(g, aB, h * 0.58, '#dff4f2', '#7fd8d0', o.skc);
   else if (ck === 'nevel') { g.lineCap = 'round'; g.strokeStyle = INK; g.lineWidth = 8; g.beginPath(); g.moveTo(sh.x - 24, sh.y - 16); g.lineTo(hip.x + 12, hip.y + 2); g.stroke(); g.strokeStyle = '#3a3746'; g.lineWidth = 4; g.stroke(); g.strokeStyle = INK; g.lineWidth = 7; g.beginPath(); g.moveTo(sh.x - 24, sh.y - 16); g.lineTo(sh.x - 31, sh.y - 25); g.stroke(); g.strokeStyle = '#7fd8d0'; g.lineWidth = 3.5; g.stroke(); }
@@ -4831,11 +4841,11 @@ function drawPuppetBase(g, ck, col, P, o = {}) {
     g.beginPath(); g.moveTo(-c.w * 0.25, -tl * 1.0); g.lineTo(c.w * 0.18, -tl * 1.0); g.lineTo(-c.w * 0.3 + w, hipH * 0.6); g.lineTo(-c.w * 0.92 + w, hipH * 0.5); g.closePath(); g.fillStyle = col.acc; g.fill(); g.stroke();
     g.restore();
   }
-  if (ck === 'bries' && !o.glider) { // the wooden staff across the back, the folded wings at the top
+  if (ck === 'aang' && !o.glider) { // the wooden staff across the back, the folded wings at the top
     g.lineCap = 'round'; g.strokeStyle = INK; g.lineWidth = 7; g.beginPath(); g.moveTo(sh.x - 20, sh.y - 24); g.lineTo(hip.x + 16, hip.y + 12); g.stroke(); g.strokeStyle = '#a8743a'; g.lineWidth = 3.5; g.stroke();
     g.strokeStyle = INK; g.lineWidth = 8; g.beginPath(); g.moveTo(sh.x - 20, sh.y - 24); g.lineTo(sh.x - 12, sh.y - 12); g.stroke(); g.strokeStyle = col.acc; g.lineWidth = 4.5; g.stroke();
   }
-  if (ck === 'bries') { // the mantle over his shoulders hangs down his back
+  if (ck === 'aang') { // the mantle over his shoulders hangs down his back
     g.save(); g.translate(hip.x, hip.y); g.rotate(lean); g.lineWidth = 3; g.strokeStyle = INK; const w = Math.sin(fr * 0.14) * 3;
     g.beginPath(); g.moveTo(-c.w * 0.24, -tl * 1.02); g.lineTo(c.w * 0.12, -tl * 1.02); g.lineTo(-c.w * 0.3 + w, -tl * 0.25); g.lineTo(-c.w * 0.56 + w, -tl * 0.34); g.closePath(); g.fillStyle = col.acc; g.fill(); g.stroke();
     g.restore();
@@ -4921,7 +4931,7 @@ function drawPuppetBase(g, ck, col, P, o = {}) {
       g.beginPath(); g.moveTo(tw * 0.0, -tl + 2); g.lineTo(tw * 0.34, -tl + 2); g.lineTo(tw * 0.3, -tl * 0.28); g.lineTo(tw * 0.17, -tl * 0.12); g.lineTo(tw * 0.04, -tl * 0.28); g.closePath(); g.fillStyle = col.acc; g.fill(); g.stroke(); g.fillStyle = '#ffd34d'; g.font = `bold ${Math.round(tl * 0.22)}px Impact, sans-serif`; g.textAlign = 'center'; g.fillText('B', tw * 0.17, -tl * 0.45); }
     else if (ck === 'joep') { g.save(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.clip(); g.fillStyle = col.dark; for (const yy of [-0.78, -0.4, -0.02]) g.fillRect(-tw / 2, tl * yy, tw, tl * 0.17); g.restore(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.lineWidth = 3; g.strokeStyle = INK; g.stroke(); }
     else if (ck === 'schim') { g.fillStyle = '#f4f4f4'; g.beginPath(); g.moveTo(-tw * 0.32, -tl + 1); g.lineTo(tw * 0.36, -tl + 1); g.lineTo(tw * 0.16, -tl * 0.58); g.lineTo(0, -tl * 0.78); g.lineTo(-tw * 0.16, -tl * 0.58); g.closePath(); g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke(); }
-    else if (ck === 'bries') { g.save(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.clip(); g.beginPath(); g.moveTo(-tw, -tl - 6); g.lineTo(tw, -tl - 6); g.lineTo(tw, -tl * 0.8); g.quadraticCurveTo(tw * 0.1, -tl * 0.42, -tw, -tl * 0.62); g.closePath(); g.fillStyle = col.acc; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke(); g.fillStyle = shade(col.acc, 0.85); g.fillRect(-tw, -tl * 0.14, tw * 2, tl * 0.12); g.restore(); }
+    else if (ck === 'aang') { g.save(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.clip(); g.beginPath(); g.moveTo(-tw, -tl - 6); g.lineTo(tw, -tl - 6); g.lineTo(tw, -tl * 0.8); g.quadraticCurveTo(tw * 0.1, -tl * 0.42, -tw, -tl * 0.62); g.closePath(); g.fillStyle = col.acc; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke(); g.fillStyle = shade(col.acc, 0.85); g.fillRect(-tw, -tl * 0.14, tw * 2, tl * 0.12); g.restore(); }
     else if (ck === 'lente') { g.strokeStyle = col.acc; g.lineWidth = 3; g.beginPath(); g.moveTo(-tw * 0.32, -tl - 1); g.lineTo(tw * 0.32, -tl - 1); g.moveTo(-tw * 0.05, -tl - 1); g.quadraticCurveTo(tw * 0.3, -tl * 0.8, tw * 0.42, -tl * 0.5); g.stroke(); g.fillStyle = '#f4f2ec'; g.fillRect(-tw / 2 + 1, -tl * 0.18, tw - 2, tl * 0.14); g.strokeStyle = col.acc; g.lineWidth = 1.5; g.beginPath(); g.moveTo(-tw * 0.3, -tl * 0.11); g.quadraticCurveTo(0, -tl * 0.17, tw * 0.3, -tl * 0.11); g.stroke(); }
     else if (ck === 'sterre') { g.strokeStyle = col.acc; g.lineWidth = 3; g.beginPath(); g.moveTo(-tw * 0.3, -tl - 1); g.quadraticCurveTo(0, -tl * 0.7, tw * 0.3, -tl - 1); g.stroke(); g.fillStyle = '#7a4a2a'; g.fillRect(-tw / 2 + 1, -tl * 0.12, tw - 2, tl * 0.12); for (const kx of [-0.3, -0.12, 0.06]) { g.fillStyle = '#f2c230'; g.fillRect(tw * kx, -tl * 0.02, 3, 8); } g.beginPath(); g.arc(tw * 0.3, tl * 0.02, 6, 0, TAU); g.lineWidth = 3; g.strokeStyle = '#4fb8ff'; g.stroke(); }
     else if (ck === 'marsepein') { g.beginPath(); g.ellipse(0, -tl * 0.9, tw * 0.64, tl * 0.25, 0, 0, TAU); g.fillStyle = shade(col.body, 0.8); g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke(); g.strokeStyle = col.acc; g.lineWidth = 3.5; g.beginPath(); g.moveTo(-tw * 0.26, -tl - 1); g.lineTo(tw * 0.26, -tl - 1); g.stroke(); }
@@ -5095,14 +5105,15 @@ function drawPuppetBase(g, ck, col, P, o = {}) {
     eye(g, hr * 0.5, hr * 0.02, hr * 0.23, hurt);
     if (!hurt) { g.lineWidth = 2.5; g.beginPath(); g.moveTo(hr * 0.28, -hr * 0.22); g.lineTo(hr * 0.75, -hr * 0.12); g.stroke(); }
     g.lineWidth = 2; g.beginPath(); g.moveTo(hr * 0.35, hr * 0.5); g.lineTo(hr * 0.68, hr * 0.46); g.stroke();
-  } else if (ck === 'bries') {
+  } else if (ck === 'aang') {
     // bald, with the blue arrow running from the back of the head over the top to the forehead; in the avatar state the arrow and eyes glow
     const tat = o.avatar ? '#eefaff' : col.tat;
     g.lineWidth = 3; g.strokeStyle = INK;
     g.beginPath(); g.arc(0, 0, hr, 0, TAU); g.fillStyle = col.skin; g.fill(); g.stroke();
     g.save(); g.beginPath(); g.arc(0, 0, hr - 1.5, 0, TAU); g.clip();
-    g.strokeStyle = tat; g.lineWidth = hr * 0.26; g.lineCap = 'butt'; g.lineJoin = 'round'; g.beginPath(); g.arc(-hr * 0.05, hr * 0.1, hr * 0.8, Math.PI * 0.95, Math.PI * 1.5); g.lineTo(hr * 0.22, -hr * 0.66); g.stroke();
-    g.fillStyle = tat; g.beginPath(); g.moveTo(hr * 0.45, -hr * 0.89); g.lineTo(hr * 0.56, -hr * 0.33); g.lineTo(-hr * 0.01, -hr * 0.43); g.closePath(); g.fill();
+    // the shaft bends down toward the forehead and runs on under the head of the arrow, which points along it
+    g.strokeStyle = tat; g.lineWidth = hr * 0.27; g.lineCap = 'butt'; g.lineJoin = 'round'; g.beginPath(); g.arc(-hr * 0.05, hr * 0.1, hr * 0.74, Math.PI * 0.95, Math.PI * 1.5); g.quadraticCurveTo(hr * 0.16, -hr * 0.64, hr * 0.24, -hr * 0.56); g.stroke();
+    g.fillStyle = tat; g.beginPath(); g.moveTo(hr * 0.4, -hr * 0.78); g.lineTo(hr * 0.48, -hr * 0.32); g.lineTo(hr * 0.02, -hr * 0.4); g.closePath(); g.fill();
     g.restore(); g.lineCap = 'round';
     g.beginPath(); g.ellipse(-hr * 0.3, hr * 0.18, hr * 0.15, hr * 0.21, 0, 0, TAU); g.fillStyle = shade(col.skin, 0.93); g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke();
     g.beginPath(); g.arc(-hr * 0.28, hr * 0.2, hr * 0.08, -1.2, 1.6); g.lineWidth = 1.5; g.stroke();
@@ -5226,7 +5237,7 @@ function drawPuppetBase(g, ck, col, P, o = {}) {
   g.restore();
   if (shieldAt) drawShieldL(g, shieldAt[0], shieldAt[1], h);
   // front leg & arm
-  strokeLimb(g, lF, ck === 'lente' || ck === 'bries' ? col.dark : ck === 'sterre' ? col.skin : ck === 'joep' ? col.shorts || col.dark : ck === 'pip' || ck === 'rekker' || ck === 'bot' ? col.dark : ck === 'lonk' ? '#ece3cc' : ck === 'volt' ? col.jacket : ck === 'techno' ? '#3b3046' : col.body, lw); foot(g, ck, lF, lw, col);
+  strokeLimb(g, lF, ck === 'lente' || ck === 'aang' ? col.dark : ck === 'sterre' ? col.skin : ck === 'joep' ? col.shorts || col.dark : ck === 'pip' || ck === 'rekker' || ck === 'bot' ? col.dark : ck === 'lonk' ? '#ece3cc' : ck === 'volt' ? col.jacket : ck === 'techno' ? '#3b3046' : col.body, lw); foot(g, ck, lF, lw, col);
   if (ck === 'pip') { // robe overlaps front leg top
     g.save(); g.translate(hip.x, hip.y); g.rotate(lean);
     g.beginPath(); g.moveTo(-c.w * 0.24, -tl); g.lineTo(c.w * 0.24, -tl); g.lineTo(c.w * 0.56, hipH * 0.62); g.lineTo(-c.w * 0.1, hipH * 0.62); g.closePath();
@@ -5437,7 +5448,7 @@ function drawCopyHat(g, ck, R, ty, fr) {
     case 'kakel': g.fillStyle = C.acc; for (const [dx, r] of [[-0.3, 0.2], [0, 0.25], [0.3, 0.19]]) { g.beginPath(); g.arc(R * dx, ty + R * 0.05, R * r, 0, TAU); g.fill(); g.lineWidth = 2; g.stroke(); } break;
     case 'ninja': { const w = Math.sin(fr * 0.25) * 3; g.lineCap = 'round'; for (const y1 of [0.1, 0.45]) { g.beginPath(); g.moveTo(-R * 0.7, ty + R * 0.32); g.quadraticCurveTo(-R * 1.1, ty + R * y1 + w, -R * 1.45, ty + R * y1 - w); g.strokeStyle = INK; g.lineWidth = 7; g.stroke(); g.strokeStyle = C.acc; g.lineWidth = 3.5; g.stroke(); } rr(g, -R * 0.82, ty + R * 0.2, R * 1.64, R * 0.24, R * 0.1); g.fillStyle = C.acc; g.fill(); g.strokeStyle = INK; g.lineWidth = 2.5; g.stroke(); break; }
     case 'techno': poly([[-0.6, 0.35], [-0.6, -0.25], [-0.3, 0.05], [0, -0.42], [0.3, 0.05], [0.6, -0.25], [0.6, 0.35]], '#ffcf33'); g.fillStyle = '#d8262f'; g.beginPath(); g.arc(0, ty + R * 0.12, R * 0.09, 0, TAU); g.fill(); break;
-    case 'bries': { // the blue arrow down the middle of the head, pointing at the forehead
+    case 'aang': { // the blue arrow down the middle of the head, pointing at the forehead
       g.save(); g.lineJoin = 'round'; g.beginPath(); g.moveTo(-R * 0.12, ty + R * 0.03); g.lineTo(R * 0.12, ty + R * 0.03); g.lineTo(R * 0.12, ty + R * 0.24); g.lineTo(R * 0.3, ty + R * 0.24); g.lineTo(0, ty + R * 0.56); g.lineTo(-R * 0.3, ty + R * 0.24); g.lineTo(-R * 0.12, ty + R * 0.24); g.closePath();
       g.fillStyle = C.tat; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke(); g.restore(); break;
     }
@@ -5539,11 +5550,11 @@ function drawPoef(g, col, P, o) {
   arm(aF, col.body);
 }
 function foot(g, ck, p, lw, col) {
-  if (ck === 'bries') { g.lineCap = 'round'; g.strokeStyle = '#efe3c4'; g.lineWidth = lw - 2.5; g.beginPath(); g.moveTo(p[2] + (p[4] - p[2]) * 0.4, p[3] + (p[5] - p[3]) * 0.4); g.lineTo(p[4], p[5]); g.stroke(); }
+  if (ck === 'aang') { g.lineCap = 'round'; g.strokeStyle = '#efe3c4'; g.lineWidth = lw - 2.5; g.beginPath(); g.moveTo(p[2] + (p[4] - p[2]) * 0.4, p[3] + (p[5] - p[3]) * 0.4); g.lineTo(p[4], p[5]); g.stroke(); }
   if (ck === 'lente') { g.lineCap = 'round'; g.strokeStyle = '#f4f2ec'; g.lineWidth = lw - 2; g.beginPath(); g.moveTo(p[2] + (p[4] - p[2]) * 0.45, p[3] + (p[5] - p[3]) * 0.45); g.lineTo(p[4], p[5]); g.stroke(); }
   if (ck === 'sterre') { g.lineCap = 'round'; g.strokeStyle = col.dark; g.lineWidth = lw - 2; g.beginPath(); g.moveTo(p[2] + (p[4] - p[2]) * 0.3, p[3] + (p[5] - p[3]) * 0.3); g.lineTo(p[4], p[5]); g.stroke(); }
   if (ck === 'sleutel' || ck === 'bot') { g.save(); g.translate(p[4], p[5]); const big = ck === 'sleutel'; rr(g, big ? -8 : -6, big ? -7 : -5, big ? 24 : 18, big ? 13 : 9, big ? 6 : 4); g.fillStyle = big ? '#f2c230' : col.acc; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke(); g.restore(); return; }
-  if (ck !== 'schim') { shoe(g, p, lw * 0.62, ck === 'brick' ? INK : ck === 'joep' ? col.acc : ck === 'klauw' ? col.body : ck === 'bongo' ? col.skin : ck === 'lonk' ? '#6b4423' : ck === 'rat' ? col.body : ck === 'volt' ? '#ececf2' : ck === 'techno' ? '#1b1720' : ck === 'ninja' ? '#3a3a44' : ck === 'sterre' ? col.dark : ck === 'lente' ? '#f4f2ec' : ck === 'bries' ? '#7a4a26' : col.dark); return; }
+  if (ck !== 'schim') { shoe(g, p, lw * 0.62, ck === 'brick' ? INK : ck === 'joep' ? col.acc : ck === 'klauw' ? col.body : ck === 'bongo' ? col.skin : ck === 'lonk' ? '#6b4423' : ck === 'rat' ? col.body : ck === 'volt' ? '#ececf2' : ck === 'techno' ? '#1b1720' : ck === 'ninja' ? '#3a3a44' : ck === 'sterre' ? col.dark : ck === 'lente' ? '#f4f2ec' : ck === 'aang' ? '#7a4a26' : col.dark); return; }
   g.save(); g.translate(p[4], p[5]); rr(g, -7, -6, 20, 10, 4); g.fillStyle = '#f4f4f4'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
   g.fillStyle = col.acc; g.fillRect(-1, -5, 5, 8); g.fillStyle = col.fx; g.globalAlpha *= 0.7; g.fillRect(-5, 4, 16, 3); g.restore();
 }
@@ -6432,7 +6443,7 @@ function drawFighter(g, f, fr, z) {
   const sword = f.key === 'techno' ? !f.item && !(f.state === 'attack' && f.move && (f.move.throw || ['cast', 'counter', 'throwItem', 'pick', 'bow', 'riptide'].includes(f.move.pose)))
     : f.key === 'sleutel' || f.key === 'eik' || f.key === 'nevel' || f.key === 'marsepein' ? !f.item && !(f.key === 'nevel' && (f.state === 'shield' || (f.state === 'attack' && f.move === f.M.downB && f.mt >= 3 && f.mt <= 25))) && !(f.state === 'attack' && f.move && (f.move.throw || ['throwItem', 'pick'].includes(f.move.pose)))
     : (f.key === 'sable' || f.key === 'lonk' || f.key === 'aardbei' || f.key === 'bot') && f.state === 'attack' && f.move && !f.move.throw && !['cast', 'counter', 'throwItem', 'pick', 'bow', 'lonkpull', 'maskOn', 'soulGrab'].includes(f.move.pose);
-  drawPuppet(g, f.key, f.key === 'rekker' && f.ssj > 0 ? Object.assign({}, f.col, { skin: '#f0908a' }) : f.col, P, { glider: f.key === 'bries' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 20, avatar: f.key === 'bries' && f.state === 'attack' && f.move === f.M.final, glow: f.key === 'bot' && f.state === 'attack' && f.move && f.move.special, skc: f.key === 'nevel' && f.state === 'attack' && f.move ? f.move.skc || (f.move === f.M.final ? '#bfe8ff' : null) : f.key === 'marsepein' && f.state === 'attack' && f.move && f.move.special ? f.col.fx : null, dual: f.key === 'nevel' && sword, mask: f.maskT > 0, ssj: f.ssj > 0 || (f.state === 'attack' && f.move && f.move.ssjUp && f.mt > 18 && f.mt % 4 < 2), grounded: f.grounded || f.state === 'land', fr: fr + f.id * 30, sword, held: f.item ? f.item.type : f.state === 'attack' && f.move && f.move.bat ? 'bat' : null, wings: f.feather > 0, xbow: f.key === 'techno' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, trident: f.key === 'techno' && f.state === 'attack' && f.move === f.M.upB, totem: f.key === 'techno' && f.state === 'attack' && f.move === f.M.downB, bow: f.key === 'lonk' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, pull: f.charge, jet: f.key === 'bliep' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 4, hurt: f.state === 'hitstun' || f.state === 'knockdown' || f.state === 'dizzy' || f.state === 'shieldbreak' || f.state === 'grabbed', ...(f.key === 'poef' ? poefFlags(f) : {}) });
+  drawPuppet(g, f.key, f.key === 'rekker' && f.ssj > 0 ? Object.assign({}, f.col, { skin: '#f0908a' }) : f.col, P, { glider: f.key === 'aang' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 20, avatar: f.key === 'aang' && f.state === 'attack' && f.move === f.M.final, glow: f.key === 'bot' && f.state === 'attack' && f.move && f.move.special, skc: f.key === 'nevel' && f.state === 'attack' && f.move ? f.move.skc || (f.move === f.M.final ? '#bfe8ff' : null) : f.key === 'marsepein' && f.state === 'attack' && f.move && f.move.special ? f.col.fx : null, dual: f.key === 'nevel' && sword, mask: f.maskT > 0, ssj: f.ssj > 0 || (f.state === 'attack' && f.move && f.move.ssjUp && f.mt > 18 && f.mt % 4 < 2), grounded: f.grounded || f.state === 'land', fr: fr + f.id * 30, sword, held: f.item ? f.item.type : f.state === 'attack' && f.move && f.move.bat ? 'bat' : null, wings: f.feather > 0, xbow: f.key === 'techno' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, trident: f.key === 'techno' && f.state === 'attack' && f.move === f.M.upB, totem: f.key === 'techno' && f.state === 'attack' && f.move === f.M.downB, bow: f.key === 'lonk' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, pull: f.charge, jet: f.key === 'bliep' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 4, hurt: f.state === 'hitstun' || f.state === 'knockdown' || f.state === 'dizzy' || f.state === 'shieldbreak' || f.state === 'grabbed', ...(f.key === 'poef' ? poefFlags(f) : {}) });
   if ('filter' in g) g.filter = 'none';
   g.globalAlpha = 1; g.restore();
   if (f.key === 'kwak' && f.state === 'attack' && f.move === f.M.sideB) {
@@ -6448,14 +6459,48 @@ function drawFighter(g, f, fr, z) {
     const i = ((f.mt - 8) / 3) | 0, ph = ((f.mt - 8) % 3) / 3, cx = f.x + f.facing * 36, cy = f.y - 46, a0 = (i * 2.3) % TAU;
     g.save(); g.lineCap = 'round'; g.strokeStyle = hexA(i % 2 ? '#dff4f2' : '#8fd8ff', 0.95 - ph * 0.6); g.lineWidth = 6; g.beginPath(); g.arc(cx, cy, 38, a0, a0 + 2.2); g.stroke(); g.restore();
   }
-  if (f.key === 'bries' && f.state === 'attack' && f.move === f.M.sideB && f.mt >= 6 && f.mt <= 40) {
+  if (f.key === 'aang' && f.state === 'attack' && f.move === f.M.fsmash && f.mt >= f.move.start && f.mt <= f.move.start + f.move.active + 4) {
+    // the jet of fire from his fist
+    const sc = c.h / 80, k = Math.min(1, (f.mt - f.move.start + 1) / 3) * Math.min(1, (f.move.start + f.move.active + 5 - f.mt) / 4), x0 = f.x + f.facing * 26 * sc, y0 = f.y - 44 * sc, L = 92 * sc * k;
+    g.save(); g.translate(x0, y0); g.scale(f.facing, 1); g.globalCompositeOperation = 'lighter';
+    for (const [w, col] of [[1, 'rgba(255,90,30,.55)'], [0.68, 'rgba(255,170,40,.7)'], [0.36, 'rgba(255,240,170,.85)']]) {
+      g.fillStyle = col; g.beginPath(); g.moveTo(0, -5 * w); for (let i = 1; i <= 6; i++) { const x = L * i / 6; g.lineTo(x, -(5 + 16 * i / 6) * w * sc - Math.sin(f.mt * 1.3 + i * 2) * 3 * w); }
+      g.quadraticCurveTo(L + 14 * w * sc, 0, L, (5 + 16) * w * sc); for (let i = 5; i >= 1; i--) { const x = L * i / 6; g.lineTo(x, (5 + 16 * i / 6) * w * sc + Math.sin(f.mt * 1.7 + i) * 3 * w); } g.lineTo(0, 5 * w); g.closePath(); g.fill();
+    }
+    g.restore();
+  }
+  if (f.key === 'aang' && f.state === 'attack' && f.move === f.M.dsmash && f.mt >= f.move.start - 1 && f.mt <= f.move.start + f.move.active + 4) {
+    // two whips of water lashing out to both sides
+    const sc = c.h / 80, k = Math.min(1, (f.mt - f.move.start + 2) / 3) * Math.min(1, (f.move.start + f.move.active + 5 - f.mt) / 4), y0 = f.y - 30 * sc;
+    g.save(); g.lineCap = 'round';
+    for (const d of [-1, 1]) {
+      const x1 = f.x + d * 70 * sc * k, wv = Math.sin(f.mt * 0.9 + d) * 8 * sc;
+      const whip = () => { g.beginPath(); g.moveTo(f.x + d * 10 * sc, y0); g.bezierCurveTo(f.x + d * 30 * sc, y0 - 22 * sc + wv, f.x + d * 50 * sc, y0 + 18 * sc - wv, x1, f.y - 12 * sc); };
+      whip(); g.strokeStyle = 'rgba(40,110,200,.75)'; g.lineWidth = 11 * sc; g.stroke();
+      whip(); g.strokeStyle = 'rgba(120,200,255,.9)'; g.lineWidth = 7 * sc; g.stroke();
+      whip(); g.strokeStyle = 'rgba(255,255,255,.8)'; g.lineWidth = 2 * sc; g.stroke();
+      g.fillStyle = 'rgba(190,235,255,.85)'; for (let i = 0; i < 3; i++) { g.beginPath(); g.arc(x1 + d * (4 + i * 5) * sc, f.y - (12 + ((f.mt + i * 3) % 7) * 2) * sc, (2.5 - i * 0.5) * sc, 0, TAU); g.fill(); }
+    }
+    g.restore();
+  }
+  if (f.key === 'aang' && f.state === 'attack' && f.move === f.M.final) {
+    // the avatar state: air, water, earth and fire circling him
+    const sc = c.h / 80, cy = f.y - c.h * 0.55, R = 58 * sc;
+    g.save(); g.lineWidth = 2.5; g.strokeStyle = INK;
+    [['#eef8ff'], ['#3f8fe0'], ['#8c7358'], ['#ff8a2a']].forEach(([col], i) => {
+      const a = f.mt * 0.12 + i * TAU / 4, x = f.x + Math.cos(a) * R, y = cy + Math.sin(a) * R * 0.45;
+      g.beginPath(); g.arc(x, y, 11 * sc, 0, TAU); g.fillStyle = col; g.fill(); g.stroke();
+    });
+    g.restore();
+  }
+  if (f.key === 'aang' && f.state === 'attack' && f.move === f.M.sideB && f.mt >= 6 && f.mt <= 40) {
     // the air scooter: a spinning ball of wind under his feet
     const r = 17 * Math.max(1, c.h / 80), cy = f.y - r + 2, a0 = f.mt * 0.6 * f.facing;
     g.save(); g.translate(f.x, cy); g.fillStyle = 'rgba(225,244,255,.35)'; g.beginPath(); g.arc(0, 0, r, 0, TAU); g.fill();
     g.lineCap = 'round'; g.strokeStyle = 'rgba(255,255,255,.85)'; for (let i = 0; i < 3; i++) { g.lineWidth = 3 - i * 0.6; g.beginPath(); g.arc(0, 0, r * (0.45 + i * 0.22), a0 + i * 2.1, a0 + i * 2.1 + 2.0); g.stroke(); }
     g.restore();
   }
-  if (f.key === 'bries' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 20) {
+  if (f.key === 'aang' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 20) {
     // the staff opened into a glider, held over his head
     const k = Math.min(1, (f.mt - 20) / 5), sc = c.h / 80, W2 = 54 * k * sc;
     g.save(); g.translate(f.x, f.y - c.h * 1.1); g.scale(f.facing, 1); g.lineJoin = 'round'; g.lineCap = 'round';

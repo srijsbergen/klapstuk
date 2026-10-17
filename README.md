@@ -6,7 +6,7 @@ De hele site is één bestand: `index.html`. De WebRTC-bibliotheek zit erin en h
 
 ## De vechters
 
-![De achtentwintig vechters: Volt, Brok, Sabel, Pip, Gloei, Kwak, Bliep, Joep, Poef, Klauw, Bongo, Lonk, Bliksemrat, Kakelninja, Technoblade, Schim, Gokko, Rekker, Draaikolk, Aardbei, Sleutel, Bot, Eik, Nevel, Marsepein, Sterre, Lente en Bries](docs/vechters.png)
+![De achtentwintig vechters: Volt, Brok, Sabel, Pip, Gloei, Kwak, Bliep, Joep, Poef, Klauw, Bongo, Lonk, Bliksemrat, Kakelninja, Technoblade, Schim, Gokko, Rekker, Draaikolk, Aardbei, Sleutel, Bot, Eik, Nevel, Marsepein, Sterre, Lente en Aang](docs/vechters.png)
 
 ## Spelen
 
