@@ -530,7 +530,7 @@ window.KlapP2P = (() => {
 (() => {
 'use strict';
 const $ = s => document.querySelector(s);
-const app = $('#app'), cv = $('#cv'), ctx = cv.getContext('2d');
+const app = $('#app'), cv = $('#cv'), ctx = cv.getContext('2d', { alpha: false });
 const menuEl = $('#menu'), pauseEl = $('#pause'), resEl = $('#results'), pbtn = $('#pbtn'), touchEl = $('#touch'), rbar = $('#rbar');
 const TAU = Math.PI * 2, INK = '#15111f';
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
@@ -6859,12 +6859,25 @@ function pctColor(p) {
   for (let i = 1; i < stops.length; i++) if (p <= stops[i][0]) { const [a, ca] = stops[i - 1], [b, cb] = stops[i], k = (p - a) / (b - a); return `rgb(${ca.map((v, j) => Math.round(lerp(v, cb[j], k))).join(',')})`; }
   return 'rgb(168,16,42)';
 }
-function drawPortrait(g, f, x, y, r) {
+function drawPortrait(g, f, x, y, r, fr = G.frame) {
   g.save(); g.beginPath(); g.arc(x, y, r, 0, TAU); g.fillStyle = hexA(f.pc, 0.35); g.fill(); g.clip();
   const c = CHARS[f.key], s = r * (c.pz || 2.5) / c.h; g.translate(x, y + c.h * 0.42 * s + r * 0.25); g.scale(s, s);
-  drawPuppet(g, f.key, f.col, mk({ aF: [0.5, -0.8] }), { fr: G.frame, hurt: f.state === 'dead', copy: f.copy, plain: true });
+  drawPuppet(g, f.key, f.col, mk({ aF: [0.5, -0.8] }), { fr, hurt: f.state === 'dead', copy: f.copy, plain: true });
   g.restore();
   g.beginPath(); g.arc(x, y, r, 0, TAU); g.lineWidth = 3; g.strokeStyle = f.pc; g.stroke();
+}
+// a portrait stands still, so it is drawn into a canvas of its own (per fighter and size) and only redrawn when it changes
+const PCACHE = new WeakMap();
+function drawPortraitC(g, f, x, y, r, sc) {
+  const R = Math.ceil(r + 3), key = `${f.key}|${f.copy || ''}|${f.state === 'dead'}|${f.pc}|${r}|${sc}`;
+  let m = PCACHE.get(f); if (!m) PCACHE.set(f, m = {});
+  let e = m[r];
+  if (!e) { const c = document.createElement('canvas'); e = m[r] = { c, g: c.getContext('2d'), key: '', col: null }; }
+  if (e.key !== key || e.col !== f.col) {
+    const n = Math.ceil(R * 2 * sc); if (e.c.width !== n) { e.c.width = n; e.c.height = n; } else e.g.clearRect(0, 0, n, n);
+    e.g.setTransform(sc, 0, 0, sc, 0, 0); drawPortrait(e.g, f, R, R, r, 0); e.key = key; e.col = f.col;
+  }
+  g.drawImage(e.c, x - R, y - R, R * 2, R * 2);
 }
 function drawHUD(g, V) {
   setScreen(g, V); const F = G.fighters, n = F.length; if (!n) return;
@@ -6874,7 +6887,7 @@ function drawHUD(g, V) {
     const cx = x0 + cw * i + cw / 2, px = cx - cw * 0.28;
     const shake = f.hud > 0 ? rand(-1, 1) * f.hud * 0.35 : 0;
     g.globalAlpha = f.out ? 0.4 : 1;
-    drawPortrait(g, f, px, y, 26 * s);
+    drawPortraitC(g, f, px, y, 26 * s, V.dpr);
     g.font = `${12 * s}px system-ui, 'Segoe UI', Arial, sans-serif`; g.textAlign = 'left'; g.fillStyle = '#f5f0e4'; g.lineWidth = 3; g.strokeStyle = INK;
     const nm = f.c.name.toUpperCase() + (f.key === 'bag' ? '' : f.cpu ? ' · CPU ' + f.lvl : ' · P' + (f.slot + 1));
     g.strokeText(nm, px + 32 * s, y - 24 * s); g.fillText(nm, px + 32 * s, y - 24 * s);
@@ -6905,7 +6918,7 @@ function drawOffscreen(g, V) {
     const bx = clamp(sx, m, V.W - m), by = clamp(sy, m, V.H - m - hudSpace()), a = Math.atan2(sy - by, sx - bx);
     g.fillStyle = f.pc; g.beginPath(); g.moveTo(bx + Math.cos(a) * 34, by + Math.sin(a) * 34); g.lineTo(bx + Math.cos(a + 0.5) * 24, by + Math.sin(a + 0.5) * 24); g.lineTo(bx + Math.cos(a - 0.5) * 24, by + Math.sin(a - 0.5) * 24); g.closePath(); g.fill();
     g.fillStyle = INK; g.beginPath(); g.arc(bx, by, 25, 0, TAU); g.fill();
-    drawPortrait(g, f, bx, by, 22);
+    drawPortraitC(g, f, bx, by, 22, V.dpr);
   }
 }
 function drawKOs(g, V) {
