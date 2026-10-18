@@ -4599,9 +4599,15 @@ const SHADOW = 'rgba(52,28,96,0.30)', LIGHT = 'rgba(255,255,255,0.22)';
   // While THIN is on, ink lines get thinner: plain outlines to 60%, the rims of stroked shapes lose a pixel and a half.
   // While SIL is on too, only the ink lines are drawn, 0.8 wider on each side: that pass lays down the contour.
   const C2 = CanvasRenderingContext2D.prototype, st = C2.stroke, fl = C2.fill, fr = C2.fillRect;
+  // reading strokeStyle back makes the browser write the colour out as text (some 2 µs, many times a frame), so whether
+  // the pen is ink is noted when it is set, and saved and restored along with the rest of the state
+  const ssd = Object.getOwnPropertyDescriptor(C2, 'strokeStyle'), sv = C2.save, rs = C2.restore;
+  Object.defineProperty(C2, 'strokeStyle', { configurable: true, enumerable: ssd.enumerable, get: ssd.get, set(v) { this._ink = v === INK; ssd.set.call(this, v); } });
+  C2.save = function () { (this._inks || (this._inks = [])).push(this._ink); sv.call(this); };
+  C2.restore = function () { const q = this._inks; if (q && q.length) this._ink = q.pop(); rs.call(this); };
   C2.stroke = function (p) {
     if (!THIN) return p ? st.call(this, p) : st.call(this);
-    const w = this.lineWidth, ink = this.strokeStyle === INK;
+    const w = this.lineWidth, ink = !!this._ink;
     if (SIL && (!ink || w < 2.2)) return;
     this.lineWidth = (ink ? (w <= 3.5 ? w * 0.6 : w - 1.6) : w) + (SIL ? 1.6 : 0); p ? st.call(this, p) : st.call(this); this.lineWidth = w;
   };
@@ -4713,8 +4719,13 @@ function strokeLimb(g, p, col, lw) {
   g.strokeStyle = INK; g.lineWidth = lw + 5; g.stroke(); g.strokeStyle = col; g.lineWidth = lw; g.stroke();
 }
 function dot(g, x, y, r, col) { g.beginPath(); g.arc(x, y, r, 0, TAU); g.fillStyle = col; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke(); }
-function rr(g, x, y, w, h, r) { r = Math.min(r, w / 2, h / 2); g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+function rr(g, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2); g.beginPath();
+  if (g.roundRect && r >= 0) return g.roundRect(x, y, w, h, r); // one call where the browser has it
+  g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+}
 function eye(g, x, y, r, hurt) {
+  if (SIL) return; // inside the head, so nothing of it shows in the contour
   if (hurt) { g.strokeStyle = INK; g.lineWidth = 2.5; g.beginPath(); g.moveTo(x - r, y - r); g.lineTo(x + r * 0.6, y); g.lineTo(x - r, y + r); g.stroke(); return; }
   g.beginPath(); g.ellipse(x, y, r * 0.75, r, 0, 0, TAU); g.fillStyle = '#ffffff'; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke();
   g.beginPath(); g.ellipse(x + r * 0.25, y + r * 0.1, r * 0.38, r * 0.55, 0, 0, TAU); g.fillStyle = INK; g.fill();
