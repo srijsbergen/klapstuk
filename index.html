@@ -483,6 +483,7 @@ window.KlapP2P = (() => {
         <summary>Beeld</summary>
         <div class="gfx">
           <div class="opt"><span>Detail <small>schaduw en fijnere lijnen op de vechters; zet het uit als het spel hapert</small></span><button class="tog" id="dtl" aria-pressed="true">Aan</button></div>
+          <div class="opt"><span>Automatisch bijstellen <small id="aqNote">zet de resolutie en daarna Detail lager als het spel hapert</small></span><button class="tog" id="aqTog" aria-pressed="true">Aan</button></div>
           <div class="opt"><span>Beelden per seconde tonen <small>klein onder de pauzeknop, tijdens een gevecht</small></span><button class="tog" id="fpsTog" aria-pressed="false">Uit</button></div>
         </div>
       </details>
@@ -550,7 +551,7 @@ let settings = {
     { type: 'cpu', ch: 'brick', lvl: 4 },
     { type: 'off', ch: 'sable', lvl: 5 },
     { type: 'off', ch: 'pip', lvl: 5 },
-  ], stage: 'ruins', stocks: 3, items: true, ioff: [], sound: true, music: true, musVol: 50, sfxVol: 80, mus: {}, detail: !isTouch, fps: false,
+  ], stage: 'ruins', stocks: 3, items: true, ioff: [], sound: true, music: true, musVol: 50, sfxVol: 80, mus: {}, detail: !isTouch, fps: false, autoQ: true, qRes: 0, qDet: false, qKeep: false,
 };
 function save() { try { localStorage.setItem('klapstuk-v1', JSON.stringify(settings)); } catch (e) {} }
 function loadSaved() {
@@ -7076,7 +7077,13 @@ function buildMenu() {
   $('#itm').onclick = () => { setOpt('items', !optCfg().items); SFX.ui(); restartDemoSoon(); };
   buildItemSet();
   $('#netCpu').onclick = () => { setOpt('cpu', !optCfg().cpu); SFX.ui(); };
-  $('#dtl').onclick = () => { settings.detail = !settings.detail; syncAudioUI(); save(); SFX.ui(); };
+  // turning Detail back on by hand after the automatic setting turned it off keeps it on
+  $('#dtl').onclick = () => { settings.detail = !settings.detail; if (settings.detail && settings.qDet) { settings.qDet = false; settings.qKeep = true; } syncAudioUI(); save(); SFX.ui(); };
+  $('#aqTog').onclick = () => {
+    settings.autoQ = !settings.autoQ;
+    if (!settings.autoQ) { if (settings.qDet) settings.detail = true; settings.qRes = 0; settings.qDet = settings.qKeep = false; resize(); }
+    AQ.reset(); syncAudioUI(); save(); SFX.ui();
+  };
   $('#fpsTog').onclick = () => { settings.fps = !settings.fps; syncAudioUI(); save(); SFX.ui(); };
   $('#snd').onclick = $('#pSnd').onclick = () => { settings.sound = !settings.sound; syncAudioUI(); save(); SFX.init(); SFX.ui(); };
   for (const id of ['#mus', '#pMus', '#musTop']) $(id).addEventListener('click', toggleMusic);
@@ -7107,7 +7114,9 @@ function syncAudioUI() {
     $(vol).value = settings[v]; $(tog).setAttribute('aria-pressed', String(!!settings[on])); $(tog).textContent = settings[on] ? 'Aan' : 'Uit';
   }
   $('#musTop').setAttribute('aria-pressed', String(!!settings.music));
-  for (const [id, k] of [['#dtl', 'detail'], ['#fpsTog', 'fps']]) { $(id).setAttribute('aria-pressed', String(!!settings[k])); $(id).textContent = settings[k] ? 'Aan' : 'Uit'; }
+  for (const [id, k] of [['#dtl', 'detail'], ['#fpsTog', 'fps'], ['#aqTog', 'autoQ']]) { $(id).setAttribute('aria-pressed', String(!!settings[k])); $(id).textContent = settings[k] ? 'Aan' : 'Uit'; }
+  const q = [settings.qRes ? `resolutie ${String(settings.qRes).replace('.', ',')}×` : '', settings.qDet ? 'Detail uit' : ''].filter(Boolean);
+  $('#aqNote').textContent = settings.autoQ && q.length ? `bijgesteld naar ${q.join(' en ')}; uit en weer aan zet alles terug` : 'zet de resolutie en daarna Detail lager als het spel hapert';
 }
 function toggleMusic() { settings.music = !settings.music; SFX.init(); syncAudioUI(); save(); }
 // which music plays on the chosen stage, with a button to listen first
@@ -7976,25 +7985,66 @@ function pollPadStart() {
 }
 function resize() {
   if (G.replay && G.replay.exp) return;
-  const r = app.getBoundingClientRect(); view.W = Math.max(1, r.width); view.H = Math.max(1, r.height); view.dpr = Math.min(2, window.devicePixelRatio || 1);
-  cv.width = Math.round(view.W * view.dpr); cv.height = Math.round(view.H * view.dpr);
+  const r = app.getBoundingClientRect(); view.W = Math.max(1, r.width); view.H = Math.max(1, r.height); view.dpr = Math.min(resCap(), window.devicePixelRatio || 1);
+  cv.width = Math.round(view.W * view.dpr); cv.height = Math.round(view.H * view.dpr); redraw = true;
 }
+const resCap = () => settings.autoQ && settings.qRes ? settings.qRes : 2;
 addEventListener('resize', resize);
 
 /* ---------------- loop ---------------- */
-let last = performance.now(), acc = 0;
-// frames per second under the pause button (option in Beeld), counted over half a second
+let last = performance.now(), acc = 0, redraw = true;
+// frames per second under the pause button (option in Beeld): pictures actually drawn, counted over half a second
 const fpsEl = $('#fps'); let fpsN = 0, fpsT = performance.now();
+const STEP = 1000 / 60;
 function loop(now) {
   requestAnimationFrame(loop);
   let dt = now - last; last = now; if (dt > 100) dt = 100;
-  fpsN++; if (now - fpsT >= 500) { fpsEl.textContent = Math.round(fpsN * 1000 / (now - fpsT)) + ' fps'; fpsN = 0; fpsT = now; }
+  if (now - fpsT >= 500) { fpsEl.textContent = Math.round(fpsN * 1000 / (now - fpsT)) + ' fps'; fpsN = 0; fpsT = now; }
   const fpsOff = pbtn.hidden || !settings.fps; if (fpsEl.hidden !== fpsOff) fpsEl.hidden = fpsOff;
   pollPadStart(); pollCursors(now);
-  if (!G.paused && G.stage) { acc += dt; const step = 1000 / 60; let n = 0; while (acc >= step && n < 5) { acc -= step; n++; tick(); } if (n >= 5) acc = 0; }
-  if (G.stage) render();
+  const t0 = performance.now(); let n = 0;
+  if (!G.paused && G.stage) {
+    // a frame of about one tick (or half, or two) counts as exactly that: on a 60 or 120 Hz screen timing noise then never
+    // gives a frame without a tick followed by one with two, which looks like a dropped frame
+    for (const k of [1, 0.5, 2]) if (Math.abs(dt - STEP * k) < k) { dt = STEP * k; break; }
+    acc += dt; while (acc >= STEP - 0.5 && n < 5) { acc -= STEP; n++; tick(); } if (n >= 5) acc = 0;
+  }
+  // draw only when the game moved on: a 90 or 120 Hz screen would otherwise draw the same picture twice
+  if (G.stage && (n || G.paused || redraw)) { redraw = false; render(); fpsN++; AQ.frame(now, dt, performance.now() - t0); }
+  else AQ.idle(dt);
   if (!menuEl.hidden) drawPreviews(now);
 }
+
+// Automatisch bijstellen (option in Beeld): when a fight keeps missing frames for some six seconds, the resolution goes down
+// (2 → 1,5 → 1 pixel per point), or Detail goes off first when the drawing work itself fills the frame; kept per device
+const AQ = {
+  dts: [], best: 0, gaps: [], work: 0, prev: 0, warm: 90, strike: 0,
+  reset() { this.gaps.length = 0; this.work = 0; this.prev = 0; this.warm = 90; this.strike = 0; },
+  // the screen's own pace: the quick end of each stretch of frame times, the quickest stretch since loading (slowly
+  // letting go, so a screen that switches to 30 Hz to save power is taken as it is after a minute or so)
+  idle(dt) { const d = this.dts; d.push(dt); if (d.length < 120) return; d.sort((a, b) => a - b); const p = d[24]; d.length = 0; if (p > 4) this.best = this.best ? Math.min(this.best * 1.01, p) : p; },
+  frame(now, dt, work) {
+    this.idle(dt);
+    if (!settings.autoQ || G.mode !== 'match' || G.paused || G.replay || G.countdown > 0 || document.hidden) { this.prev = 0; if (this.warm < 30) this.warm = 30; return; }
+    const gap = this.prev ? now - this.prev : 0; this.prev = now;
+    if (this.warm > 0) { this.warm--; return; }
+    this.gaps.push(gap); this.work += work; if (this.gaps.length < 120) return;
+    // on time, pictures come one tick apart rounded up to whole screen frames (two frames at 75 Hz, three at 144 Hz)
+    const per = this.best || STEP, slot = Math.ceil(STEP / per - 0.05) * per;
+    const late = this.gaps.filter(x => x > slot + per * 0.5 + 2 && x < 250).length, busy = this.work / this.gaps.length > slot * 0.6;
+    this.gaps.length = 0; this.work = 0;
+    this.strike = late > 12 ? this.strike + 1 : 0;
+    if (this.strike >= 3) { this.strike = 0; this.warm = 60; this.lower(busy); }
+  },
+  lower(busy) {
+    const pr = Math.min(2, window.devicePixelRatio || 1), cap = resCap(), res = [1.5, 1].find(c => c < Math.min(cap, pr) - 0.01);
+    const det = settings.detail && !settings.qKeep;
+    if (det && (busy || !res)) { settings.detail = false; settings.qDet = true; }
+    else if (res) { settings.qRes = res; resize(); }
+    else return;
+    save(); syncAudioUI();
+  },
+};
 function boot(data) {
   loadSaved(); applyKeymaps(); renderControls();
   if (data && data.settings) settings = data.settings;
