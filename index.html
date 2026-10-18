@@ -453,6 +453,7 @@ window.KlapP2P = (() => {
           </div>
           <button class="go" id="go">Vechten!</button>
           <button class="btn" id="train">Training: bokszak</button>
+          <button class="btn" id="trainT">Training: technieken</button>
           <button class="btn" id="rpOpen">Replay openen</button><input type="file" id="rpFile" accept=".klap,.json,.gz" hidden>
           <p class="hint" id="netHint" hidden></p>
           <p class="msg" id="msg" role="status"></p>
@@ -475,6 +476,7 @@ window.KlapP2P = (() => {
           <li><b>Schild + richting</b> rolt weg, <b>schild + omlaag</b> ontwijkt op de plek, <b>schild in de lucht</b> is een luchtontwijking.</li>
           <li>Druk <b>schild vlak voor je neerkomt</b> na een klap om op te vangen (tech). Omlaag op een platform laat je erdoor vallen.</li>
           <li><b>Gevorderd.</b> <b>L-cancel</b>: druk schild vlak voor je landt met een luchtaanval, en je landingsvertraging halveert. <b>Wavedash</b>: spring en ontwijk meteen schuin omlaag, dan glijd je over de grond (ook om van een rand af te glijden). <b>Perfect afweren</b>: zet je schild vlak voordat een aanval raakt: geen schildschade, de aanvaller staat even stil en projectielen kaatsen terug. <b>Smash-DI</b>: tik een richting terwijl je na een klap stilstaat om een stukje te verschuiven, handig om uit meervoudige aanvallen te ontsnappen. <b>Sweetspots</b>: het verste puntje van een aanval raakt harder; bij Sabel en Lonk is de zwaardpunt extra sterk en de rest van het zwaard iets zwakker. <b>Herhaling</b>: dezelfde aanval steeds weer gebruiken doet minder schade.</li>
+          <li><b>Training: technieken</b> (in het menu) oefent de gevorderde technieken één voor één. Elke poging krijgt meteen uitleg, tot op het frame; vijf keer goed en je hebt de techniek gehaald. Kies een techniek met de cijfertoetsen of via het pauzemenu.</li>
           <li>Twee spelers op één toetsenbord: geef Toetsenbord 1 en Toetsenbord 2 hierboven toetsen die niet botsen. Gamepads en het aanraakscherm zijn niet aan te passen.</li>
         </ul>
       </details>
@@ -496,7 +498,7 @@ window.KlapP2P = (() => {
       <p class="pnote" id="pauseNote" hidden></p>
       <div class="btns"><button class="btn main" id="resume">Doorgaan</button><button class="btn" id="toLobby" hidden>Iedereen naar lobby</button><button class="btn" id="quit">Naar menu</button></div>
       <div class="paudio"><div class="opt"><span>Muziek</span><div class="vol"><label class="sr" for="pMusVol">Volume muziek</label><input type="range" id="pMusVol" min="0" max="100"><button class="tog" id="pMus" aria-pressed="true">Aan</button></div></div><div class="opt"><span>Effecten</span><div class="vol"><label class="sr" for="pSfxVol">Volume effecten</label><input type="range" id="pSfxVol" min="0" max="100"><button class="tog" id="pSnd" aria-pressed="true">Aan</button></div></div></div>
-      <div class="btns" id="trBtns" hidden><button class="btn" id="trReset">Bokszak terugzetten</button><button class="btn" id="trBoxes">Raakvlakken tonen</button></div>
+      <div class="btns" id="trBtns" hidden><button class="btn" id="tqPrev" hidden>Vorige techniek</button><button class="btn" id="tqNext" hidden>Volgende techniek</button><button class="btn" id="trReset">Bokszak terugzetten</button><button class="btn" id="trBoxes">Raakvlakken tonen</button></div>
     </div>
   </div>
 
@@ -551,7 +553,7 @@ let settings = {
     { type: 'cpu', ch: 'brick', lvl: 4 },
     { type: 'off', ch: 'sable', lvl: 5 },
     { type: 'off', ch: 'pip', lvl: 5 },
-  ], stage: 'ruins', stocks: 3, items: true, ioff: [], sound: true, music: true, musVol: 50, sfxVol: 80, mus: {}, detail: !isTouch, fps: false, autoQ: true, qRes: 0, qDet: false, qKeep: false,
+  ], stage: 'ruins', stocks: 3, items: true, ioff: [], sound: true, music: true, musVol: 50, sfxVol: 80, mus: {}, detail: !isTouch, fps: false, autoQ: true, qRes: 0, qDet: false, qKeep: false, techDone: [],
 };
 function save() { try { localStorage.setItem('klapstuk-v1', JSON.stringify(settings)); } catch (e) {} }
 function loadSaved() {
@@ -3106,6 +3108,7 @@ class Fighter {
     }
     this.px = this.x; this.py = this.y;
     addP({ type: 'ghost', x: this.x - sx / n * 7, y: this.y, life: 8, max: 8, size: this.c.h, w: this.c.w, color: '#ffffff' });
+    trEv(this, 'sdi');
   }
   setState(s) { this.state = s; this.t = 0; if (s !== 'attack') this.move = null; if (s !== 'land') this.wd = false; }
   update() {
@@ -3258,7 +3261,7 @@ class Fighter {
       const C = this.ctrl, full = C.jumpHeld && !(this.bf.atk > 0);
       this.vy = -(full ? this.c.jump : this.c.jump * 0.66); this.vx = this.vx * 0.85 + this.ix * 1.2;
       this.hop = full && C.src !== 'cpu' ? { n: 0, y0: this.y } : null;
-      this.grounded = false; this.ground = null; this.setState('air'); SFX.jump(); dustFx(this.x, this.y, 4);
+      this.grounded = false; this.ground = null; this.setState('air'); SFX.jump(); dustFx(this.x, this.y, 4); trEv(this, 'jump');
     }
   }
   airAct() {
@@ -3281,6 +3284,7 @@ class Fighter {
     const ix = this.ix, iy = this.iy;
     if (ix || iy) { const n = Math.hypot(ix, iy); this.vx = ix / n * 10; this.vy = iy / n * 10; this.adDir = true; this.adV = { x: this.vx, y: this.vy }; }
     else { this.adDir = false; this.vy = Math.min(this.vy, 2); }
+    trEv(this, 'ad', { ix, iy });
   }
   stepAD() { if (this.adDir) { this.vx *= 0.88; this.vy *= 0.88; } else this.drift(0.6); if (this.t >= 30) this.setState('air'); }
   stepShield() {
@@ -3475,13 +3479,14 @@ class Fighter {
       if (G.frame - this.lastShd <= 12 && this.lastShd > this.lastHitT) {
         this.grounded = true; this.ground = p; this.vy = this.lvy = this.lvx = this.vx = 0; this.resetAir();
         this.setState('evade'); this.ev = { dur: 22, i0: 0, i1: 18, vx: this.ix * 6, roll: !!this.ix, tech: true };
-        addP({ type: 'ring', x: this.x, y: this.y - this.c.h / 2, life: 14, max: 14, size: 30, color: '#ffffff' }); return;
+        addP({ type: 'ring', x: this.x, y: this.y - this.c.h / 2, life: 14, max: 14, size: 30, color: '#ffffff' }); trEv(this, 'land', { k: 'tech' }); return;
       }
-      if (vyT > 8) { this.vy = -vyT * 0.45; this.lvy = 0; this.y = p.y - 1; this.lvx *= 0.7; dustFx(this.x, this.y, 6); SFX.land(); return; }
+      if (vyT > 8) { this.vy = -vyT * 0.45; this.lvy = 0; this.y = p.y - 1; this.lvx *= 0.7; dustFx(this.x, this.y, 6); SFX.land(); trEv(this, 'land', { k: 'bounce' }); return; }
       this.grounded = true; this.ground = p; this.vy = 0; this.lvy = 0; this.lvx *= 0.5; this.resetAir(); this.tumbleAnim = false;
-      this.setState('knockdown'); dustFx(this.x, this.y, 8); SFX.land(); return;
+      this.setState('knockdown'); dustFx(this.x, this.y, 8); SFX.land(); trEv(this, 'land', { k: 'down' }); return;
     }
     this.grounded = true; this.ground = p; this.vy = 0; this.lvy = 0; this.fastfall = false; this.resetAir(); this.tumbleAnim = false;
+    let lk = { k: s };
     switch (s) {
       case 'attack': {
         const m = this.move;
@@ -3490,15 +3495,18 @@ class Fighter {
           const ac = m.aerial && (this.mt <= 2 || this.mt > m.start + m.active + m.end * 0.5);
           // aerials land fast so they can combo: 40% of their landing lag, 1 frame when auto-cancelled
           this.lag = ac ? 1 : m.aerial ? Math.max(2, Math.round((m.ll || 10) * 0.4)) : (m.ll || 10);
-          if (m.aerial && !ac && (G.frame - this.lastShd <= 7 || (this.cpu && this.lvl >= 6 && Math.random() < (this.lvl - 5) * 0.2))) { this.lag = Math.ceil(this.lag / 2); this.flash = 3; addP({ type: 'ring', x: this.x, y: this.y, life: 10, max: 10, size: 12, color: '#ffffff' }); } this.move = null; this.setState('land'); dustFx(this.x, this.y, 3);
+          const lc = m.aerial && !ac && (G.frame - this.lastShd <= 7 || (this.cpu && this.lvl >= 6 && Math.random() < (this.lvl - 5) * 0.2));
+          if (lc) { this.lag = Math.ceil(this.lag / 2); this.flash = 3; addP({ type: 'ring', x: this.x, y: this.y, life: 10, max: 10, size: 12, color: '#ffffff' }); } this.move = null; this.setState('land'); dustFx(this.x, this.y, 3);
+          lk = { k: m.aerial ? 'aerial' : 'special', ac, lc };
         }
         break;
       }
       case 'helpless': this.lag = 18; this.setState('land'); dustFx(this.x, this.y, 5); SFX.land(); break;
-      case 'airdodge': this.lag = 9; if (this.adDir && this.t < 16 && this.adV && this.adV.x) { this.vx = this.adV.x * 1.25; this.wd = true; dustFx(this.x, this.y, 4); } this.setState('land'); break;
+      case 'airdodge': lk = { k: 'ad', t: this.t }; this.lag = 9; if (this.adDir && this.t < 16 && this.adV && this.adV.x) { this.vx = this.adV.x * 1.25; this.wd = true; dustFx(this.x, this.y, 4); } lk.wd = !!this.wd; this.setState('land'); break;
       case 'shieldbreak': this.setState('dizzy'); break;
       case 'air': this.lag = G.frame - (this.airEnd ?? -99) <= 10 ? 1 : 3; this.setState('land'); dustFx(this.x, this.y, 3); SFX.land(); break;
     }
+    trEv(this, 'land', lk);
   }
   checkLedge() {
     if (this.grounded || this.ledgeCD > 0) return;
@@ -3633,17 +3641,18 @@ function applyHit(a, v, hb, dir, hx, hy, mult = 1, o = {}) {
     if (v.state === 'attack' && vm && vm.counter && v.mt >= vm.counter[0] && v.mt <= vm.counter[1]) { triggerCounter(v, a, d); return; }
     if (v.state === 'shield' && !hb.unblock && v.t <= 4) {
       v.hitlag = 2; v.flash = 6; if (a && !o.proj) a.hitlag = Math.min(24, Math.floor(d * 0.3 + 3)) + 10;
-      addP({ type: 'ring', x: hx, y: hy, life: 14, max: 14, size: 22, color: '#ffffff' }); SFX.counter();
+      addP({ type: 'ring', x: hx, y: hy, life: 14, max: 14, size: 22, color: '#ffffff' }); SFX.counter(); trEv(v, 'pshield', { t: v.t });
       return;
     }
     if (v.state === 'shield' && !hb.unblock) {
       v.shieldHP -= d * 1.25; v.shieldStun = Math.floor(d * 0.75) + 3; v.vx = dir * (1 + d * 0.22);
       const hl = Math.min(12, Math.floor(d * 0.3 + 3)); v.hitlag = hl; if (a && !o.proj) a.hitlag = hl;
-      addP({ type: 'ring', x: hx, y: hy, life: 10, max: 10, size: 12 + d, color: v.pc }); SFX.shield();
+      addP({ type: 'ring', x: hx, y: hy, life: 10, max: 10, size: 12 + d, color: v.pc }); SFX.shield(); trEv(v, 'shield', { t: v.t });
       if (v.shieldHP <= 0) v.shieldBreak();
       return;
     }
   }
+  trEv(v, 'hit');
   if (hb.noFlinch) { if (trWas !== null) trainHit(trWas, d, 0); v.percent = Math.min(999, v.percent + d); v.hud = 10; if (a) { a.stats.dmg += d; if (a !== v) { v.lastHit = a; v.lastHitT = G.frame; } } sparkFx(hx, hy, a ? a.col.fx : '#ffffff', 2); SFX.hit(2); return; }
   const wasGround = v.grounded ? v.ground : null; if (v.buried) { v.buried = false; v.frozen = 0; }
   if (v.holder && !o.throw) { const h = v.holder; h.held = null; if (h.state === 'holding') h.setState('idle'); v.holder = null; }
@@ -3742,7 +3751,7 @@ function updateProjs() {
       const vm = v.move;
       if (p.reflect && v !== p.owner && v.state === 'shield' && v.t <= 4) {
         p.vx = p.vx ? -p.vx : v.facing * 8; p.vy = -Math.abs(p.vy) * 0.5; p.owner = v; p.hitSet = new Set(); p.life = Math.max(p.life, 40);
-        v.flash = 6; addP({ type: 'ring', x: p.x, y: p.y, life: 14, max: 14, size: 20, color: '#ffffff' }); SFX.counter(); break;
+        v.flash = 6; addP({ type: 'ring', x: p.x, y: p.y, life: 14, max: 14, size: 20, color: '#ffffff' }); SFX.counter(); trEv(v, 'pshield', { t: v.t }); break;
       }
       if (p.reflect && v !== p.owner && v.state === 'attack' && vm && vm.absorb && v.mt >= vm.absorb[0] && v.mt <= vm.absorb[1]) {
         p.dead = true; v.percent = Math.max(0, v.percent - p.hb.d * 1.5); v.hud = 8; SFX.heal();
@@ -3754,7 +3763,7 @@ function updateProjs() {
         p.life = Math.max(p.life, 50); p.hitSet = new Set(); sparkFx(p.x, p.y, v.col.fx, 4); SFX.shield(); break;
       }
       // Lonk's shield stops ordinary projectiles from the front while he stands, walks or crouches
-      if (v.key === 'lonk' && v !== p.owner && (v.state === 'idle' || v.state === 'walk' || v.state === 'crouch') && !p.pierce && !p.explode && p.vx && Math.sign(p.vx) === -v.facing) {
+      if (v.key === 'lonk' && v !== p.owner && !p.trainer && (v.state === 'idle' || v.state === 'walk' || v.state === 'crouch') && !p.pierce && !p.explode && p.vx && Math.sign(p.vx) === -v.facing) {
         p.dead = true; v.vx = -v.facing * 1.2; v.flash = 4; addP({ type: 'ring', x: p.x, y: p.y, life: 12, max: 12, size: 16, color: '#9ff0ff' }); SFX.shield(); break;
       }
       if (v.intang) continue;
@@ -4353,7 +4362,7 @@ function demoRoster() {
 function startMatch(demo, custom, cfg) {
   const c = cfg || settings, sk = c.stage, sks = Object.keys(STAGES), pool = STAGES[sk] ? null : sks.filter(k => stageHazard(k) === (sk === 'randomh')), S = makeStage(pool ? pool[Math.random() * pool.length | 0] : sk);
   Object.assign(G, { stage: S, projs: [], items: [], parts: [], kos: [], frame: 0, shake: 0, flash: 0, paused: false, endT: 0, useItems: c.items, itemT: 480, itemOn: ITEM_LIST.filter(k => !(c.ioff || []).includes(k)),
-    training: false, mode: demo ? 'demo' : 'match', countdown: demo ? 0 : 200, stocks: demo ? 99 : c.stocks, net: null, netClient: false });
+    training: false, tech: null, mode: demo ? 'demo' : 'match', countdown: demo ? 0 : 200, stocks: demo ? 99 : c.stocks, net: null, netClient: false });
   G.musicId = demo ? null : MUSIC.pick(S.key); if (!demo) MUSIC.preview(null);
   const list = custom || (demo ? demoRoster() : activeSlots()), n = list.length;
   // pickChar turns hidden characters into a random one; the training bag is hidden but asked for on purpose
@@ -4387,7 +4396,7 @@ function sim() {
   for (const f of G.fighters) if (f.state === 'holding' && f.held) placeHeld(f);
   const wind = G.stage.def.wind;
   if (wind) for (const f of G.fighters) if (!f.grounded && f.hitlag <= 0 && !['ledge', 'respawn', 'dead', 'grabbed'].includes(f.state) && !(f.state === 'evade' && f.ev && f.ev.lerp)) f.x += wind;
-  processHits(); updateProjs(); updateItems(); updateParts(); updateCam(false); checkEnd();
+  processHits(); updateProjs(); if (G.tech) techTick(G.tech); updateItems(); updateParts(); updateCam(false); checkEnd();
   G.shake *= 0.86; if (G.flash > 0) G.flash--;
 }
 function tick() {
@@ -4720,7 +4729,7 @@ function strokeLimb(g, p, col, lw) {
 }
 function dot(g, x, y, r, col) { g.beginPath(); g.arc(x, y, r, 0, TAU); g.fillStyle = col; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke(); }
 function rr(g, x, y, w, h, r) {
-  r = Math.min(r, w / 2, h / 2); g.beginPath();
+  r = Math.max(0, Math.min(r, w / 2, h / 2)); g.beginPath();
   if (g.roundRect && r >= 0) return g.roundRect(x, y, w, h, r); // one call where the browser has it
   g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
 }
@@ -5442,6 +5451,7 @@ function trainHit(inCombo, d, kb) {
 }
 function drawTraining(g, V) {
   if (!G.training || !G.tr) return;
+  if (G.tech) return drawTech(g, V, G.tech);
   setScreen(g, V);
   const T = G.tr, pl = G.fighters.find(f => f.key !== 'bag'), bag = G.fighters.find(f => f.key === 'bag'), s = clamp(V.W / 1100, 0.75, 1);
   const live = bag && (bag.state === 'hitstun' || bag.state === 'grabbed');
@@ -5461,6 +5471,203 @@ function drawTraining(g, V) {
   g.font = `${13 * s}px system-ui, 'Segoe UI', Arial, sans-serif`;
   lines.forEach(([t, c2], i) => { g.fillStyle = c2; g.fillText(t, x + pad, y + pad + 16 * s + (i + 1) * lh - 4, wBox - pad * 2); });
 }
+/* ---------------- training: techniques ---------------- */
+// one lesson per advanced technique; the fighter reports what happened (trEv) and the lesson judges each attempt to the frame
+const TECH_NEED = 5;
+const frs = n => n + (n === 1 ? ' frame' : ' frames');
+const techDone = () => Array.isArray(settings.techDone) ? settings.techDone.filter(x => typeof x === 'string') : [];
+function trEv(f, k, o) { const T = G.tech; if (T && f === T.pl) techEv(T, k, o || {}); }
+const riseOf = (g, v) => { let r = 0; while ((v += g) < 0) r -= v; return r; };
+// a jump counts as short when its peak is nearer the short hop's height than the full jump's
+function shortHop(P, A) { const g = P.c.grav; return A.y0 - A.top < (riseOf(g, -P.c.jump * 0.66) + riseOf(g, -P.c.jump)) / 2; }
+const TECHS = [
+  { id: 'sh', name: 'Korte sprong + luchtaanval', how: 'Tik springen kort aan voor een lage sprong, of druk springen en aanval tegelijk. Doe in de lucht een luchtaanval en land.',
+    land(T, P, o, A) {
+      if (!A) return;
+      if (A.dj) return techSay(T, 'bad', 'Je gebruikte je tweede sprong. Eén korte sprong is genoeg.');
+      if (!shortHop(P, A)) return techSay(T, 'bad', `Volle sprong (${Math.round(A.y0 - A.top)} px hoog). Laat springen sneller los, of druk springen en aanval tegelijk.`);
+      if (!A.aer) return techSay(T, 'bad', 'Korte sprong goed, maar geen luchtaanval. Druk aanval terwijl je in de lucht bent.');
+      techSay(T, 'ok', 'Korte sprong met luchtaanval!');
+    } },
+  { id: 'ff', name: 'Snel vallen', how: 'Spring en tik omlaag zodra je na het hoogste punt begint te dalen. Binnen 6 frames telt als goed.',
+    land(T, P, o, A) {
+      if (!A || A.apex == null) return;
+      if (A.ff == null) return techSay(T, 'bad', A.dEarly != null ? `Te vroeg: omlaag werkt pas als je daalt, en je drukte ${frs(A.apex - A.dEarly)} voor het hoogste punt.` : 'Niet snel gevallen. Tik omlaag zodra je begint te dalen.');
+      const d = Math.max(0, A.ff - A.apex);
+      if (d <= 6) techSay(T, 'ok', `Snel gevallen, ${d ? frs(d) + ' na' : 'precies op'} het hoogste punt.`);
+      else techSay(T, 'bad', `Snel gevallen, maar pas ${frs(d)} na het hoogste punt. Probeer het binnen 6.`);
+    } },
+  { id: 'lc', name: 'L-cancel', how: 'Doe een luchtaanval en druk schild vlak voor je landt (tot 7 frames ervoor): je landingsvertraging halveert. Land midden in de aanval; aan het begin of eind annuleert hij vanzelf.',
+    land(T, P, o) {
+      if (o.k !== 'aerial') return;
+      if (o.ac) return techSay(T, 'info', 'Vanzelf geannuleerd: je landde aan het begin of eind van de aanval. Telt niet; land er middenin.');
+      const d = G.frame - P.lastShd;
+      if (o.lc) return techSay(T, 'ok', `L-cancel! Schild ${d ? frs(d) + ' voor' : 'precies op'} de landing.`);
+      if (d > 7 && d < 40) return techSay(T, 'bad', `${frs(d - 7)} te vroeg. Druk schild pas vlak voor de landing.`);
+      T.late = { f: G.frame, none: 'Geen schild gedrukt. Druk schild vlak voor je landt.', hint: 'Druk schild vlak voor je landt, niet erna.' };
+    } },
+  { id: 'shffl', name: 'Alles samen (SHFFL)', how: 'Korte sprong, luchtaanval, snel vallen en L-cancel, allemaal in één sprong.',
+    land(T, P, o, A) {
+      if (!A) return;
+      if (o.k === 'aerial' && o.ac) return techSay(T, 'info', 'Vanzelf geannuleerd: telt niet. Land midden in de aanval, dan kun je L-cancelen.');
+      const parts = [['korte sprong', !A.dj && shortHop(P, A)], ['luchtaanval', o.k === 'aerial' || A.aer], ['snel vallen', A.ff != null], ['L-cancel', !!o.lc]];
+      const all = parts.every(q => q[1]); techSay(T, all ? 'ok' : 'bad', (all ? 'SHFFL!  ' : '') + parts.map(([n, b]) => (b ? '✓ ' : '✗ ') + n).join('  ·  '));
+    } },
+  { id: 'wd', name: 'Wavedash', how: 'Spring en ontwijk meteen schuin omlaag: schild met omlaag en links of rechts. Dan glijd je over de grond.',
+    land(T, P, o, A) {
+      if (o.k === 'ad') {
+        const a = T.adP;
+        if (o.wd) return techSay(T, 'ok', `Wavedash!${a && a.after != null ? ` Ontweken ${frs(a.after)} na het afzetten.` : ''}`);
+        return techSay(T, 'bad', a && !a.ix ? 'Recht omlaag ontwijken glijdt niet: druk ook links of rechts.' : 'Te laat geland: ontwijk direct na het afzetten.');
+      }
+      if (o.k === 'air' && A && !A.ad) techSay(T, 'info', 'Geen ontwijking. Druk schild met omlaag en opzij direct na het afzetten.');
+    },
+    tick(T, P) {
+      const a = T.adP; if (!a || P.state === 'airdodge') return;
+      T.adP = null;
+      if (P.state === 'air') techSay(T, 'bad', a.iy <= 0 ? 'Ontwijk schuin omlaag: schild met omlaag en links of rechts.' : 'De ontwijking eindigde in de lucht. Ontwijk direct na het afzetten, dicht bij de grond.');
+    } },
+  { id: 'tech', name: 'Opvangen (tech)', how: 'Na het aftellen krijg je een klap omhoog. Druk schild vlak voor je de grond raakt (tot 12 frames ervoor). Houd links of rechts vast om weg te rollen.',
+    tick(T, P) { techLaunch(T, P, () => { applyHit(T.bag, P, { d: 6, a: 75, b: 92, g: 0 }, P.x < 0 ? 1 : -1, P.x, P.y - P.c.h / 2, 1, { throw: true }); P.hitstun = Math.max(P.hitstun, 120); }); },
+    land(T, P, o) {
+      if (!T.wait || !['tech', 'bounce', 'down'].includes(o.k)) return;
+      T.wait = null; const d = G.frame - P.lastShd;
+      if (o.k === 'tech') return techSay(T, 'ok', `Opgevangen! Schild ${d ? frs(d) + ' voor' : 'precies op'} de landing.`);
+      if (P.lastShd > P.lastHitT && d > 12) return techSay(T, 'bad', `${frs(d - 12)} te vroeg. Druk schild vlak voor je de grond raakt.`);
+      T.late = { f: G.frame, none: 'Niet opgevangen. Druk schild vlak voor je de grond raakt.', hint: 'Druk schild vlak voor je de grond raakt, niet erna.' };
+    } },
+  { id: 'ps', name: 'Perfect afweren', how: 'De zak gooit vuurballen. Zet je schild vlak voordat er een raakt (tot 4 frames ervoor): dan kaatst hij terug. Blijf wat op afstand.',
+    tick(T, P) {
+      const B = T.bag;
+      if (T.wait) { if (T.wait.proj.dead) { T.wait = null; T.gap = 40; } return; }
+      if (T.late || --T.gap > 0) return;
+      T.gap = 0;
+      if (!B || !B.grounded || B.state !== 'idle' || Math.abs(P.x - B.x) < 110 || ['hitstun', 'dead', 'respawn', 'ledge', 'grabbed'].includes(P.state)) return;
+      const dir = P.x < B.x ? -1 : 1; B.facing = dir; B.flash = 6;
+      spawnProj({ type: 'fire', owner: B, x: B.x + dir * 30, y: B.y - 38, vx: dir * 7, r: 12, life: Math.ceil(Math.abs(P.x - B.x) / 7) + 40, trainer: true, hb: { d: 4, a: 40, b: 45, g: 20 } });
+      T.wait = { f: G.frame, proj: G.projs[G.projs.length - 1] }; SFX.fire();
+    },
+    def(T, P, k, o) {
+      if (!T.wait || !['pshield', 'shield', 'hit'].includes(k)) return;
+      T.wait = null; T.gap = 50 + (Math.random() * 60 | 0);
+      if (k === 'pshield') return techSay(T, 'ok', `Perfect afgeweerd! Schild ${o.t ? frs(o.t) + ' voor' : 'precies op'} de klap.`);
+      if (k === 'shield') return techSay(T, 'bad', `${frs(o.t - 4)} te vroeg: je schild stond al ${frs(o.t)}. Zet het pas vlak voor de klap.`);
+      T.late = { f: G.frame, none: 'Geraakt. Zet je schild vlak voordat de bal je raakt.', hint: 'Zet je schild vlak voordat de bal je raakt.' };
+    } },
+  { id: 'sdi', name: 'Smash-DI', how: 'Na het aftellen krijg je een harde klap en sta je even stil. Tik in die tijd twee keer of vaker een richting om weg te schuiven.',
+    tick(T, P) {
+      const W = T.wait;
+      if (W && W.sdi != null) {
+        if (P.hitlag > 0) return;
+        T.wait = null; const n = W.sdi;
+        if (n >= 2) return techSay(T, 'ok', `${n} keer verschoven, ${n * 7} px.`);
+        return techSay(T, 'bad', n ? '1 keer verschoven. Tik twee keer of vaker zolang je stilstaat.' : 'Niet verschoven. Tik een richting (loslaten en opnieuw drukken) zolang je stilstaat.');
+      }
+      techLaunch(T, P, () => { applyHit(T.bag, P, { d: 5, a: 45, b: 60, g: 0 }, P.x < 0 ? 1 : -1, P.x, P.y - P.c.h / 2, 1, { throw: true }); P.hitlag = 30; T.wait.sdi = 0; });
+    } },
+];
+function techStart() {
+  const done = techDone();
+  G.tech = { pl: G.fighters.find(f => f.key !== 'bag'), bag: G.fighters.find(f => f.key === 'bag') };
+  techSet(Math.max(0, TECHS.findIndex(t => !done.includes(t.id))));
+}
+function techSet(i) {
+  const T = G.tech; if (!T) return;
+  i = (i + TECHS.length) % TECHS.length;
+  Object.assign(T, { i, ok: 0, streak: 0, best: 0, fb: null, A: null, adP: null, late: null, wait: null, cd: 0, gap: 60 });
+  const m = G.stage.main, P = T.pl;
+  G.projs = G.projs.filter(p => !p.trainer);
+  resetBag();
+  P.reset(m.x2 * -0.55, m.y); P.grounded = true; P.ground = m; P.state = 'idle'; P.facing = 1;
+}
+function techSay(T, kind, txt) {
+  T.fb = { kind, txt, t: G.frame };
+  if (kind === 'bad') T.streak = 0;
+  if (kind !== 'ok') return;
+  T.ok++; T.streak++; T.best = Math.max(T.best, T.streak);
+  const id = TECHS[T.i].id, done = techDone();
+  if (T.ok >= TECH_NEED && !done.includes(id)) { done.push(id); settings.techDone = done; save(); T.fb.txt += ' Techniek gehaald!'; SFX.game(); }
+  else SFX.ui();
+}
+function techEv(T, k, o) {
+  const P = T.pl, L = TECHS[T.i];
+  if (k === 'jump') { T.A = { f0: G.frame, y0: P.y, top: P.y, j0: P.jumps, apex: null, ff: null, dEarly: null, aer: false, dj: false, ad: false }; return; }
+  if (k === 'ad') { T.adP = { ix: o.ix, iy: o.iy, after: T.A ? G.frame - T.A.f0 : null }; if (T.A) T.A.ad = true; return; }
+  if (k === 'sdi') { if (T.wait && T.wait.sdi != null) T.wait.sdi++; return; }
+  if (k === 'land') { if (L.land) L.land(T, P, o, T.A); T.A = null; T.adP = null; return; }
+  if (L.def) L.def(T, P, k, o);
+}
+function techTick(T) {
+  const P = T.pl, A = T.A, L = TECHS[T.i];
+  if (A) {
+    if (['hitstun', 'ledge', 'dead', 'grabbed', 'respawn'].includes(P.state)) T.A = null;
+    else {
+      if (P.y < A.top) A.top = P.y;
+      if (A.apex == null && P.vy >= 0) A.apex = G.frame;
+      if (P.fastfall && A.ff == null) A.ff = G.frame;
+      if (P.ctrl.p.d && A.apex == null && !P.fastfall) A.dEarly = G.frame;
+      if (P.state === 'attack' && P.move && P.move.aerial) A.aer = true;
+      if (P.jumps < A.j0) A.dj = true;
+    }
+  }
+  // a press that came too late: wait a moment to say how late, or that none came
+  if (T.late) {
+    if (P.lastShd > T.late.f) { techSay(T, 'bad', `${frs(P.lastShd - T.late.f)} te laat. ${T.late.hint}`); T.late = null; }
+    else if (G.frame - T.late.f > 20) { techSay(T, 'bad', T.late.none); T.late = null; }
+  }
+  if (L.tick) L.tick(T, P);
+}
+// counts down over the player, then fires the lesson's hit; waits for the player to stand still on the ground first
+function techLaunch(T, P, fire) {
+  if (T.wait) { if (G.frame - T.wait.f > 300) T.wait = null; return; }
+  if (T.cd > 0) {
+    if (--T.cd > 0) { if (T.cd % 20 === 0) SFX.beep(false); return; }
+    if (P.intang || P.hitlag > 0 || ['dead', 'respawn', 'ledge', 'grabbed', 'holding', 'hitstun', 'shieldbreak', 'dizzy', 'knockdown'].includes(P.state)) { T.cd = 10; return; }
+    T.wait = { f: G.frame }; SFX.beep(true); fire(); P.percent = 0; T.gap = 50; return;
+  }
+  if (P.grounded && GROUNDED_ACT.includes(P.state) && !T.late && --T.gap <= 0) T.cd = 60;
+}
+const WRAP = new Map();
+function wrapText(g, txt, w) {
+  const key = g.font + '|' + (w | 0) + '|' + txt; let r = WRAP.get(key); if (r) return r;
+  r = []; let line = '';
+  for (const word of txt.split(' ')) { const t = line ? line + ' ' + word : word; if (line && g.measureText(t).width > w) { r.push(line); line = word; } else line = t; }
+  if (line) r.push(line);
+  if (WRAP.size > 200) WRAP.clear(); WRAP.set(key, r); return r;
+}
+function drawTech(g, V, T) {
+  setScreen(g, V);
+  const L = TECHS[T.i], s = clamp(V.W / 1100, 0.75, 1), fin = techDone().includes(L.id), fb = T.fb;
+  const pad = 10 * s, lh = 18 * s, wBox = Math.min(V.W - 24, 450 * s), tw = wBox - pad * 2, body = `${13 * s}px system-ui, 'Segoe UI', Arial, sans-serif`;
+  g.font = body;
+  const how = wrapText(g, L.how, tw), fbl = fb ? wrapText(g, fb.txt, tw) : ['Probeer het maar.'];
+  const keys = G.hudTop ? 'Pauzemenu: andere techniek' : `1–${TECHS.length}: andere techniek · R: zak terugzetten · Esc: pauze`;
+  const hBox = pad * 2 + 16 * s + (how.length + fbl.length + 2) * lh + 6 * s, x = 12, y = G.hudTop ? V.H - hBox - 12 : 12;
+  const fcol = !fb ? '#aea4cb' : fb.kind === 'ok' ? '#7dff9a' : fb.kind === 'bad' ? '#ff8a7a' : '#d8d0f0', fresh = fb && G.frame - fb.t < 24;
+  g.fillStyle = 'rgba(18,14,29,.82)'; rr(g, x, y, wBox, hBox, 10); g.fill();
+  g.strokeStyle = fresh ? fcol : 'rgba(255,255,255,.15)'; g.lineWidth = fresh ? 2 : 1; g.stroke();
+  g.textAlign = 'left'; g.font = `${13 * s}px Impact, 'Arial Black', sans-serif`; g.fillStyle = '#ffc933';
+  g.fillText(`TECHNIEK ${T.i + 1}/${TECHS.length} · ${L.name.toUpperCase()}${fin ? '  ✓' : ''}`, x + pad, y + pad + 12 * s, tw);
+  g.font = body; let ty = y + pad + 16 * s + lh - 4;
+  g.fillStyle = '#f5f0e4'; for (const t of how) { g.fillText(t, x + pad, ty); ty += lh; }
+  // progress: one pip per good attempt needed
+  const pr = 5 * s, py = ty - 5 * s;
+  for (let k = 0; k < TECH_NEED; k++) { g.beginPath(); g.arc(x + pad + pr + k * 14 * s, py, pr, 0, TAU); g.fillStyle = k < T.ok ? '#7dff9a' : 'rgba(255,255,255,.18)'; g.fill(); }
+  g.fillStyle = '#f5f0e4'; g.fillText(`${T.ok} goed · reeks ${T.streak}${T.best > 1 ? ` (beste ${T.best})` : ''}`, x + pad + TECH_NEED * 14 * s + 8 * s, ty); ty += lh + 6 * s;
+  g.fillStyle = fcol; for (const t of fbl) { g.fillText(t, x + pad, ty); ty += lh; }
+  g.fillStyle = '#aea4cb'; g.fillText(keys, x + pad, ty, tw);
+}
+// the countdown before a lesson's hit: a ring closing in on the player and the seconds above the head
+function drawTechWorld(g, T) {
+  const P = T.pl; if (!P || T.cd <= 0) return;
+  const k = T.cd / 60, cx = P.x, cy = P.y - P.c.h / 2, n = String(Math.ceil(T.cd / 20));
+  g.save(); g.globalAlpha = 0.45 + 0.55 * (1 - k); g.strokeStyle = '#ffc933'; g.lineWidth = 4;
+  g.beginPath(); g.arc(cx, cy, P.c.h * 0.6 + 80 * k, 0, TAU); g.stroke();
+  g.globalAlpha = 1; g.font = `30px Impact, 'Arial Black', sans-serif`; g.textAlign = 'center'; g.lineWidth = 6; g.strokeStyle = INK; g.fillStyle = '#ffc933';
+  g.strokeText(n, cx, P.y - P.c.h - 22); g.fillText(n, cx, P.y - P.c.h - 22);
+  g.restore();
+}
+function techLabel() { const n = techDone().filter(id => TECHS.some(t => t.id === id)).length; $('#trainT').textContent = 'Training: technieken' + (n ? ` (${n}/${TECHS.length})` : ''); }
 function poefFlags(f) {
   const m = f.state === 'attack' ? f.move : null, M = f.M, t = f.mt;
   return { puff: f.djT > 0 && f.state === 'air', inhale: !f.copy && m === M.neutralB && t >= 4 && t <= 50, full: m === M.mouthful || (m === M.swallow && t < 14), copy: f.copy, spit: m === M.spit,
@@ -6969,6 +7176,7 @@ function render() {
   drawParts(g, V.cam.z);
   drawKOs(g, V);
   if (G.showBoxes && G.training) { setLayer(g, V, 1); drawBoxes(g); }
+  if (G.tech) { setLayer(g, V, 1); drawTechWorld(g, G.tech); }
   if (G.mode !== 'demo') { drawOffscreen(g, V); drawHUD(g, V); drawTraining(g, V); }
   drawFsBanner(g, V);
   const hw = G.mode !== 'demo' && hazardWarn(S);
@@ -7169,7 +7377,7 @@ function syncOpts() {
   else if (!NET.game) go.hidden = true;
   else if (NET.role === 'host') { go.hidden = false; go.disabled = false; go.textContent = 'Start!'; }
   else { go.hidden = false; go.disabled = true; go.textContent = 'Wachten op host…'; }
-  $('#train').hidden = $('#rpOpen').hidden = online(); $('#netHint').hidden = !online() || !NET.game;
+  $('#train').hidden = $('#trainT').hidden = $('#rpOpen').hidden = online(); techLabel(); $('#netHint').hidden = !online() || !NET.game;
 }
 function setMode(m) {
   if (m === UIM && m === 'online') { if (NET.game) { showLobby(); renderLobby(); } else showNetStart(); syncOpts(); return; }
@@ -7221,7 +7429,7 @@ function drawPv(cnv, ch, sk, now, i) {
 /* ---------------- screens ---------------- */
 function showMenu() {
   menuEl.hidden = false; resEl.hidden = true; pauseEl.hidden = true; pbtn.hidden = true; touchEl.hidden = true; G.hudTop = false;
-  startMatch(true);
+  techLabel(); startMatch(true);
 }
 function goFight() {
   if (activeSlots().length < 2) { $('#msg').textContent = 'Zet minstens twee vechters aan (speler of CPU).'; return; }
@@ -7232,15 +7440,19 @@ function goFight() {
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   startMatch(false);
 }
-function goTraining() {
+function goTraining(tech) {
+  tech = tech === true;
   let si = settings.slots.findIndex(x => x.type !== 'off' && x.type !== 'cpu');
   const s0 = settings.slots[si >= 0 ? si : 0], type = si >= 0 ? s0.type : (isTouch ? 'touch' : 'kb1'); if (si < 0) si = 0;
   SFX.init(); save(); $('#msg').textContent = '';
   menuEl.hidden = true; resEl.hidden = true; pauseEl.hidden = true; pbtn.hidden = false;
   touchEl.hidden = type !== 'touch'; G.hudTop = type === 'touch';
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-  startMatch(false, [{ i: si, ch: s0.ch, type, lvl: 5 }, { i: si === 1 ? 0 : 1, ch: 'bag', type: 'none', lvl: 1 }], Object.assign({}, settings, { stocks: 99, items: false }));
+  // the techniques want a calm stage: no hazards, wind or ice getting in the way of the timing
+  const st = tech && (!STAGES[settings.stage] || stageHazard(settings.stage)) ? 'ruins' : settings.stage;
+  startMatch(false, [{ i: si, ch: s0.ch, type, lvl: 5 }, { i: si === 1 ? 0 : 1, ch: 'bag', type: 'none', lvl: 1 }], Object.assign({}, settings, { stocks: 99, items: false, stage: st }));
   G.training = true; G.countdown = 60; G.tr = { n: 0, dmg: 0, last: 0, kb: 0, best: 0, bestDmg: 0 };
+  if (tech) techStart();
 }
 function resetBag() {
   const bag = G.fighters.find(f => f.key === 'bag'); if (!bag || !G.training) return;
@@ -7249,10 +7461,10 @@ function resetBag() {
 }
 function setPause(p) {
   if (!(G.mode === 'match' || G.mode === 'gameover')) return;
-  $('#trBtns').hidden = !G.training; $('#trBoxes').textContent = G.showBoxes ? 'Raakvlakken verbergen' : 'Raakvlakken tonen';
+  $('#trBtns').hidden = !G.training; $('#tqPrev').hidden = $('#tqNext').hidden = !G.tech; $('#trBoxes').textContent = G.showBoxes ? 'Raakvlakken verbergen' : 'Raakvlakken tonen';
   const host = !!G.net && G.net.role === 'host', guest = !!G.net && !host, held = guest && G.hostPause;
   if (held) p = true;
-  $('#pauseTitle').textContent = held ? 'Gepauzeerd' : guest ? 'Online spel' : G.training ? 'Training' : 'Pauze';
+  $('#pauseTitle').textContent = held ? 'Gepauzeerd' : guest ? 'Online spel' : G.tech ? 'Training: technieken' : G.training ? 'Training' : 'Pauze';
   $('#pauseNote').hidden = !G.net;
   $('#pauseNote').textContent = held ? 'De host heeft het spel gepauzeerd.' : guest ? 'Het spel loopt door. Alleen de host kan pauzeren.' : host ? 'Het spel staat voor iedereen stil.' : '';
   $('#resume').hidden = held; $('#toLobby').hidden = !host;
@@ -7334,7 +7546,7 @@ function replayWatch() {
 }
 function replayStart(rp, back) {
   const S = makeStage(STAGES[rp.st] ? rp.st : 'ruins');
-  Object.assign(G, { stage: S, projs: [], items: [], parts: [], kos: [], frame: 0, shake: 0, flash: 0, paused: false, endT: 0, mode: 'match', countdown: 0, stocks: 3, useItems: false, training: false, net: null, netClient: false, hudTop: false });
+  Object.assign(G, { stage: S, projs: [], items: [], parts: [], kos: [], frame: 0, shake: 0, flash: 0, paused: false, endT: 0, mode: 'match', countdown: 0, stocks: 3, useItems: false, training: false, tech: null, net: null, netClient: false, hudTop: false });
   G.fighters = rp.ro.map(r => {
     const ck = CHARS[r[1]] ? r[1] : 'volt', f = new Fighter(clamp(r[0] | 0, 0, 3), ck, 'none', clamp(r[4] | 0, 1, 12), clamp(r[2] | 0, 0, SKINS - 1));
     f.cpu = !!r[3]; f.state = 'idle'; f.grounded = true; f.ground = S.main; return f;
@@ -7888,7 +8100,7 @@ addEventListener('keydown', e => {
   if ((G.mode === 'match' || G.mode === 'gameover') && GAMEKEYS.has(e.code)) e.preventDefault();
   else if (!menuEl.hidden && GAMEKEYS.has(e.code) && !typing() && !kbWait) e.preventDefault();
   if (e.code === 'Escape' || (e.code === 'KeyP' && G.mode === 'match' && !GAMEKEYS.has('KeyP'))) { if (G.mode === 'match' || G.mode === 'gameover') { setPause(pauseEl.hidden); e.preventDefault(); return; } if (G.mode === 'results' && !G.net) { showMenu(); return; } }
-  if (G.training && G.mode === 'match' && !e.repeat && !GAMEKEYS.has(e.code)) { if (e.code === 'KeyR') { resetBag(); return; } if (e.code === 'KeyH') { G.showBoxes = !G.showBoxes; return; } }
+  if (G.training && G.mode === 'match' && !e.repeat && !GAMEKEYS.has(e.code)) { if (e.code === 'KeyR') { resetBag(); return; } if (G.tech && /^Digit[1-9]$/.test(e.code) && +e.code[5] <= TECHS.length) { techSet(+e.code[5] - 1); return; } if (e.code === 'KeyH') { G.showBoxes = !G.showBoxes; return; } }
   if (e.code === 'Enter' && !menuEl.hidden && !online()) { const a = document.activeElement; if (!a || a === document.body || a === cv) { goFight(); e.preventDefault(); } }
   keys.add(e.code); if (!e.repeat) tapped.add(e.code);
 });
@@ -7897,6 +8109,9 @@ addEventListener('blur', () => keys.clear());
 addEventListener('pointerdown', () => SFX.init(), { passive: true });
 $('#go').addEventListener('click', () => { if (online()) netStartMatch(); else goFight(); });
 $('#train').addEventListener('click', goTraining);
+$('#trainT').addEventListener('click', () => goTraining(true));
+$('#tqPrev').addEventListener('click', () => { techSet(G.tech.i - 1); setPause(false); });
+$('#tqNext').addEventListener('click', () => { techSet(G.tech.i + 1); setPause(false); });
 $('#trReset').addEventListener('click', () => { resetBag(); setPause(false); });
 $('#trBoxes').addEventListener('click', () => { G.showBoxes = !G.showBoxes; setPause(false); });
 $('#kbReset').addEventListener('click', () => { settings.keys = null; kbWait = null; save(); applyKeymaps(); renderControls(); $('#kbNote').textContent = 'Standaardtoetsen hersteld.'; });
