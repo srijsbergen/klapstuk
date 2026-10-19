@@ -4689,12 +4689,24 @@ function mix(a, b, k) {
   o.plant = k < 0.5 ? a.plant : b.plant; return o;
 }
 const BALL = mk({ lF: [1.4, -2.3], lB: [1.1, -2.2], aF: [1.4, -2.0], aB: [1.0, -2.0], crouch: 0.3 });
+// the ninja run: leaning far forward, strides that kick out behind and both arms stretched straight back (arm angles are relative
+// to the torso, so they subtract the lean to point backwards)
+function ninjaRunPose(ph) {
+  const lean = 0.82, fl = Math.sin(ph * 2) * 0.05;
+  return mk({ lean, crouch: 0.08, lF: [Math.sin(ph) * 0.95 - 0.3, -Math.max(0, -Math.cos(ph)) * 1.5 - 0.2], lB: [-Math.sin(ph) * 0.95 - 0.3, -Math.max(0, Math.cos(ph)) * 1.5 - 0.2],
+    aF: [-1.95 - lean + fl, 0.03], aB: [-1.78 - lean - fl, 0.03], dy: -Math.abs(Math.sin(ph)) * 2 });
+}
 function poseFor(f) {
   const s = f.state, fr = G.frame;
   switch (s) {
     case 'idle': case 'respawn': return mk({ dy: Math.sin(fr * 0.08 + f.id) * 1.2, aF: [0.35 + Math.sin(fr * 0.08 + f.id) * 0.06, -0.6], plant: 'both' });
     case 'run': case 'walk': {
       const ph = f.runPh, k = Math.min(1, Math.abs(f.vx) / f.c.run);
+      if (f.key === 'draai' && k > 0.55) {
+        const P = mk({ lean: 0.28 * k, lF: [Math.sin(ph) * 0.95 * k, -Math.max(0, -Math.cos(ph)) * 1.2 * k - 0.15], lB: [-Math.sin(ph) * 0.95 * k, -Math.max(0, Math.cos(ph)) * 1.2 * k - 0.15],
+          aF: [-Math.sin(ph) * 0.9 * k + 0.25, -0.9], aB: [Math.sin(ph) * 0.9 * k, -0.9], dy: -Math.abs(Math.sin(ph)) * 3 * k });
+        return mix(P, ninjaRunPose(ph), Math.min(1, (k - 0.55) / 0.3));
+      }
       return mk({ lean: 0.28 * k, lF: [Math.sin(ph) * 0.95 * k, -Math.max(0, -Math.cos(ph)) * 1.2 * k - 0.15], lB: [-Math.sin(ph) * 0.95 * k, -Math.max(0, Math.cos(ph)) * 1.2 * k - 0.15],
         aF: [-Math.sin(ph) * 0.9 * k + 0.25, -0.9], aB: [Math.sin(ph) * 0.9 * k, -0.9], dy: -Math.abs(Math.sin(ph)) * 3 * k, plant: k < 0.2 ? 'both' : null });
     }
@@ -6722,7 +6734,7 @@ function drawAnimeProj(g, p, fr) {
   } else if (p.type === 'clone') {
     const o = p.owner, c = CHARS.draai, col = o && o.key === 'draai' ? o.col : c.col, run = Math.abs(p.vx) > 0.1;
     let P;
-    if (run) { const ph = p.t * 0.55; P = mk({ lean: 0.3, lF: [Math.sin(ph) * 0.95, -Math.max(0, -Math.cos(ph)) * 1.2 - 0.15], lB: [-Math.sin(ph) * 0.95, -Math.max(0, Math.cos(ph)) * 1.2 - 0.15], aF: [-Math.sin(ph) * 0.9 + 0.25, -0.9], aB: [Math.sin(ph) * 0.9, -0.9] }); }
+    if (run) P = ninjaRunPose(p.t * 0.55);
     else P = mk({ crouch: 0.35, aF: [2.9, -0.1], aB: [2.7, -0.1], plant: 'both' });
     g.globalAlpha = Math.min(1, p.life / 6) * 0.9; g.scale(dir, 1); g.translate(0, c.h * 0.4);
     drawPuppet(g, 'draai', col, P, { grounded: true, fr });
