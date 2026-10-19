@@ -175,7 +175,16 @@ kbd{font-family:var(--ui);background:var(--panel-2);border:1px solid var(--line)
 .tips b{color:var(--fg)}
 button:focus-visible,select:focus-visible,input:focus-visible,canvas:focus-visible,summary:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-#pause,#results{background:rgba(18,14,29,.78);display:grid;place-items:center}
+#pause,#results,#story{background:rgba(18,14,29,.78);display:grid;place-items:center}
+.card.story{max-width:560px;width:100%}
+.stlist{display:grid;gap:8px;margin:12px 0}
+.stlist button{text-align:left;display:flex;justify-content:space-between;gap:10px}
+.stlist button small{opacity:.7}
+.sttalk{display:flex;gap:16px;align-items:center;text-align:left;margin:14px 0 6px;min-height:96px}
+.sttalk canvas{width:88px;height:88px;flex:none;border-radius:50%;background:#2a2342;border:3px solid #15111f}
+.sttalk canvas.none{display:none}
+.sttalk b{font-family:var(--display);font-size:15px;color:#ffc933}
+.sttalk p{margin:4px 0 0;font-size:16px;line-height:1.45}
 #net{background:rgba(18,14,29,.84);display:grid;place-items:center}
 .net-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .netsec{display:flex;flex-direction:column;gap:10px}
@@ -457,6 +466,7 @@ window.KlapP2P = (() => {
           <button class="go" id="go">Vechten!</button>
           <button class="btn" id="train">Training: bokszak</button>
           <button class="btn" id="trainT">Training: technieken</button>
+          <button class="btn" id="storyGo">Verhaal: het Gouden Klapstuk</button>
           <button class="btn" id="tgtGo">Doelwitten slopen</button>
           <button class="btn" id="bossGo">Baas: Master Voet</button>
           <button class="btn" id="rpOpen">Replay openen</button><input type="file" id="rpFile" accept=".klap,.json,.gz" hidden>
@@ -514,6 +524,15 @@ window.KlapP2P = (() => {
     </div>
   </div>
 
+  <div id="story" class="screen" hidden>
+    <div class="card story">
+      <p class="label" id="stLabel">Verhaal</p>
+      <h2 id="stTitle"></h2>
+      <div id="stList" class="stlist"></div>
+      <div id="stTalk" class="sttalk" hidden><canvas id="stPic" width="160" height="160" aria-hidden="true"></canvas><div><b id="stWho"></b><p id="stText" aria-live="polite"></p></div></div>
+      <div class="btns"><button class="btn main" id="stNext">Verder</button><button class="btn" id="stSkip">Overslaan</button><button class="btn" id="stMenu">Menu</button></div>
+    </div>
+  </div>
   <div id="results" class="screen" hidden>
     <div class="card">
       <p class="label">Uitslag</p>
@@ -1035,7 +1054,7 @@ class Ctrl {
   poll(f) {
     let raw; this.netPress = null;
     if (G.countdown > 50 || G.mode === 'gameover') raw = blank();
-    else if (this.src === 'cpu') raw = aiWall(f, f.ai.think(), this.h);
+    else if (this.src === 'cpu') raw = aiWall(f, aiRoute(f, f.ai.think()), this.h);
     else if (KEYMAPS[this.src]) raw = readKeys(KEYMAPS[this.src]);
     else if (this.src === 'pad1') raw = readPad(0);
     else if (this.src === 'pad2') raw = readPad(1);
@@ -1598,6 +1617,20 @@ function spawnWave(f, dir, plat) {
 }
 // Nevel's skill connect: in the delay after a sword skill, special in another direction starts that skill at once;
 // each skill once per chain, so at most four, and the leap upward ends it
+// a CPU with a block between it and its target (on the roof over a tunnel, or in the tunnel under it) goes round the
+// nearest end of the block instead of waiting or jumping into the ceiling
+function aiRoute(f, o) {
+  const S = G.stage; if (!S || !S.blocks.length || !f.ai || !f.ai.pickTarget || !GROUNDED_ACT.concat(['air']).includes(f.state)) return o;
+  const t = f.ai.pickTarget(); if (!t) return o;
+  for (const b of S.blocks) {
+    if (f.x < b.x1 - 30 || f.x > b.x2 + 30 || t.x < b.x1 - 60 || t.x > b.x2 + 60) continue;
+    const fAbove = f.y <= surfY(b, f.x) + 2, fBelow = f.y - f.c.h >= b.y + b.h - 4, tAbove = t.y <= b.y + 2, tBelow = t.y - t.c.h >= b.y + b.h - 6;
+    if (!((fAbove && tBelow) || (fBelow && tAbove))) continue;
+    const d = f.x - b.x1 < b.x2 - f.x ? -1 : 1;
+    return Object.assign({}, o, { l: d < 0, r: d > 0, jmp: fBelow ? false : o.jmp, d: false, atk: false, spc: false });
+  }
+  return o;
+}
 // a CPU running at the wall of a block jumps (and jumps again in the air) to get over it
 function aiWall(f, o, prev) {
   const S = G.stage; if (!S || !S.blocks.length || !(o.l || o.r) || o.jmp) return o;
@@ -1607,6 +1640,8 @@ function aiWall(f, o, prev) {
     const gap = d > 0 ? b.x1 - (f.x + hw) : (f.x - hw) - b.x2;
     if (gap < -2 || gap > 26) continue;
     if (f.grounded || (f.state === 'air' && f.jumps > 0 && f.vy > -3)) { if (!prev.jmp) return Object.assign({}, o, { jmp: true }); }
+    // out of jumps and still below the top: the up special
+    else if (f.state === 'air' && f.jumps <= 0 && f.vy > 0 && !f.upBUsed && f.y - f.c.h * 0.5 > b.y && !prev.spc) return Object.assign({}, o, { u: true, spc: true });
     return o;
   }
   return o;
@@ -3048,12 +3083,12 @@ const STAGES = {
     plats: [[-290, -110, -205, { rock: { amp: 0.17, per: 320 } }], [110, 290, -205, { rock: { amp: 0.17, per: 320, ph: Math.PI } }], [-58, 58, -350, { ax: 14, per: 320 }], [-110, -20, -120, { k: -0.95 }], [20, 110, -205.5, { k: 0.95 }]],
     blast: { l: -1400, r: 1400, t: -1120, b: 700 }, cam: [0.6, 410], thumbY: -150, sky: skyShip, art: artShip },
   slot: { name: 'Koningsslot', blurb: 'De daken van een koningsslot. Onder het grote dak loopt een tunnel; rechts staat een toren die je moet beklimmen.', big: true, cam: [0.62, 400],
-    main: { x1: -640, x2: 640, y: 0, h: 70 }, blocks: [[-340, 40, -220, 108, { prof: [[-340, -220], [-150, -300], [40, -220]] }], [215, 295, -300, 300]],
+    main: { x1: -640, x2: 640, y: 0, h: 70 }, blocks: [[-340, 40, -220, 108, { prof: [[-340, -220], [-150, -300], [40, -220]] }], [215, 295, -270, 270]],
     plats: [[-560, -400, -96, { k: -0.42 }], [70, 185, -190], [330, 440, -165], [460, 590, -150, { k: 0.28 }], [-520, -380, -270]],
     blast: { l: -1500, r: 1500, t: -1150, b: 700 }, thumbY: -150, sky: skySlot, art: artSlot },
   targets: { name: 'Doelwittenkamer', hidden: true, blurb: '', ry: -330,
     main: { x1: -260, x2: 260, y: 0, h: 60 }, blocks: [[-70, 70, -640, 280], [300, 700, -320, 105, { prof: [[300, -320], [500, -385], [700, -320]] }]],
-    plats: [[-460, -320, -110], [-640, -500, -220], [-460, -320, -330], [-640, -480, -440, { k: -0.25 }], [-420, -260, -560], [300, 700, -100], [760, 880, -240, { ay: 140, per: 420 }],
+    plats: [[-460, -320, -110], [-640, -500, -220], [-460, -320, -330], [-640, -480, -440, { k: -0.25 }], [-420, -260, -560], [300, 742, -100], [770, 890, -240, { ay: 140, per: 420 }],
       [560, 760, -520, { k: -0.3 }], [300, 460, -660], [60, 300, -760, { k: 0.25 }], [-150, 150, -900], [-580, -400, -760, { rock: { amp: 0.15, per: 300 } }], [400, 520, -900, { ax: 120, per: 500 }]],
     blast: { l: -1650, r: 1650, t: -1800, b: 700 }, sky: skyTargets, art: artTargets },
   voet: { name: 'Laatste Halte', hidden: true, blurb: '', main: { x1: -470, x2: 470, y: 0, h: 70 }, plats: [], blast: { l: -1350, r: 1350, t: -1100, b: 700 }, cam: [0.7, 360], sky: skyVoet, art: artVoet },
@@ -3656,10 +3691,10 @@ class Fighter {
       }
       this.y = surfY(p, this.x);
       // the walls of solid blocks stop a fighter walking into them
-      if (S.blocks.length) for (const b of S.solids) if (b !== p && this.y > b.y + 1 && this.y - H < b.y + b.h && this.x + hw > b.x1 && this.x - hw < b.x2) {
-        if (this.x < (b.x1 + b.x2) / 2) { this.x = b.x1 - hw; if (this.vx > 0) this.vx = 0; } else { this.x = b.x2 + hw; if (this.vx < 0) this.vx = 0; }
+      if (S.blocks.length) for (const b of S.solids) { const ew = this.edgeW(b.y); if (b !== p && this.y > b.y + 1 && this.y - H < b.y + b.h && this.x + ew > b.x1 && this.x - ew < b.x2) {
+        if (this.x < (b.x1 + b.x2) / 2) { this.x = b.x1 - ew; if (this.vx > 0) this.vx = 0; } else { this.x = b.x2 + ew; if (this.vx < 0) this.vx = 0; }
         if (this.x < p.x1 || this.x > p.x2) { this.x = clamp(this.x, p.x1, p.x2); } this.y = surfY(p, this.x);
-      }
+      } }
       return;
     }
     if (this.vy + this.lvy >= 0) {
@@ -3667,21 +3702,26 @@ class Fighter {
       for (const p of S.surf) {
         if (this.x < p.x1 - 1 || this.x > p.x2 + 1) continue;
         const sy = surfY(p, this.x), s0 = surfY(p, this.px), pv = s0 + ((p.py ?? p.y) - p.y);
+        // just past the end of a surface only counts when coming down onto it, not when walking off it
+        if ((this.x < p.x1 || this.x > p.x2) && this.py >= s0 - 0.5) continue;
         // landing from above; inside a hill of the ground counts too (it rose through the slope)
         if ((this.py <= Math.max(s0, pv) + (p.k || p.rock ? 2.5 : 0.5) && this.y >= sy) || (p.prof && this.y >= sy && this.y <= p.y + 1)) { if (!p.solid && this.dropT > 0) continue; if (!best || sy < by) { best = p; by = sy; } }
       }
       if (best) { this.y = by; this.land(best); }
     }
     if (!this.grounded) for (const m of S.solids) {
-      const top = this.y - H;
-      if (this.y > m.y + 1 && top < m.y + m.h && this.x + hw > m.x1 && this.x - hw < m.x2) {
+      const top = this.y - H, ew = this.edgeW(m.y);
+      if (this.y > m.y + 1 && top < m.y + m.h && this.x + ew > m.x1 && this.x - ew < m.x2) {
         if (this.py - H >= m.y + m.h - 2) { this.y = m.y + m.h + H; if (this.vy < 0) this.vy = 0; if (this.lvy < 0) this.lvy = -this.lvy * 0.4; }
-        // sunk in from above (not rising): back on top, closer than either side
-        else if (this.vy + this.lvy >= 0 && this.y - m.y < Math.min(this.x + hw - m.x1, m.x2 - (this.x - hw))) { this.y = surfY(m, this.x); this.land(m); break; }
-        else if (this.x < (m.x1 + m.x2) / 2) { this.x = m.x1 - hw; if (this.lvx > 0) this.lvx = -this.lvx * 0.4; if (this.vx > 0) this.vx = 0; }
-        else { this.x = m.x2 + hw; if (this.lvx < 0) this.lvx = -this.lvx * 0.4; if (this.vx < 0) this.vx = 0; }
+        // sunk in from above (not rising) with the feet over it: back on top, when that is closer than either side
+        else if (this.vy + this.lvy >= 0 && this.x >= m.x1 && this.x <= m.x2 && this.y - m.y < Math.min(this.x + ew - m.x1, m.x2 - (this.x - ew))) { this.y = surfY(m, this.x); this.land(m); break; }
+        else if (this.x < (m.x1 + m.x2) / 2) { this.x = m.x1 - ew; if (this.lvx > 0) this.lvx = -this.lvx * 0.4; if (this.vx > 0) this.vx = 0; }
+        else { this.x = m.x2 + ew; if (this.lvx < 0) this.lvx = -this.lvx * 0.4; if (this.vx < 0) this.vx = 0; }
       }
     }
+  }
+  // how wide the body is at height y: a point at the feet, the full width from half way up
+  edgeW(y) { const d = this.y - y, h2 = this.c.h * 0.5; return d >= h2 ? this.c.w * 0.5 : this.c.w * 0.5 * Math.max(0, d) / h2;
   }
   resetAir() { this.jumps = this.c.airJumps + (this.feather > 0 ? 2 : 0); this.magStall = false; this.airdodged = false; this.sideBUsed = false; this.upBUsed = false; this.pktHit = false; }
   land(p) {
@@ -3806,7 +3846,7 @@ function processHits() {
     for (const hb of activeHB(a)) {
       const hx = a.x + hb.x * a.facing, hy = a.y + hb.y;
       for (const v of F) {
-        if (v === a || v.state === 'dead' || v.state === 'respawn' || G.solo) continue;
+        if (v === a || v.state === 'dead' || v.state === 'respawn' || G.solo || (G.teams && v.team === a.team)) continue;
         const key = v.id + ':' + (hb.grp || 0);
         if (a.hitSet.has(key)) continue;
         if (!circleRect(hx, hy, hb.r, v.x - v.c.w / 2, v.y - v.c.h, v.c.w, v.c.h)) continue;
@@ -3963,6 +4003,7 @@ function updateProjs() {
       if (v.state === 'dead' || v.state === 'respawn') continue;
       if (v === p.owner && !p.selfHit) continue;
       if (G.solo && p.owner && v !== p.owner) continue;
+      if (G.teams && p.owner && v !== p.owner && p.owner.team === v.team) continue;
       if (p.type === 'pkfire' && v.state === 'grabbed') continue;
       if (p.hitSet.has(v.id)) continue;
       if (!circleRect(p.x, p.y, p.r, v.x - v.c.w / 2, v.y - v.c.h, v.c.w, v.c.h)) continue;
@@ -4100,7 +4141,7 @@ class AI {
   pickTarget() {
     const f = this.f; let best = null, bd = 1e9;
     for (const g of G.fighters) {
-      if (g === f || g.state === 'dead') continue;
+      if (g === f || g.state === 'dead' || (G.teams && g.team === f.team)) continue;
       let d = Math.abs(g.x - f.x) + Math.abs(g.y - f.y) * 0.7; if (g.state === 'respawn') d += 600;
       if (d < bd) { bd = d; best = g; }
     }
@@ -4624,7 +4665,7 @@ function demoRoster() {
 function startMatch(demo, custom, cfg) {
   const c = cfg || settings, sk = c.stage, sks = Object.keys(STAGES), pool = STAGES[sk] ? null : sks.filter(k => stageHazard(k) === (sk === 'randomh') && !STAGES[k].hidden), S = makeStage(pool ? pool[Math.random() * pool.length | 0] : sk);
   Object.assign(G, { stage: S, projs: [], items: [], parts: [], kos: [], frame: 0, shake: 0, flash: 0, paused: false, endT: 0, useItems: c.items, itemT: 480, itemOn: ITEM_LIST.filter(k => !(c.ioff || []).includes(k)),
-    training: false, tech: null, solo: null, boss: null, speed: 1, inp: null, mode: demo ? 'demo' : 'match', countdown: demo ? 0 : 200, stocks: demo ? 99 : c.stocks, net: null, netClient: false });
+    training: false, tech: null, solo: null, boss: null, story: null, teams: false, speed: 1, inp: null, mode: demo ? 'demo' : 'match', countdown: demo ? 0 : 200, stocks: demo ? 99 : c.stocks, net: null, netClient: false });
   G.musicId = demo ? null : MUSIC.pick(S.key); if (!demo) MUSIC.preview(null);
   const list = custom || (demo ? demoRoster() : activeSlots()), n = list.length;
   // pickChar turns hidden characters into a random one; the training bag is hidden but asked for on purpose
@@ -4645,6 +4686,7 @@ function checkEnd() {
   if (G.mode !== 'match') return;
   if (G.solo) return soloEnd();
   const left = G.fighters.filter(f => !f.out);
+  if (G.teams) { if (new Set(left.map(f => f.team)).size <= 1) { G.mode = 'gameover'; G.endT = 0; G.winner = left[0] || null; SFX.game(); } return; }
   if (left.length <= 1) { G.mode = 'gameover'; G.endT = 0; G.winner = left[0] || null; SFX.game(); }
 }
 function sim() {
@@ -8407,7 +8449,7 @@ function syncOpts() {
   else if (!NET.game) go.hidden = true;
   else if (NET.role === 'host') { go.hidden = false; go.disabled = false; go.textContent = 'Start!'; }
   else { go.hidden = false; go.disabled = true; go.textContent = 'Wachten op host…'; }
-  $('#train').hidden = $('#trainT').hidden = $('#tgtGo').hidden = $('#bossGo').hidden = $('#rpOpen').hidden = online(); techLabel(); $('#netHint').hidden = !online() || !NET.game;
+  $('#train').hidden = $('#trainT').hidden = $('#storyGo').hidden = $('#tgtGo').hidden = $('#bossGo').hidden = $('#rpOpen').hidden = online(); techLabel(); $('#netHint').hidden = !online() || !NET.game;
 }
 function setMode(m) {
   if (m === UIM && m === 'online') { if (NET.game) { showLobby(); renderLobby(); } else showNetStart(); syncOpts(); return; }
@@ -8458,6 +8500,7 @@ function drawPv(cnv, ch, sk, now, i) {
 
 /* ---------------- screens ---------------- */
 function showMenu() {
+  $('#story').hidden = true;
   menuEl.hidden = false; resEl.hidden = true; pauseEl.hidden = true; pbtn.hidden = true; touchEl.hidden = true; G.hudTop = false;
   techLabel(); startMatch(true);
 }
@@ -8509,6 +8552,7 @@ function setPause(p) {
   if (p) $('#resume').focus(); else if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
 }
 function showResults() {
+  if (G.story) return storyEnd(G.solo ? G.solo.win : G.fighters.some(f => f.team === 0 && !f.out));
   if (G.solo) return soloResults();
   G.mode = 'results'; pbtn.hidden = true; touchEl.hidden = true;
   const key = f => f.out ? f.elim : 1e9, order = [...G.fighters].sort((a, b) => key(b) - key(a));
@@ -8532,7 +8576,7 @@ function showResults() {
    The target room: thirteen targets spread over a big room full of platforms, some moving; break them all, the clock
    runs. Master Voet: a giant foot in a sock that stamps, kicks, shoots toenails, lets off stink clouds and hops; every
    human player fights it together and fighters can't hit each other. Both are local only and are not recorded. */
-const TARGETS = [[200, -50], [-720, -260], [-390, -400], [0, -700], [520, -160], [960, -420], [660, -640], [-490, -850], [0, -985], [-330, 95], [150, -280, { ax: 105, per: 260 }], [460, -1010, { ay: 50, per: 200 }], [-760, -560]];
+const TARGETS = [[200, -50], [-720, -260], [-390, -400], [0, -700], [520, -138], [960, -420], [660, -640], [-490, -850], [0, -985], [-330, 32], [150, -235, { ax: 105, per: 260 }], [460, -1010, { ay: 50, per: 200 }], [-725, -545]];
 function goSolo(kind) {
   const hum = settings.slots.map((x, i) => Object.assign({}, x, { i })).filter(x => x.type !== 'off' && x.type !== 'cpu');
   let list = kind === 'boss' ? hum : hum.slice(0, 1);
@@ -8623,10 +8667,118 @@ function soloResults() {
   $('#rpBtns').hidden = true; resEl.hidden = false; ag.focus();
 }
 
+/* ---------------- story mode ----------------
+   Eight chapters: lines of talk (who says what), then a fight. '@' is your own fighter, '' the narrator, 'voet' Master
+   Voet. In a fight the CPUs are one team against you; win to read on, lose to try again. */
+const STORY = [
+  { title: 'De Grote Stamp', stage: 'ruins', foes: [['brick', 3]], stocks: 3, fstocks: 2,
+    intro: [['', 'Op de Hemelruïne is het feest: vandaag wordt het Gouden Klapstuk uitgereikt.'], ['voet', 'STAMP.'], ['', 'Een reusachtige voet zakt door de wolken, klemt het Gouden Klapstuk tussen zijn tenen en is weer weg.'], ['brick', 'Jij stond er het dichtst bij! Jij hebt hem geholpen!'], ['@', 'Wat? Nee! Ik…'], ['brick', 'Praten doen we later. Eerst klappen.']],
+    outro: [['brick', 'Oké, oké… Je bent sterk. Te sterk om een handlanger te zijn.'], ['brick', 'Die voet ging richting de bergen. Volg de afdrukken.']] },
+  { title: 'De Bergpas', stage: 'pass', foes: [['sable', 4], ['pip', 4]],
+    intro: [['', 'Diepe voetafdrukken in de sneeuw leiden de bergpas op.'], ['sable', 'Halt. Niemand passeert de pas.'], ['pip', 'Tenzij je ons verslaat! Tadaa!'], ['@', 'Daar heb ik nu echt geen tijd voor.']],
+    outro: [['pip', 'Au. Oké, je mag erdoor.'], ['sable', 'De afdrukken gaan naar beneden, naar de fabriek. Daar maken ze… sokken.']] },
+  { title: 'De Proefkamer', type: 'targets',
+    intro: [['klaud', 'Hallo! Ik ben Klaud. Ik heb een kamer gebouwd voor wie het tegen de voet wil opnemen.'], ['klaud', 'Sloop alle dertien doelwitten. Ik houd de tijd bij.'], ['klaud', 'Kan ik verder nog ergens mee helpen?']],
+    outro: [['klaud', 'Alle tests slagen ✓. Je bent er klaar voor.'], ['klaud', 'Volgende stap: de sokkenfabriek.']] },
+  { title: 'De Sokkenfabriek', stage: 'factory', foes: [['bliep', 5], ['denji', 5]],
+    intro: [['', 'In de fabriek ratelen de machines. Op de lopende band: duizenden reuzensokken.'], ['bliep', 'BIEP. INDRINGER GEDETECTEERD.'], ['denji', 'Ik krijg brood met jam als ik je wegjaag. Sorry.']],
+    outro: [['bliep', 'BOEP… De sokken… gaan… naar zee.'], ['denji', 'Een schip vol sokken. Raar volk, die voeten.']] },
+  { title: 'Op Zee', stage: 'ship', foes: [['rekker', 6]], fstocks: 2,
+    intro: [['rekker', 'Shishishi! Dit is mijn schip! Wil je mee naar de grote boom?'], ['@', 'Graag!'], ['rekker', 'Eerst vechten. Zo gaat dat bij piraten.']],
+    outro: [['rekker', 'Haha, jij bent sterk! Zet koers naar de grote boom!']] },
+  { title: 'De Boomhut', stage: 'tree', foes: [['aang', 6], ['kwak', 6]],
+    intro: [['aang', 'Dit bos is van niemand, maar we passen er wel op.'], ['kwak', 'Kwaak! Die voet heeft onze vijver plat gestampt.'], ['@', 'Dan staan we aan dezelfde kant!'], ['aang', 'Dat moet je eerst bewijzen. Yip yip!']],
+    outro: [['aang', 'Je hebt een goed hart. De voet zit achter het koningsslot.'], ['kwak', 'Neem de tunnel. Kwaak.']] },
+  { title: 'Het Koningsslot', stage: 'slot', foes: [['lonk', 7], ['sleutel', 7], ['eik', 6]], stocks: 4,
+    intro: [['lonk', 'Hé! Luister! Niemand mag door naar de Laatste Halte.'], ['sleutel', 'Niet voordat we je hebben getest.'], ['eik', 'Niet geïnteresseerd. Maar goed, ik doe mee.']],
+    outro: [['lonk', '…'], ['sleutel', 'Ga. Achter de toren begint de Laatste Halte. Hij wacht op je.']] },
+  { title: 'Master Voet', type: 'boss',
+    intro: [['', 'De Laatste Halte. Een eindeloze nacht, en daar hangt hij. Het Gouden Klapstuk glimt tussen zijn tenen.'], ['voet', '…'], ['@', 'Geef het terug!'], ['voet', 'STAMP. STAMP.']],
+    outro: [['', 'Master Voet zakt in elkaar en laat het Gouden Klapstuk los. Het valt precies in jouw handen.'], ['brick', 'Je hebt het gedaan! Sorry dat ik je verdacht.'], ['klaud', 'Zal ik het samenvatten? Jij hebt gewonnen.'], ['', 'EINDE. Bedankt voor het spelen!']] },
+];
+const ST = { lines: null, k: 0, then: null, ch: 0 };
+const storyEl = () => $('#story');
+function storyHero() {
+  let si = settings.slots.findIndex(x => x.type !== 'off' && x.type !== 'cpu');
+  const s0 = settings.slots[si >= 0 ? si : 0];
+  return { i: si >= 0 ? si : 0, ch: pickChar(s0.ch), sk: s0.sk, type: si >= 0 ? s0.type : (isTouch ? 'touch' : 'kb1') };
+}
+function storyDone() { return clamp((settings.story | 0), 0, STORY.length); }
+// the chapter list: every chapter up to the first one not yet won
+function storyMenu() {
+  menuEl.hidden = true; resEl.hidden = true; pauseEl.hidden = true; storyEl().hidden = false; ST.lines = null;
+  $('#stLabel').textContent = 'Verhaal'; $('#stTitle').textContent = 'Het Gouden Klapstuk'; $('#stTalk').hidden = true; $('#stSkip').hidden = true;
+  const done = storyDone(), L = $('#stList'); L.hidden = false; L.innerHTML = '';
+  STORY.forEach((c, i) => {
+    const b = document.createElement('button'); b.className = 'btn' + (i === Math.min(done, STORY.length - 1) ? ' main' : '');
+    b.innerHTML = `<span>${i + 1}. ${c.title}</span><small>${i < done ? 'gehaald ✓' : i === done ? 'volgende' : 'op slot'}</small>`;
+    b.disabled = i > done; b.addEventListener('click', () => storyPlay(i)); L.appendChild(b);
+  });
+  $('#stNext').textContent = done >= STORY.length ? 'Opnieuw beginnen' : done ? 'Verder spelen' : 'Beginnen';
+  ST.then = () => storyPlay(done >= STORY.length ? 0 : done); $('#stNext').focus();
+}
+function storyShow(label, title, lines, then) {
+  storyEl().hidden = false; menuEl.hidden = true; resEl.hidden = true; pauseEl.hidden = true; pbtn.hidden = true; touchEl.hidden = true;
+  $('#stList').hidden = true; $('#stTalk').hidden = false; $('#stSkip').hidden = false; $('#stLabel').textContent = label; $('#stTitle').textContent = title;
+  ST.lines = lines; ST.k = 0; ST.then = then; storyLine();
+}
+function storyLine() {
+  const [who, txt] = ST.lines[ST.k], h = storyHero(), cv = $('#stPic'), g = cv.getContext('2d');
+  const name = who === '@' ? CHARS[h.ch].name : who === 'voet' ? 'Master Voet' : who ? CHARS[who].name : '';
+  $('#stWho').textContent = name; $('#stText').textContent = txt; cv.classList.toggle('none', !who);
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, 160, 160);
+  if (who === 'voet') { g.save(); g.translate(80, 92); g.scale(0.4, 0.4); drawFoot(g, { x: 0, y: 0, face: 1, rot: -0.2, flash: 0, hp: 1, max: 1, st: 'idle', skin: VOET_SKINS[0] }, 0); g.restore(); }
+  else if (who) { const ck = who === '@' ? h.ch : who; g.save(); g.scale(2, 2); drawPortrait(g, { pc: '#3e3462', key: ck, col: who === '@' ? skinCol(ck, h.sk | 0) : CHARS[ck].col, state: 'idle' }, 40, 40, 36); g.restore(); }
+  $('#stNext').textContent = ST.k < ST.lines.length - 1 ? 'Verder' : 'Verder ▶'; $('#stNext').focus();
+}
+function storyNext() { SFX.ui(); if (ST.lines && ST.k < ST.lines.length - 1) { ST.k++; storyLine(); return; } const t = ST.then; ST.lines = null; if (t) t(); }
+function storySkip() { SFX.ui(); const t = ST.then; ST.lines = null; if (t) t(); }
+function storyPlay(i) {
+  ST.ch = i; const c = STORY[i];
+  storyShow('Hoofdstuk ' + (i + 1), c.title, c.intro, () => storyFight(i));
+}
+function storyFight(i) {
+  const c = STORY[i], h = storyHero(); storyEl().hidden = true;
+  if (c.type) {
+    const keep = settings.slots.map(x => Object.assign({}, x));
+    settings.slots = settings.slots.map((x, k) => k === h.i ? Object.assign({}, x, { type: h.type, ch: h.ch }) : Object.assign({}, x, { type: 'off' }));
+    goSolo(c.type); settings.slots = keep; save();
+  } else {
+    SFX.init(); $('#msg').textContent = ''; menuEl.hidden = true; resEl.hidden = true; pauseEl.hidden = true; pbtn.hidden = false;
+    touchEl.hidden = h.type !== 'touch'; G.hudTop = h.type === 'touch';
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    const used = new Set([h.i]), free = [0, 1, 2, 3].filter(k => !used.has(k));
+    const list = [{ i: h.i, ch: h.ch, sk: h.sk, type: h.type, lvl: 5 }].concat(c.foes.map(([ch, lvl], k) => ({ i: free[k], ch, type: 'cpu', lvl })));
+    startMatch(false, list, Object.assign({}, settings, { stage: c.stage, stocks: c.stocks || 3, items: false }));
+    G.rec = null; G.teams = true;
+    G.fighters.forEach((f, k) => { f.team = k ? 1 : 0; if (k) f.stocks = c.fstocks || 1; });
+  }
+  G.story = { i };
+}
+function storyEnd(win) {
+  G.mode = 'results'; pbtn.hidden = true; touchEl.hidden = true; const i = G.story.i, c = STORY[i];
+  if (win) {
+    settings.story = Math.max(storyDone(), i + 1); save();
+    storyShow('Hoofdstuk ' + (i + 1), c.title, c.outro, () => i + 1 < STORY.length ? storyPlay(i + 1) : storyMenu());
+  } else storyShow('Hoofdstuk ' + (i + 1), c.title, [['', c.type === 'targets' ? 'Niet alle doelwitten gesloopt. Nog een keer?' : 'Verloren… Maar opgeven is geen optie. Nog een keer!']], () => storyFight(i));
+}
+
 /* ---------------- Master Voet ---------------- */
 // the foot is drawn with its toes along +x and its sole along +y (local), turned by rot and mirrored by face
 const BOSS_HURT = [[-78, 8, 56], [12, 14, 56], [96, 16, 44]];
-function newBoss(n) { const hp = 300 + 160 * (n - 1); return { x: 900, y: -700, rot: 0, face: -1, hp, max: hp, st: 'enter', t: 0, flash: 0, shots: [], clouds: [], waves: [], cd: {}, last: '', side: 1, dying: 0, gone: false, tx: 0, vy: 0, hop: 0, nHits: 0 }; }
+// a different foot every fight
+const VOET_SKINS = [
+  { name: 'Klassiek', skin: '#f4d2b8', shade: '#e3b598', sock: '#f7f5f0', s1: '#d8323a', s2: '#3d6fd6', cuff: '#ffffff', nail: '#fff1ea' },
+  { name: 'Sportsok', skin: '#e9b48e', shade: '#d39a72', sock: '#ffffff', s1: '#2fa84f', s2: '#2fa84f', cuff: '#f2f2f2', nail: '#fff1ea' },
+  { name: 'Kerstsok', skin: '#f4d2b8', shade: '#e3b598', sock: '#d8323a', s1: '#ffffff', s2: '#2f8a3a', cuff: '#ffffff', nail: '#fff1ea', dots: '#ffffff' },
+  { name: 'Gelakte nagels', skin: '#c98a62', shade: '#a86e4a', sock: '#24222b', s1: '#ff5aa8', s2: '#ff5aa8', cuff: '#3a3744', nail: '#ff3d8b' },
+  { name: 'Zombievoet', skin: '#9fc98a', shade: '#7fa86c', sock: '#8a8796', s1: '#5a5766', s2: '#5a5766', cuff: '#a8a5b4', nail: '#e8e0b0', torn: true },
+  { name: 'Robotvoet', skin: '#b9c1cf', shade: '#8a93a3', sock: '#3d6fd6', s1: '#9ff0ff', s2: '#9ff0ff', cuff: '#2a4fa6', nail: '#e8f0ff', bolts: true },
+  { name: 'Gouden voet', skin: '#f2c94c', shade: '#c99a1e', sock: '#ffffff', s1: '#c99a1e', s2: '#f2c94c', cuff: '#fff4c2', nail: '#fff8dc' },
+  { name: 'Sterrennacht', skin: '#7a4f3a', shade: '#5e3a28', sock: '#2a1f5a', s1: '#ffd84a', s2: '#ffd84a', cuff: '#3d2f80', nail: '#f2e6dc', stars: true },
+  { name: 'Regenboogsok', skin: '#f4d2b8', shade: '#e3b598', sock: '#ff5468', s1: '#ffc933', s2: '#4fd67a', cuff: '#4aa3ff', nail: '#fff1ea', rainbow: true },
+];
+function newBoss(n) { const hp = 300 + 160 * (n - 1); return { skin: VOET_SKINS[Math.random() * VOET_SKINS.length | 0], x: 900, y: -700, rot: 0, face: -1, hp, max: hp, st: 'enter', t: 0, flash: 0, shots: [], clouds: [], waves: [], cd: {}, last: '', side: 1, dying: 0, gone: false, tx: 0, vy: 0, hop: 0, nHits: 0 }; }
 function bossPts(B) {
   const c = Math.cos(B.rot), s2 = Math.sin(B.rot);
   return BOSS_HURT.map(([x, y, r]) => ({ x: B.x + (x * c - y * s2) * B.face, y: B.y + x * s2 + y * c, r }));
@@ -8732,23 +8884,30 @@ const f0 = a => a && a.length > 0;
 function drawFoot(g, B, fr) {
   g.save(); g.translate(B.x, B.y); g.scale(B.face, 1); g.rotate(B.rot);
   if (B.flash > 0 && 'filter' in g) g.filter = 'brightness(1.8) saturate(0.5)'; else if (B.hp < B.max * 0.4 && !B.dying && 'filter' in g) g.filter = `sepia(0.3) saturate(${1.6 + 0.4 * Math.sin(fr * 0.2)}) hue-rotate(-12deg)`;
-  const skin = '#f4d2b8', shade = '#e3b598', ink = INK;
+  const K = B.skin || VOET_SKINS[0], skin = K.skin, shade = K.shade, ink = INK;
   g.lineJoin = 'round'; g.strokeStyle = ink; g.lineWidth = 5;
   // the sock: up from the heel, with stripes and a cuff
-  g.fillStyle = '#f7f5f0'; g.beginPath(); g.moveTo(-138, 10); g.lineTo(-150, -150); g.lineTo(-40, -150); g.lineTo(-24, -10); g.closePath(); g.fill(); g.stroke();
-  g.fillStyle = '#d8323a'; g.fillRect(-148, -132, 110, 12); g.fillStyle = '#3d6fd6'; g.fillRect(-147, -112, 108, 9); g.strokeRect(-148, -132, 110, 12);
-  g.fillStyle = '#ffffff'; rr(g, -160, -170, 132, 26, 10); g.fill(); g.stroke();
+  g.fillStyle = K.sock; g.beginPath(); g.moveTo(-138, 10); g.lineTo(-150, -150); g.lineTo(-40, -150); g.lineTo(-24, -10); g.closePath(); g.fill(); g.stroke();
+  g.save(); g.clip();
+  if (K.rainbow) { ['#ff5468', '#ffc933', '#4fd67a', '#4aa3ff', '#b07aff'].forEach((c, i) => { g.fillStyle = c; g.fillRect(-160, -150 + i * 28, 140, 28); }); }
+  else { g.fillStyle = K.s1; g.fillRect(-160, -132, 140, 12); g.fillStyle = K.s2; g.fillRect(-160, -112, 140, 9); }
+  if (K.dots) { g.fillStyle = K.dots; for (const [x, y] of [[-120, -80], [-80, -95], [-60, -60], [-110, -40], [-75, -30]]) { g.beginPath(); g.arc(x, y, 6, 0, TAU); g.fill(); } }
+  if (K.stars) { g.fillStyle = K.s1; for (const [x, y] of [[-118, -84], [-70, -96], [-92, -50], [-60, -40]]) { g.beginPath(); for (let i = 0; i < 10; i++) { const a = i * Math.PI / 5 - Math.PI / 2, q = i % 2 ? 3 : 8; g.lineTo(x + Math.cos(a) * q, y + Math.sin(a) * q); } g.closePath(); g.fill(); } }
+  if (K.torn) { g.fillStyle = '#5a5766'; g.beginPath(); g.ellipse(-90, -70, 14, 10, 0.4, 0, TAU); g.fill(); g.strokeStyle = '#3a3744'; g.lineWidth = 2; for (let i = 0; i < 4; i++) { g.beginPath(); g.moveTo(-104 + i * 9, -76); g.lineTo(-100 + i * 9, -64); g.stroke(); } g.strokeStyle = INK; g.lineWidth = 5; }
+  g.restore(); g.beginPath(); g.moveTo(-138, 10); g.lineTo(-150, -150); g.lineTo(-40, -150); g.lineTo(-24, -10); g.closePath(); g.stroke();
+  g.fillStyle = K.cuff; rr(g, -160, -170, 132, 26, 10); g.fill(); g.stroke();
   // the foot itself: heel, arch, ball of the foot
   g.fillStyle = skin; g.beginPath(); g.moveTo(-120, -10); g.quadraticCurveTo(-150, 30, -110, 56); g.lineTo(60, 60); g.quadraticCurveTo(118, 60, 120, 26); g.quadraticCurveTo(110, -18, 60, -24); g.quadraticCurveTo(-10, -40, -40, -10); g.lineTo(-120, -10); g.closePath(); g.fill(); g.stroke();
   g.fillStyle = shade; g.beginPath(); g.ellipse(-30, 50, 70, 9, 0, 0, TAU); g.fill();
   // sock edge over the ankle
-  g.fillStyle = '#f7f5f0'; g.beginPath(); g.moveTo(-140, -14); g.quadraticCurveTo(-80, 6, -26, -16); g.lineTo(-30, -40); g.lineTo(-136, -40); g.closePath(); g.fill(); g.stroke();
+  g.fillStyle = K.rainbow ? '#b07aff' : K.sock; g.beginPath(); g.moveTo(-140, -14); if (K.torn) { for (let i = 1; i <= 8; i++) g.lineTo(-140 + i * 14, -14 + (i % 2 ? 9 : -2)); } else g.quadraticCurveTo(-80, 6, -26, -16); g.lineTo(-30, -40); g.lineTo(-136, -40); g.closePath(); g.fill(); g.stroke();
+  if (K.bolts) for (const [x, y] of [[-90, 30], [-30, 34], [30, 30], [80, 20]]) { g.fillStyle = K.shade; g.beginPath(); g.arc(x, y, 5, 0, TAU); g.fill(); g.lineWidth = 2; g.stroke(); g.lineWidth = 5; }
   // five toes, the big one in front; little nails
   const toes = [[134, 34, 19], [118, 10, 14], [100, -4, 12], [80, -14, 11], [60, -20, 9]];
   for (let i = toes.length - 1; i >= 0; i--) {
     const [x, y, r] = toes[i], w = B.st === 'stink' ? Math.sin(fr * 0.6 + i) * 3 : 0;
     g.fillStyle = skin; g.beginPath(); g.ellipse(x, y + w, r, r * 0.9, 0, 0, TAU); g.fill(); g.stroke();
-    g.fillStyle = '#fff1ea'; g.beginPath(); g.ellipse(x + r * 0.35, y + w - r * 0.25, r * 0.42, r * 0.32, 0.3, 0, TAU); g.fill(); g.lineWidth = 2; g.stroke(); g.lineWidth = 5;
+    g.fillStyle = K.nail; g.beginPath(); g.ellipse(x + r * 0.35, y + w - r * 0.25, r * 0.42, r * 0.32, 0.3, 0, TAU); g.fill(); g.lineWidth = 2; g.stroke(); g.lineWidth = 5;
   }
   // an angry eyebrow pair on the instep when it is low on health
   g.restore();
@@ -8799,7 +8958,7 @@ function drawSoloHUD(g, V) {
   }
   const B = G.boss; if (!B) return;
   const bw = Math.min(520, W * 0.6), x = (W - bw) / 2, k = B.hp / B.max;
-  g.font = `${18 * sc}px Impact, 'Arial Black', sans-serif`; g.textAlign = 'center'; g.lineWidth = 5; g.strokeStyle = INK; g.strokeText('MASTER VOET', W / 2, y + 6 * sc); g.fillStyle = '#ffffff'; g.fillText('MASTER VOET', W / 2, y + 6 * sc);
+  g.font = `${18 * sc}px Impact, 'Arial Black', sans-serif`; g.textAlign = 'center'; g.lineWidth = 5; g.strokeStyle = INK; const bn = 'MASTER VOET · ' + (B.skin ? B.skin.name.toUpperCase() : ''); g.strokeText(bn, W / 2, y + 6 * sc); g.fillStyle = '#ffffff'; g.fillText(bn, W / 2, y + 6 * sc);
   rr(g, x, y + 18 * sc, bw, 14 * sc, 7 * sc); g.fillStyle = 'rgba(21,17,31,.75)'; g.fill(); g.lineWidth = 3; g.stroke();
   if (k > 0) { rr(g, x + 2, y + 18 * sc + 2, (bw - 4) * k, 14 * sc - 4, 6 * sc); g.fillStyle = k < 0.4 ? '#ff5468' : '#ffc933'; g.fill(); }
   g.font = `${14 * sc}px Impact, 'Arial Black', sans-serif`; g.textAlign = 'right'; g.strokeText(fmtTime(S.t), x + bw, y + 6 * sc); g.fillStyle = '#ffc933'; g.fillText(fmtTime(S.t), x + bw, y + 6 * sc);
@@ -9451,6 +9610,10 @@ $('#go').addEventListener('click', () => { if (online()) netStartMatch(); else g
 $('#train').addEventListener('click', goTraining);
 $('#trainT').addEventListener('click', () => goTraining(true));
 $('#tgtGo').addEventListener('click', () => goSolo('targets'));
+$('#storyGo').addEventListener('click', () => { SFX.init(); storyMenu(); });
+$('#stNext').addEventListener('click', () => storyNext());
+$('#stSkip').addEventListener('click', () => storySkip());
+$('#stMenu').addEventListener('click', () => { $('#story').hidden = true; ST.lines = null; showMenu(); });
 $('#bossGo').addEventListener('click', () => goSolo('boss'));
 $('#tqList').addEventListener('click', e => { const b = e.target.closest('button[data-i]'); if (!b || !G.tech) return; techSet(+b.dataset.i); setPause(false); });
 $('#trSpeed').addEventListener('click', trSpeed);
