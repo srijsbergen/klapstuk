@@ -1117,7 +1117,7 @@ Object.assign(CHARS, {
     col: { body: '#2e63c9', dark: '#5a3b2e', acc: '#e8b83a', skin: '#f6d2b0', fx: '#7fc8ff', hair: '#3a2416' }, alt: { body: '#d9405a', dark: '#5a3b2e', acc: '#f0d060', skin: '#f6d2b0', fx: '#ffb0c0', hair: '#3a2416' } },
   aang: { name: 'Aang', blurb: 'Jonge luchtmonnik met een blauwe pijl op zijn kale hoofd. Licht en zwevend, met twee extra sprongen in de lucht. Hij beheerst alle vier de elementen. Lucht: een Luchtstoot die tegenstanders wegblaast, de Luchtscooter (een bal van lucht om op te rijden, ook om zijwaarts terug te komen) en zijn staf als zweefvlieger. Aarde: een rotszuil uit de grond (in de lucht gooit hij een rotsblok schuin naar beneden). Vuur: een vuurstoot als smash vooruit en een vurige trap in de lucht. Water: waterzwepen naar beide kanten als smash omlaag en een waterzweep achter zich in de lucht.', weight: 76, run: 7.8, acc: 1.15, jump: 15.5, djump: 13, grav: 0.72, fall: 10, ffall: 15.5, air: 5.6, airAcc: 0.56, airJumps: 2, w: 36, h: 74, pow: 0.94, reach: 1, lag: 0, limb: 9, hr: 0.2, zoner: true, sideRec: true,
     col: { body: '#f2a62a', dark: '#e0912a', acc: '#c9471f', skin: '#f7d7b5', fx: '#d6f1ff', tat: '#2f7fd8' }, alt: { body: '#b3302a', dark: '#2c2430', acc: '#7c1f1f', skin: '#f7d7b5', fx: '#ffd0b0', tat: '#2f7fd8' } },
-  klaud: { name: 'Klaud', blurb: 'Kleine oranje pixelkrab uit de terminal. Houd speciaal vast en hij streamt tokens, met een codeblok als slot; hij scharrelt zijwaarts met zijn scharen (ook om terug te komen), draait zich onder een denkend sterretje omhoog en comprimeert zich tot een zwaar blokje dat als een steen valt en openbarst. Elke token en speciale aanval telt mee voor zijn gebruiksmeter: zit die vol, dan zit hij vijf seconden aan zijn limiet (429) en lukt alleen zijn sprong omhoog nog.', weight: 84, run: 7, acc: 1.15, jump: 14.5, djump: 13.5, grav: 0.86, fall: 12.8, ffall: 18, air: 4.8, airAcc: 0.5, airJumps: 1, w: 64, h: 54, pow: 1, reach: 1, lag: 0, limb: 9, pz: 1.15, zoner: true, sideRec: true,
+  klaud: { name: 'Klaud', blurb: 'Kleine oranje pixelkrab uit de terminal. Houd speciaal vast en hij streamt tokens, met een codeblok als slot; hij scharrelt zijwaarts met zijn scharen (ook om terug te komen) en draait zich onder zijn logo omhoog. Op de grond zet speciaal omlaag guardrails neer die een aanval weigeren en terugslaan; in de lucht comprimeert hij zich tot een zwaar blokje dat als een steen valt. Hoe langer je zijn smash vooruit oplaadt, hoe hoger zijn effort (max effort kost gebruik), en bij zijn smash omhoog barst zijn logo open. Als hij iemand vastheeft, vraagt hij welke kant die op moet. Elke token en speciale aanval telt mee voor zijn gebruiksmeter: zit die vol, dan zit hij vijf seconden aan zijn limiet (429) en lukt alleen zijn sprong omhoog nog.', weight: 84, run: 7, acc: 1.15, jump: 14.5, djump: 13.5, grav: 0.86, fall: 12.8, ffall: 18, air: 4.8, airAcc: 0.5, airJumps: 1, w: 64, h: 54, pow: 1, reach: 1, lag: 0, limb: 9, pz: 1.15, zoner: true, sideRec: true,
     col: { body: '#d97757', dark: '#a9533a', acc: '#f2c4a8', skin: '#f2c4a8', fx: '#ffb08a' }, alt: { body: '#3b3833', dark: '#24221f', acc: '#d97757', skin: '#f2c4a8', fx: '#ff9a6a' } },
   denji: { name: 'Denji', blurb: 'Duivelsjager met een kettingzaag uit zijn hoofd en uit zijn armen. Schiet de ketting van zijn zaag uit en trekt je naar zich toe om je te vermalen, zaagt zich vooruit (ook om terug te komen), draait zaagend omhoog en laat zijn zagen toeren. Zijn bloedmeter vult als hij raakt of geraakt wordt; is die vol, dan trekt hij met speciaal omlaag aan het startkoord en gaat hij 12 seconden tekeer: sneller, harder en hij geneest langzaam.', weight: 98, run: 7, acc: 1.1, jump: 15, djump: 14, grav: 0.86, fall: 12.8, ffall: 18, air: 4.8, airAcc: 0.46, airJumps: 1, w: 42, h: 82, pow: 1.06, reach: 1.12, lag: 0, limb: 10, hr: 0.17, sideRec: true,
     col: { body: '#f2f1ec', dark: '#25242a', acc: '#141418', skin: '#f0cfb0', fx: '#ff3b30', head: '#cf6a42' }, alt: { body: '#2b2a30', dark: '#1a191d', acc: '#c8102e', skin: '#f0cfb0', fx: '#ff9a3c', head: '#b8553a' } },
@@ -1475,6 +1475,15 @@ const AIRS = {
     uair: M({ start: 6, active: 5, end: 13, pose: 'upswing', aerial: true, afx: 'slash', ll: 8, hb: [H(0, -112, 26, 10, 88, 32, 96, { nr: 1 }), H(24, -88, 22, 7, 80, 28, 85)] }),
     dair: M({ start: 10, active: 5, end: 17, pose: 'stabDown', aerial: true, afx: 'slash', ll: 13, hb: [H(0, 32, 24, 12, 275, 38, 86, { nr: 1 })] }),
   }),
+  // Klaud: the forward smash charges up effort (max effort reaches further and costs usage), the up smash is the
+  // Claude logo bursting open over its head
+  klaud: (M, H) => ({
+    fsmash: M({ start: 12, active: 4, end: 26, pose: 'smashF', charge: true, chargeBoost: 0.6,
+      hb: [H(58, -40, 28, 14, 38, 40, 104), H(30, -40, 20, 12, 38, 40, 100), H(84, -40, 24, 14, 38, 42, 106, { when: (f, t) => f.charge >= 36 && t >= f.move.start && t < f.move.start + f.move.active })],
+      tick: (f, t) => { if (t === f.move.start && f.charge >= f.move.chargeMax) { klaudUse(f, 12); G.shake = Math.max(G.shake, 5); SFX.boom(); } } }),
+    usmash: M({ start: 9, active: 13, end: 24, pose: 'smashU', charge: true, combo: true,
+      hb: [0, 1, 2].map(i => H(8, -112, 40, 2, 90, 14, 0, { nr: 1, grp: i + 1, link: true, f0: i * 3, f1: i * 3 + 2 })).concat([H(8, -116, 46, 10, 88, 42, 100, { nr: 1, grp: 9, f0: 9 }), H(20, -60, 24, 3, 88, 30, 0, { nr: 1, grp: 1, f1: 3 })]) }),
+  }),
   bot: (M, H) => ({
     nair: M({ start: 5, active: 15, end: 10, pose: 'nair', aerial: true, afx: 'bone', ll: 6, hb: mh(H, 3, 4, 3, 0, -34, 38, 2, 80, 10, 0, { nr: 1 }).concat([H(0, -34, 42, 5, 50, 32, 78, { nr: 1, f0: 12, f1: 15, grp: 9 })]) }),
     fair: M({ start: 6, active: 4, end: 14, pose: 'axe', aerial: true, afx: 'bone', ll: 10, hb: [H(46, -38, 24, 10, 40, 32, 92), H(26, -40, 18, 7, 45, 26, 84)] }),
@@ -1669,8 +1678,11 @@ const SPECIALS = {
         if (t === 4) { if (f.ix) f.facing = f.ix; f.vy = -16; f.vx = f.ix * 2.5; f.grounded = false; f.ground = null; SFX.jump(); }
         if (t % 5 === 0) SFX.swing();
       } }),
-    // Comprimeren: packs itself into a heavy little block that drops like a stone (and spikes on the way), then bursts open
-    downB: M({ special: true, start: 6, active: 60, end: 0, dur: 80, pose: 'spring', poseFn: klaudCompactPose, onStart: f => klaudGate(f, 10), noDrift: true, armor: [4, 70], ledgeOK: 6,
+    // Guardrails (on the ground): railings come up around it, and an attack that lands on them gets refused, and hit back
+    guardrails: M({ special: true, start: 4, active: 22, end: 18, pose: 'counter', counter: [4, 26], onStart: f => klaudGate(f, 8) }),
+    refuse: M({ special: true, start: 3, active: 4, end: 26, pose: 'smashF', intang: [0, 10], ll: 10, hb: [H(44, -36, 38, 9, 38, 60, 92)] }),
+    // Comprimeren (in the air): packs itself into a heavy little block that drops like a stone (and spikes on the way), then bursts open
+    downB: M({ special: true, start: 6, active: 60, end: 0, dur: 80, pose: 'spring', poseFn: klaudCompactPose, onStart: f => { if (f.grounded) return f.startMove(f.M.guardrails); klaudGate(f, 10); }, noDrift: true, armor: [4, 70], ledgeOK: 6,
       hb: [H(0, 6, 26, 9, 275, 30, 70, { nr: 1, when: (f, t) => !f.grounded && t >= 8 && !f.mv.pop }), H(0, -26, 58, 11, 65, 48, 82, { nr: 1, grp: 2, when: (f, t) => f.mv.pop && t - f.mv.pop < 4 })],
       onLand: f => { dustFx(f.x, f.y, 6); SFX.land(); },
       tick: (f, t) => {
@@ -2960,6 +2972,12 @@ function splashLand(f) {
 }
 function triggerCounter(v, a, d) {
   const s = v.c.h / 80; if (a) v.facing = a.x > v.x ? 1 : -1;
+  if (v.key === 'klaud' && v.M.refuse) {
+    // guardrails: the attack is refused, and comes back at least as hard
+    const m = Object.assign({}, v.M.refuse); m.hb = m.hb.map(h => Object.assign({}, h, { d: Math.max(h.d, d * 1.3) }));
+    v.startMove(m); v.sayT = 0; v.flash = 10; sparkFx(v.x, v.y - v.c.h / 2, '#ffffff', 10); SFX.counter();
+    if (a) a.hitlag = Math.max(a.hitlag, 14); G.shake = Math.max(G.shake, 6); return;
+  }
   if (v.key === 'nevel' && v.M.xcut) { v.startMove(v.M.xcut); v.flash = 10; sparkFx(v.x + v.facing * 20 * s, v.y - v.c.h / 2, '#ffe066', 10); SFX.counter(); if (a) a.hitlag = Math.max(a.hitlag, 14); G.shake = Math.max(G.shake, 6); return; }
   v.startMove({ special: true, start: 3, active: 4, end: 20, dur: 27, pose: 'smashF', intang: [0, 10], ll: 10, hb: [{ x: 46 * s, y: -44 * s, r: 36 * s, d: Math.max(9, d * 1.3), a: 38, b: 60, g: 92 }] });
   v.flash = 10; sparkFx(v.x, v.y - v.c.h / 2, '#ffffff', 10); SFX.counter();
@@ -4332,7 +4350,7 @@ class AI {
     const ff = f.facing > 0 ? 'r' : 'l', id = t.id + ':' + (t.moveUse || 0);
     // defence: counter or parry what is about to land, shield or step out of what is still winding up
     if (thr < 99) {
-      const r = this.roll(id), ctr = M.downB && M.downB.counter;
+      const r = this.roll(id), ctr = (M.guardrails && M.guardrails.counter) || (M.downB && M.downB.counter);
       if (ctr && thr > ctr[0] && thr <= ctr[1] && r < q * 0.3) { o.d = true; o.spc = true; return this.tap(o); }
       if (thr <= 3 && r < 0.1 + q * 0.5) { o.shd = true; return this.hold(o, 6); }
       if (thr <= 7 && r < 0.2 + q * 0.4) { o.shd = true; return this.hold(o, 10); }
@@ -6033,8 +6051,22 @@ function trInpTog() { settings.trInp = settings.trInp === false; save(); if (!pa
 function techLabel() { const n = techDone().filter(id => TECHS.some(t => t.id === id)).length; $('#trainT').textContent = 'Training: technieken' + (n ? ` (${n}/${TECHS.length})` : ''); }
 // Klaud's usage: f.ki holds it, 0 to 100; a full meter is rate limited for five seconds, shown as 200 counting down
 // to 100 (so guests online and replays see it too), after which the meter starts again at zero
-const KLAUD_TOKENS = ['klap', 'stuk', '##je', 'ing', 'de', 'het', 'ver', 'ok', '{', '}', '=>', 'ja', 'hm', '42', 'TODO', '✓', 'lgtm', 'ge', 'en', '…'];
+const KLAUD_TOKENS = ['klap', 'stuk', '##je', 'ing', 'de', 'het', 'ver', 'ok', '{', '}', '=>', 'ja', 'hm', '42', 'TODO', '✓', 'lgtm', 'ge', 'en', '…', '—', 'delve', 'Absoluut'];
+// what Klaud says: hit hard, after a KO, and back after losing a life
+const KLAUD_SAY = ['Je hebt helemaal gelijk!', 'Goed punt!', 'Excuses, mijn fout.', 'Ah, nu zie ik het.',
+  'Klaar! ✓', 'Alle tests slagen ✓', 'Taak voltooid.', 'Kan ik nog ergens mee helpen?',
+  'Hoe kan ik je helpen?', 'Waar waren we gebleven?', 'Nieuwe sessie gestart.'];
+function klaudSay(f, base, n, dur) { f.sayI = base + (G.frame + f.id * 7) % n; f.sayT = dur; f.sayCD = 300; }
 function klaudTick(f) {
+  if (f.sayT > 0) f.sayT--;
+  if (f.sayCD > 0) f.sayCD--;
+  if (f.state !== f.kst) {
+    if (f.state === 'hitstun' && f.tumble && !(f.sayCD > 0)) klaudSay(f, 0, 4, 100);
+    else if (f.state === 'respawn') klaudSay(f, 8, 3, 120);
+    f.kst = f.state;
+  }
+  if ((f.stats.ko | 0) > (f.kko | 0)) klaudSay(f, 4, 4, 110);
+  f.kko = f.stats.ko | 0;
   const u = f.ki || 0;
   if (u > 100) {
     f.ki = u - 100 / 300;
@@ -7131,6 +7163,96 @@ function drawParts(g, z) {
   }
   g.globalAlpha = 1;
 }
+// the Claude logo: a starburst of twelve tapering rays of slightly different lengths
+function klaudLogo(g, r, col) {
+  g.beginPath();
+  for (let i = 0; i < 12; i++) {
+    const a = i * TAU / 12 + (i % 3 - 1) * 0.06, L = r * (0.74 + 0.26 * ((i * 7) % 5) / 4), c = Math.cos(a), sn = Math.sin(a), bw = r * 0.14, tw = r * 0.07;
+    g.moveTo(c * r * 0.12 - sn * bw, sn * r * 0.12 + c * bw); g.lineTo(c * L - sn * tw, sn * L + c * tw); g.arc(c * L, sn * L, tw, a + Math.PI / 2, a - Math.PI / 2, true); g.lineTo(c * r * 0.12 + sn * bw, sn * r * 0.12 - c * bw); g.closePath();
+  }
+  g.moveTo(r * 0.24, 0); g.arc(0, 0, r * 0.24, 0, TAU);
+  g.lineJoin = 'round'; g.lineWidth = Math.max(2.5, r * 0.16); g.strokeStyle = INK; g.stroke(); g.fillStyle = col; g.fill();
+}
+// a speech bubble with its tail pointing down-left at (0, 0)
+function klaudBubble(g, txt, k, a) {
+  g.save(); g.globalAlpha *= a; g.scale(k, k);
+  g.font = "bold 11px system-ui, 'Segoe UI', Arial, sans-serif"; const w = g.measureText(txt).width + 16, x = 8, y = -38;
+  rr(g, x, y, w, 22, 8); g.lineWidth = 3; g.strokeStyle = INK; g.stroke(); g.fillStyle = '#fffaf4'; g.fill();
+  g.beginPath(); g.moveTo(x + 7, y + 20); g.lineTo(2, 0); g.lineTo(x + 21, y + 20); g.fill();
+  g.beginPath(); g.moveTo(x + 8, y + 22.5); g.lineTo(2, 0); g.lineTo(x + 20, y + 22.5); g.lineJoin = 'round'; g.stroke();
+  g.fillStyle = '#2a2420'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(txt, x + 8, y + 11.5); g.restore();
+}
+// the question Klaud asks when it holds someone: which way to throw, the throw it picks ticked
+function klaudAsk(g, f, k) {
+  const opts = ['Vooruit', 'Achteruit', 'Omhoog', 'Omlaag'], keys = ['fthrow', 'bthrow', 'uthrow', 'dthrow'], m = G.stage.main;
+  const pick = f.state === 'attack' && f.move ? keys.indexOf(f.move.netKey) : -1, rec = (f.x > (m.x1 + m.x2) / 2) === (f.facing > 0) ? 0 : 1;
+  g.save(); g.scale(k, k);
+  const W = 150, H = 92, x = -W / 2, y = -H; g.font = "bold 10px system-ui, 'Segoe UI', Arial, sans-serif";
+  rr(g, x, y, W, H, 7); g.fillStyle = '#fffaf4'; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke();
+  rr(g, x + 6, y + 5, 30, 13, 4); g.fillStyle = '#f2c4a8'; g.fill(); g.fillStyle = '#7a3a22'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('Worp', x + 21, y + 12);
+  g.fillStyle = '#2a2420'; g.textAlign = 'left'; g.fillText('Welke kant op?', x + 41, y + 12);
+  const hov = pick >= 0 ? pick : ((f.t || 0) / 16 | 0) % 4;
+  for (let i = 0; i < 5; i++) {
+    const yy = y + 28 + i * 13, on = i === hov;
+    if (on && i < 4) { rr(g, x + 4, yy - 6, W - 8, 12, 3); g.fillStyle = pick >= 0 ? '#ffd9c2' : '#f3ebe3'; g.fill(); }
+    g.beginPath(); g.arc(x + 12, yy, 3.5, 0, TAU); g.lineWidth = 1.5; g.strokeStyle = i < 4 ? '#2a2420' : '#b7aea6'; g.stroke();
+    if (on && pick >= 0) { g.beginPath(); g.arc(x + 12, yy, 2, 0, TAU); g.fillStyle = f.col.body; g.fill(); }
+    g.fillStyle = i < 4 ? '#2a2420' : '#b7aea6'; g.fillText(i < 4 ? opts[i] + (i === rec ? ' (aanbevolen)' : '') + (on && pick >= 0 ? ' ✓' : '') : 'Anders…', x + 20, yy + 0.5);
+  }
+  g.restore();
+}
+// the text over Klaud: its effort, the question when it holds someone and what it says; drawn after everything else
+function drawKlaudUI(g, f, z) {
+  const c = CHARS.klaud, k = clamp(1 / z, 1, 1.6), m = f.state === 'attack' ? f.move : null, M = f.M, t = f.mt;
+  if (f.out || f.state === 'dead') return;
+  if (m === M.fsmash) {
+    const lv = f.charge >= m.chargeMax ? 3 : f.charge >= 36 ? 2 : f.charge >= 14 ? 1 : 0, think = t === m.chargeAt && f.charge > 0;
+    if (t <= m.start + m.active + 8) {
+      const lab = 'effort: ' + ['laag', 'middel', 'hoog', 'max'][lv] + (think ? ' · denkt na' + '.'.repeat(1 + (G.frame >> 3) % 3) : '');
+      g.save(); g.translate(f.x, f.y - c.h - ((f.ki || 0) > 100 ? 92 : 62)); g.scale(k, k);
+      g.font = "bold 11px system-ui, 'Segoe UI', Arial, sans-serif"; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round';
+      g.lineWidth = 4; g.strokeStyle = INK; g.strokeText(lab, 0, -10); g.fillStyle = lv === 3 ? '#ffb08a' : '#fffaf4'; g.fillText(lab, 0, -10);
+      for (let i = 0; i < 4; i++) { rr(g, -27 + i * 14, 0, 12, 6, 2); g.fillStyle = i <= lv ? (lv === 3 ? f.col.body : '#f2c4a8') : 'rgba(18,14,29,.6)'; g.fill(); g.lineWidth = 1.5; g.strokeStyle = INK; g.stroke(); }
+      g.restore();
+    }
+  }
+  if (m && m.netKey === 'refuse') { g.save(); g.translate(f.x + 10, f.y - c.h - 6); klaudBubble(g, 'Daar kan ik je niet mee helpen.', k, Math.min(1, (m.dur - t) / 6)); g.restore(); }
+  else if (f.state === 'holding' || (m && m.throw && t < m.start + 6)) { g.save(); g.translate(f.x + f.facing * 26, f.y - c.h - 50); klaudAsk(g, f, k); g.restore(); }
+  else if (f.sayT > 0 && KLAUD_SAY[f.sayI]) { g.save(); g.translate(f.x + 10, f.y - c.h - 6); klaudBubble(g, KLAUD_SAY[f.sayI], k, Math.min(1, f.sayT / 10)); g.restore(); }
+}
+function drawKlaudFx(g, f, c, z) {
+  const m = f.state === 'attack' ? f.move : null, M = f.M, t = f.mt;
+  if (m === M.fsmash) {
+    // the logo on its claw when it strikes, bigger with more effort
+    const lv = f.charge >= m.chargeMax ? 3 : f.charge >= 36 ? 2 : f.charge >= 14 ? 1 : 0;
+    if (t >= m.start - 1 && t <= m.start + m.active + 6) {
+      const u = t - m.start + 1, r = (14 + lv * 6) * Math.min(1, u / 3) * (u > m.active + 2 ? Math.max(0, 1 - (u - m.active - 2) / 5) : 1);
+      if (r > 1) { g.save(); g.translate(f.x + f.facing * (54 + lv * 8), f.y - 27); g.rotate(f.facing * t * 0.3); klaudLogo(g, r, f.col.body); g.restore(); }
+    }
+  }
+  if (m === M.usmash && t >= m.start - 4 && t <= m.start + m.active + 8) {
+    // the logo opens over its head, spins while it hits and is gone again
+    const u = t - (m.start - 4), r = 34 * Math.min(1, u / 5) * (t > m.start + m.active ? Math.max(0, 1 - (t - m.start - m.active) / 8) : 1);
+    if (r > 1) { g.save(); g.translate(f.x, f.y - 80); g.rotate(t * (t >= m.start ? 0.45 : 0.1)); klaudLogo(g, r, f.col.body); g.restore(); }
+  }
+  if (m === M.guardrails || (m && m.netKey === 'refuse')) {
+    // the guardrails: two short railings on posts, striped, that come up out of the ground and sink back
+    const ref = m.netKey === 'refuse', up = ref ? Math.max(0, 1 - Math.max(0, t - 12) / 10) : Math.min(1, t / 4) * (t > 26 ? Math.max(0, 1 - (t - 26) / 12) : 1);
+    if (up > 0.02) {
+      g.save(); g.translate(f.x, f.y);
+      for (const sd of [-1, 1]) {
+        const x0 = sd * (c.w * 0.5 + 6), x1 = sd * (c.w * 0.5 + 34), hh = 30 * up;
+        for (const px of [x0, x1]) { g.fillStyle = '#e8e4de'; g.fillRect(px - 2.5, -hh, 5, hh); g.lineWidth = 2; g.strokeStyle = INK; g.strokeRect(px - 2.5, -hh, 5, hh); }
+        const bx = Math.min(x0, x1) - 4, bw = Math.abs(x1 - x0) + 8, by = -hh + 4;
+        g.save(); rr(g, bx, by, bw, 10, 3); g.clip(); g.fillStyle = '#fffaf4'; g.fillRect(bx, by, bw, 10); g.fillStyle = ref && t < 10 && t % 4 < 2 ? '#ffffff' : f.col.body;
+        for (let i = -1; i < bw / 8 + 1; i++) { g.beginPath(); g.moveTo(bx + i * 8, by + 10); g.lineTo(bx + i * 8 + 4, by + 10); g.lineTo(bx + i * 8 + 8, by); g.lineTo(bx + i * 8 + 4, by); g.closePath(); g.fill(); }
+        g.restore(); rr(g, bx, by, bw, 10, 3); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
+      }
+      if (!ref && t >= 4 && t <= 26) { g.globalAlpha = 0.18 + Math.sin(G.frame * 0.4) * 0.06; g.beginPath(); g.ellipse(0, -c.h * 0.5, c.w * 0.5 + 30, c.h * 0.75, 0, 0, TAU); g.fillStyle = f.col.fx; g.fill(); }
+      g.restore();
+    }
+  }
+}
 function drawFighter(g, f, fr, z) {
   if (f.state === 'dead') return;
   if (f.state === 'grabbed' && G.fighters.some(o => o !== f && o.state === 'attack' && o.move && o.move.swallow && Math.abs(o.x - f.x) < 3 && Math.abs(o.y - f.y) < 3)) return;
@@ -7251,7 +7373,7 @@ function drawFighter(g, f, fr, z) {
   if (f.key === 'klaud' && (f.ki || 0) > 100) {
     // rate limited: a red 429 over its head, bigger and shaking when it tries a special anyway
     const fz = f.state === 'attack' && f.move === f.M.limited, jx = fz && f.mt < 10 ? Math.sin(f.mt * 2.5) * 3 : 0;
-    g.save(); g.translate(f.x + jx, f.y - c.h - (f.state === 'attack' && f.move === f.M.upB ? 88 : 58)); if (fz) g.scale(1.35, 1.35);
+    g.save(); g.translate(f.x + jx, f.y - c.h - (f.state === 'attack' && f.move === f.M.upB ? 104 : 58)); if (fz) g.scale(1.35, 1.35);
     rr(g, -22, -11, 44, 22, 6); g.fillStyle = '#2a1416'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
     g.font = "15px Impact, 'Arial Black', sans-serif"; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = fz || G.frame % 30 < 15 ? '#ff5a5a' : '#c23b3b'; g.fillText('429', 0, 1);
     if (fz) { g.font = "10px system-ui, 'Segoe UI', Arial, sans-serif"; g.lineWidth = 3; g.strokeStyle = INK; g.fillStyle = '#ffd0d0'; g.strokeText('te veel verzoeken', 0, -20); g.fillText('te veel verzoeken', 0, -20); }
@@ -7259,11 +7381,10 @@ function drawFighter(g, f, fr, z) {
   }
   if (f.key === 'klaud' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 4) {
     // the turning spark of a thinking terminal, over its head
-    const r = 17 * Math.min(1, (f.mt - 4) / 4);
-    g.save(); g.translate(f.x, f.y - c.h - 46); g.rotate(f.mt * 0.35); g.lineCap = 'round';
-    for (const [lw2, cc] of [[8, INK], [4.5, f.col.body]]) { g.lineWidth = lw2; g.strokeStyle = cc; g.beginPath(); for (let i = 0; i < 4; i++) { const a = i * Math.PI / 4; g.moveTo(-Math.cos(a) * r, -Math.sin(a) * r); g.lineTo(Math.cos(a) * r, Math.sin(a) * r); } g.stroke(); }
-    g.restore();
+    const r = 19 * Math.min(1, (f.mt - 4) / 4);
+    g.save(); g.translate(f.x, f.y - c.h - 62); g.rotate(f.mt * 0.35); klaudLogo(g, r, f.col.body); g.restore();
   }
+  if (f.key === 'klaud') drawKlaudFx(g, f, c, z);
   if (f.key === 'lente' && f.state === 'attack' && f.move === f.M.sideB && f.mt >= 8 && f.mt <= 38) {
     // the whirl of the spinning legs
     g.save(); g.translate(f.x, f.y - c.h * 0.5); g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 3; g.setLineDash([16, 12]); g.lineDashOffset = -f.mt * 8;
@@ -7687,6 +7808,7 @@ function render() {
   drawHitboxes(g, fr);
   for (const p of G.projs) drawProj(g, p, fr);
   drawParts(g, V.cam.z);
+  for (const f of G.fighters) if (f.key === 'klaud') drawKlaudUI(g, f, V.cam.z);
   drawKOs(g, V);
   if (G.showBoxes && G.training) { setLayer(g, V, 1); drawBoxes(g); }
   if (G.tech) { setLayer(g, V, 1); drawTechWorld(g, G.tech); }
@@ -8446,7 +8568,7 @@ function snapF(f) {
   const fl = (f.grounded ? 1 : 0) | (f.tumble ? 2 : 0) | (f.tumbleAnim ? 4 : 0) | (f.adDir ? 8 : 0) | (f.intang ? 16 : 0) | (f.item ? 32 : 0) | (f.out ? 64 : 0) | (f.star > 0 ? 128 : 0) | (f.feather > 0 ? 256 : 0) | (f.buried ? 512 : 0) | (f.punchStore >= 100 ? 1024 : 0) | (f.maskT > 0 ? 2048 : 0) | (f.ssj > 0 ? 4096 : 0) | (f.fs ? 8192 : 0) | (f.key === 'nevel' && f.sc && f.sc.length > 1 ? 16384 : 0);
   const mk = f.move ? (f.move.netKey || 'ctr') : '';
   return [ST_LIST.indexOf(f.state), Math.round(f.x), Math.round(f.y), f.facing, mk, f.mt | 0, f.charge | 0, f.t | 0, fl, Math.round(f.percent * 10), f.stocks, Math.round(f.shieldHP), f.invuln | 0, f.hitlag | 0, f.frozen | 0, f.flash | 0, f.djT | 0,
-    Math.round(f.runPh * 100) % 100000, Math.round(f.vx * 10), evk, evd, ev ? ev.dur : 0, f.stats.ko, f.stats.falls, Math.round(f.stats.dmg), f.elim | 0, f.item ? ITEM_LIST.indexOf(f.item.type) : -1, f.copy || '', Math.round((f.aim || 0) * 100), f.key, Math.round(f.ki || 0)];
+    Math.round(f.runPh * 100) % 100000, Math.round(f.vx * 10), evk, evd, ev ? ev.dur : 0, f.stats.ko, f.stats.falls, Math.round(f.stats.dmg), f.elim | 0, f.item ? ITEM_LIST.indexOf(f.item.type) : -1, f.copy || '', Math.round((f.aim || 0) * 100), f.key, Math.round(f.ki || 0), f.sayT > 0 ? (f.sayI | 0) * 1000 + Math.min(999, f.sayT) : 0];
 }
 function gameSnap() {
   const F = G.fighters, P = [];
@@ -8557,6 +8679,7 @@ function netFighter(f, r, nb, k, fresh) {
     f.aim = clamp((r[28] | 0) / 100, -3.2, 3.2);
     if (typeof r[29] === 'string' && CHARS[r[29]] && r[29] !== f.key) setForm(f, r[29]);
     f.ki = clamp(r[30] | 0, 0, 200);
+    const sv = r[31] | 0; f.sayI = sv / 1000 | 0; f.sayT = sv % 1000;
     const mk = r[4];
     f.move = st === 'attack' ? (mk === 'ctr' ? CTR_MOVE : (typeof mk === 'string' && Object.prototype.hasOwnProperty.call(f.M, mk) ? f.M[mk] : f.M.jab)) : null;
     f.mt = r[5] | 0; f.charge = r[6] | 0; f.t = r[7] | 0;
