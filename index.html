@@ -405,7 +405,7 @@ window.KlapP2P = (() => {
       <header class="brand">
         <h1>Klapstuk</h1>
         <button class="mbtn" id="musTop" aria-pressed="true" aria-label="Muziek aan of uit (N)" title="Muziek aan of uit (N)"><svg class="note" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.8" fill="currentColor"/><circle cx="17.5" cy="16" r="2.8" fill="currentColor"/><path class="slash" d="M3 3l18 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
-        <p>Een platformvechter voor 2 tot 4 spelers, met achtentwintig vechters. Elke klap telt op als <b>schade-%</b>; hoe hoger je percentage, hoe verder je vliegt. Sla je tegenstanders <b>buiten beeld</b> en hou zelf je levens. Wie het vaakst wint, zie je in de <a href="tierlijst.html">tierlijst</a>.</p>
+        <p>Een platformvechter voor 2 tot 4 spelers, met negenentwintig vechters. Elke klap telt op als <b>schade-%</b>; hoe hoger je percentage, hoe verder je vliegt. Sla je tegenstanders <b>buiten beeld</b> en hou zelf je levens. Wie het vaakst wint, zie je in de <a href="tierlijst.html">tierlijst</a>.</p>
       </header>
 
       <div class="modes" role="tablist" aria-label="Speelwijze">
@@ -1117,6 +1117,8 @@ Object.assign(CHARS, {
     col: { body: '#2e63c9', dark: '#5a3b2e', acc: '#e8b83a', skin: '#f6d2b0', fx: '#7fc8ff', hair: '#3a2416' }, alt: { body: '#d9405a', dark: '#5a3b2e', acc: '#f0d060', skin: '#f6d2b0', fx: '#ffb0c0', hair: '#3a2416' } },
   aang: { name: 'Aang', blurb: 'Jonge luchtmonnik met een blauwe pijl op zijn kale hoofd. Licht en zwevend, met twee extra sprongen in de lucht. Hij beheerst alle vier de elementen. Lucht: een Luchtstoot die tegenstanders wegblaast, de Luchtscooter (een bal van lucht om op te rijden, ook om zijwaarts terug te komen) en zijn staf als zweefvlieger. Aarde: een rotszuil uit de grond (in de lucht gooit hij een rotsblok schuin naar beneden). Vuur: een vuurstoot als smash vooruit en een vurige trap in de lucht. Water: waterzwepen naar beide kanten als smash omlaag en een waterzweep achter zich in de lucht.', weight: 76, run: 7.8, acc: 1.15, jump: 15.5, djump: 13, grav: 0.72, fall: 10, ffall: 15.5, air: 5.6, airAcc: 0.56, airJumps: 2, w: 36, h: 74, pow: 0.94, reach: 1, lag: 0, limb: 9, hr: 0.2, zoner: true, sideRec: true,
     col: { body: '#f2a62a', dark: '#e0912a', acc: '#c9471f', skin: '#f7d7b5', fx: '#d6f1ff', tat: '#2f7fd8' }, alt: { body: '#b3302a', dark: '#2c2430', acc: '#7c1f1f', skin: '#f7d7b5', fx: '#ffd0b0', tat: '#2f7fd8' } },
+  klaud: { name: 'Klaud', blurb: 'Kleine oranje pixelkrab uit de terminal. Gooit codeblokken, scharrelt zijwaarts met zijn scharen (ook om terug te komen), draait zich onder een denkend sterretje omhoog en comprimeert zich tot een zwaar blokje dat als een steen valt en openbarst.', weight: 84, run: 7, acc: 1.15, jump: 14.5, djump: 13.5, grav: 0.86, fall: 12.8, ffall: 18, air: 4.8, airAcc: 0.5, airJumps: 1, w: 64, h: 54, pow: 1, reach: 1, lag: 0, limb: 9, pz: 1.15, zoner: true, sideRec: true,
+    col: { body: '#d97757', dark: '#a9533a', acc: '#f2c4a8', skin: '#f2c4a8', fx: '#ffb08a' }, alt: { body: '#3b3833', dark: '#24221f', acc: '#d97757', skin: '#f2c4a8', fx: '#ff9a6a' } },
 });
 const CHAR_KEYS = Object.keys(CHARS).filter(k => !CHARS[k].hidden);
 
@@ -1129,7 +1131,7 @@ const FINALS = {
   rat: ['storm', 'Donderstorm'], kakel: ['storm', 'Eierregen'], ninja: ['rush', 'Duizend Sneden'], techno: ['nova', 'Bloed voor de Bloedgod'],
   schim: ['nova', 'Chaosexplosie'], gokko: ['beam', 'Superstraal'], rekker: ['rush', 'Rubberstorm'], draai: ['rush', 'Klonenleger'],
   aardbei: ['beam', 'Zwarte Maansnede'], sleutel: ['storm', 'Sleutelregen'], bot: ['beam', 'Gasterkanon'], eik: ['rush', 'Grote Hemelsnede'],
-  nevel: ['rush', 'De Eclips'], marsepein: ['nova', 'Oude Magie'], sterre: ['nova', 'Urano Metria'], lente: ['nova', 'Kikosho'], aang: ['nova', 'Avatartoestand'],
+  nevel: ['rush', 'De Eclips'], marsepein: ['nova', 'Oude Magie'], sterre: ['nova', 'Urano Metria'], lente: ['nova', 'Kikosho'], aang: ['nova', 'Avatartoestand'], klaud: ['storm', 'Subagenten'],
 };
 // Joep's hand-made colourways: the magenta cap, black shirt and purple shorts of the classic look, and an all black-and-red one
 CHARS.joep.skins = [{ name: 'Roze pet', body: '#2a2830', dark: '#6a52a8', acc: '#d4458e', skin: '#f6cfa8', fx: '#ff9bd0' },
@@ -1184,6 +1186,7 @@ let NEXT_ID = 1;
    knockback scales with damage %). pre = frames with small hits before the release (preD each),
    fx = effect on release. Unlisted fields keep the generic values. */
 const THROWS = {
+  klaud: { f: { d: 7, a: 40, b: 60, g: 55, fx: 'burst' }, b: { d: 8, a: 135, b: 55, g: 65 }, u: { d: 6, a: 90, b: 65, g: 55, fx: 'burst' }, d: { d: 2, a: 80, b: 40, g: 28, start: 12, end: 6, pre: [3, 6, 9], preD: 1 } },
   volt:  { f: { d: 6, a: 40, b: 55, g: 45, fx: 'zap', pre: [3, 5], preD: 1 }, b: { d: 7, a: 135, b: 55, g: 50, fx: 'zap', pre: [4, 6], preD: 1 },
            u: { d: 5, a: 90, b: 72, g: 55, fx: 'zap', pre: [4, 6], preD: 1 }, d: { d: 3, a: 82, b: 42, g: 28, fx: 'zap', start: 12, end: 6, pre: [3, 5, 7, 9], preD: 1 } },
   brick: { f: { d: 11, a: 40, b: 70, g: 70, fx: 'slam' }, b: { d: 12, a: 140, b: 60, g: 95, fx: 'slam' }, u: { d: 9, a: 88, b: 65, g: 80 }, d: { d: 8, a: 75, b: 55, g: 50, fx: 'slam' } },
@@ -1581,6 +1584,48 @@ function skillConnect(f, t) {
   return true;
 }
 const SPECIALS = {
+  // Klaud: a little pixel crab from the terminal
+  klaud: (M, H, s) => ({
+    // Codeblok: a little terminal block with a prompt in it, flying straight; two at a time
+    neutralB: M({ special: true, start: 9, active: 1, end: 16, pose: 'cast',
+      tick: (f, t) => {
+        if (!f.grounded && f.vy > 1.5) f.vy = 1.5;
+        if (t !== 9) return;
+        if (G.projs.filter(p => p.owner === f && p.type === 'codeblok' && !p.dead).length >= 2) { sparkFx(f.x + f.facing * 50 * s, f.y - 40 * s, '#cfcfcf', 3); return; }
+        spawnProj({ type: 'codeblok', owner: f, x: f.x + f.facing * 60 * s, y: f.y - 40 * s, vx: f.facing * 8, r: 13, life: 48, hb: { d: 5, a: 40, b: 35, g: 45 } }); SFX.shoot();
+      } }),
+    // Zijwaartse scharrel: scuttles sideways, pinching all the way; also brings it back to the stage
+    sideB: M({ special: true, start: 6, active: 20, end: 14, pose: 'grab', poseFn: klaudScuttlePose, keepVel: true, noDrift: true, ll: 12, combo: true,
+      hb: [0, 1, 2].map(i => H(40, -40, 26, 2.5, 60, 18, 0, { nr: 1, grp: i + 1, link: true, f0: i * 6, f1: i * 6 + 3 })).concat([H(42, -40, 30, 6, 40, 44, 84, { nr: 1, grp: 9, f0: 18 })]),
+      noGrav: (f, t) => t >= 6 && t <= 26,
+      tick: (f, t) => {
+        if (t < 6) { f.vx *= 0.7; if (!f.grounded && f.vy > 0) f.vy *= 0.5; return; }
+        if (t <= 26) { f.vx = f.facing * 8; if (!f.grounded) f.vy = Math.min(f.vy + 0.1, 0.6); else if (t % 3 === 0) dustFx(f.x - f.facing * 24, f.y, 2); if (t % 6 === 0) SFX.swing(); }
+        else f.vx *= 0.8;
+      } }),
+    // Denken: spins upward under a turning spark, hitting all the way up
+    upB: M({ special: true, start: 4, active: 22, end: 12, pose: 'spring', poseFn: klaudSpinPose, helpless: true, ledgeOK: 8, drift: 0.6, ll: 14, combo: true,
+      hb: [0, 1, 2].map(i => H(0, -40, 34, 2.5, 85, 20, 0, { nr: 1, grp: i + 1, link: true, f0: i * 5, f1: i * 5 + 3 })).concat([H(0, -50, 38, 6, 80, 46, 86, { nr: 1, grp: 9, f0: 16 })]),
+      tick: (f, t) => {
+        if (t < 4) { f.vx *= 0.7; if (f.vy > 0) f.vy *= 0.5; return; }
+        if (t === 4) { if (f.ix) f.facing = f.ix; f.vy = -16; f.vx = f.ix * 2.5; f.grounded = false; f.ground = null; SFX.jump(); }
+        if (t % 5 === 0) SFX.swing();
+      } }),
+    // Comprimeren: packs itself into a heavy little block that drops like a stone (and spikes on the way), then bursts open
+    downB: M({ special: true, start: 6, active: 60, end: 0, dur: 80, pose: 'spring', poseFn: klaudCompactPose, noDrift: true, armor: [4, 70], ledgeOK: 6,
+      hb: [H(0, 6, 26, 9, 275, 30, 70, { nr: 1, when: (f, t) => !f.grounded && t >= 8 && !f.mv.pop }), H(0, -26, 58, 11, 65, 48, 82, { nr: 1, grp: 2, when: (f, t) => f.mv.pop && t - f.mv.pop < 4 })],
+      onLand: f => { dustFx(f.x, f.y, 6); SFX.land(); },
+      tick: (f, t) => {
+        if (t < 6) { f.vx *= 0.6; if (!f.grounded && f.vy > 0) f.vy *= 0.5; return; }
+        if (!f.grounded) { f.vy = 14; f.vx *= 0.9; return; }
+        f.vx *= 0.7;
+        if (!f.mv.pop && t >= 22) {
+          f.mv.pop = t; G.shake = Math.max(G.shake, 9); dustFx(f.x, f.y, 10); sparkFx(f.x, f.y - 20, f.col.fx, 10);
+          addP({ type: 'ring', x: f.x, y: f.y - 20, life: 14, max: 14, size: 60, color: f.col.fx }); SFX.boom();
+        }
+        if (f.mv.pop && t >= f.mv.pop + 14) f.endMove();
+      } }),
+  }),
   volt: (M, H, s) => ({
     neutralB: M({ special: true, start: 5, active: 1, end: 9, pose: 'cast',
       tick: (f, t) => { if (!f.grounded && f.vy > 1.5) f.vy = 1.5; if (t === 5) { spawnProj({ type: 'laser', owner: f, x: f.x + f.facing * 32 * s, y: f.y - 44 * s, vx: f.facing * 26, r: 6, life: 26, hb: { d: 3, a: 0, b: 0, g: 0, noFlinch: true } }); SFX.zap(); } } }),
@@ -2718,7 +2763,7 @@ function fsStorm(f, t) {
   if (t < 20 || t >= 132 || t % 5) return;
   const m = G.stage.main, foes = fsFoes(f), aim = foes.length && Math.random() < 0.7 ? foes[Math.random() * foes.length | 0] : null;
   const x = aim ? aim.x + aim.vx * 50 + rand(-60, 60) : rand(m.x1 - 120, m.x2 + 120), egg = f.key === 'kakel';
-  spawnProj({ type: egg ? 'egg' : 'fsstar', owner: f, x: x - 140, y: m.y - 720, vx: 2.6, vy: 13, r: egg ? 16 : 22, life: 120, spin: 0.2, pierce: true, reflect: false, thru: true, hb: { d: 7, a: 75, b: 45, g: 80 },
+  spawnProj({ type: egg ? 'egg' : f.key === 'klaud' ? 'minikrab' : 'fsstar', owner: f, x: x - 140, y: m.y - 720, vx: 2.6, vy: 13, r: egg ? 16 : f.key === 'klaud' ? 18 : 22, life: 120, spin: 0.2, pierce: true, reflect: false, thru: true, hb: { d: 7, a: 75, b: 45, g: 80 },
     onGround: p => { p.dead = true; sparkFx(p.x, p.y, f.col.fx, 6); } });
   if (t % 15 === 0) SFX.zap();
 }
@@ -4842,6 +4887,16 @@ function lenteBracelet(g, p, lw) {
   for (let i = 0; i < 6; i++) { const a = i * TAU / 6; g.moveTo(x + Math.cos(a) * lw * 0.55, y + Math.sin(a) * lw * 0.55); g.lineTo(x + Math.cos(a) * lw * 1.05, y + Math.sin(a) * lw * 1.05); } g.stroke();
   g.beginPath(); g.arc(x, y, lw * 0.62, 0, TAU); g.fillStyle = '#2a2730'; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke();
 }
+// Klaud scuttles with its legs going fast, spins with both arms out, and packs itself small
+function klaudScuttlePose(f, t) {
+  if (t < 6) return mk({ crouch: 0.3, aF: [1.0, -0.4], aB: [-1.0, -0.4], plant: 'both' });
+  const sw = (t >> 1) & 1; return mk({ aF: [1.6, 0], aB: [-1.2, -0.6], lF: [sw ? 0.7 : -0.4, -0.2], lB: [sw ? -0.7 : 0.4, -0.2], lean: 0.12 });
+}
+function klaudSpinPose(f, t) {
+  if (t < 4) return mk({ crouch: 0.6, aF: [0.5, -1.0], aB: [-0.5, -1.0], plant: 'both' });
+  const P = mk({ aF: [2.2, 0], aB: [-2.2, 0], lF: [0.5, -0.2], lB: [-0.5, -0.2] }); P.rot = (t - 4) * 0.55; return P;
+}
+function klaudCompactPose(f, t) { return mk({ crouch: Math.min(1, t / 5), plant: 'both' }); }
 function nevelXPose(f, t) {
   // both swords raised crossed, then brought down one after the other
   const k1 = clamp((t - 2) / 3, 0, 1), k2 = clamp((t - 6) / 3, 0, 1);
@@ -4875,6 +4930,7 @@ function drawPuppetBase(g, ck, col, P, o = {}) {
   g.translate(0, P.dy || 0);
   if (P.rot) { g.translate(0, -h * 0.5); g.rotate(P.rot); g.translate(0, h * 0.5); }
   if (ck === 'poef') { drawPoef(g, col, P, o); g.restore(); return; }
+  if (ck === 'klaud') { drawKlaud(g, col, P, o); g.restore(); return; }
   if (ck === 'bag') { drawBag(g, col, P, o); g.restore(); return; }
   if (ck === 'kakel') { drawFarm(g, ck, col, P, o); g.restore(); return; }
   const hip = { x: 0, y: -hipH }, sh = { x: Math.sin(lean) * tl, y: -hipH - Math.cos(lean) * tl };
@@ -5857,6 +5913,10 @@ function trPauseUI() {
 function trSpeed() { G.speed = G.speed === 1 ? 0.5 : G.speed === 0.5 ? 0.25 : 1; SFX.ui(); if (!pauseEl.hidden) trPauseUI(); }
 function trInpTog() { settings.trInp = settings.trInp === false; save(); if (!pauseEl.hidden) trPauseUI(); }
 function techLabel() { const n = techDone().filter(id => TECHS.some(t => t.id === id)).length; $('#trainT').textContent = 'Training: technieken' + (n ? ` (${n}/${TECHS.length})` : ''); }
+function klaudFlags(f) {
+  const m = f.state === 'attack' ? f.move : null, M = f.M, t = f.mt;
+  return { compact: !!m && m === M.downB && t >= 4 && (t < 22 || !f.grounded), scuttle: !!m && m === M.sideB && t >= 6 && t <= 26 };
+}
 function poefFlags(f) {
   const m = f.state === 'attack' ? f.move : null, M = f.M, t = f.mt;
   return { puff: f.djT > 0 && f.state === 'air', inhale: !f.copy && m === M.neutralB && t >= 4 && t <= 50, full: m === M.mouthful || (m === M.swallow && t < 14), copy: f.copy, spit: m === M.spit,
@@ -5912,8 +5972,71 @@ function drawCopyHat(g, ck, R, ty, fr) {
       g.beginPath(); g.moveTo(-R * 0.2, ty + R * 0.36); g.lineTo(R * 0.05, ty + R * 0.56); g.lineTo(R * 0.2, ty + R * 0.36); g.lineTo(R * 0.4, ty + R * 0.52); g.lineTo(R * 0.58, ty + R * 0.3); g.closePath(); g.fillStyle = '#f2d06b'; g.fill(); g.stroke();
       g.beginPath(); g.moveTo(R * 0.62, ty + R * 0.32); g.quadraticCurveTo(R * 0.2, ty - R * 0.55, -R * 0.45, ty - R * 0.2); g.quadraticCurveTo(-R * 1.1, ty + R * 0.05, -R * 1.55, ty + R * 0.8 + w); g.quadraticCurveTo(-R * 0.95, ty + R * 0.45, -R * 0.65, ty + R * 0.4); g.closePath(); g.fillStyle = C.body; g.fill(); g.stroke(); break;
     }
+    case 'klaud': { // a little pixel crab sitting on top
+      g.lineJoin = 'miter';
+      poly([[-0.48, -0.55], [0.48, -0.55], [0.48, -0.23], [0.56, -0.23], [0.56, -0.07], [0.48, -0.07], [0.48, 0.1], [-0.48, 0.1], [-0.48, -0.07], [-0.56, -0.07], [-0.56, -0.23], [-0.48, -0.23]], C.body);
+      g.fillStyle = INK; g.fillRect(-0.3 * R, ty - 0.39 * R, 0.08 * R, 0.16 * R); g.fillRect(0.22 * R, ty - 0.39 * R, 0.08 * R, 0.16 * R); break;
+    }
     default: g.beginPath(); g.arc(0, ty + R * 0.4, R * 0.7, Math.PI, TAU); g.closePath(); g.fillStyle = C.body; g.fill(); g.stroke();
   }
+}
+// Klaud, the little pixel crab: a body of two rows of blocks (the top one narrower, with two tall eye slots), small
+// square arms on its sides and four short legs; drawn in blocks, so the corners stay sharp. An arm in an attack reaches
+// out with a pincer at the end, a leg in a kick reaches out too
+function drawKlaud(g, col, P, o) {
+  const h = CHARS.klaud.h, u = h / 5, cr = P.crouch || 0, sy = 1 - cr * 0.3, fr = o.fr || 0, lean = (P.lean || 0) * 0.45;
+  g.lineJoin = 'miter'; g.lineCap = 'butt';
+  const box = (x, y, w, hh, c, lw = 3) => { g.beginPath(); g.rect(x, y, w, hh); g.fillStyle = c; g.fill(); g.lineWidth = lw; g.strokeStyle = INK; g.stroke(); };
+  if (o.compact) {
+    // packed into a small heavy block, with the eyes still peeking out
+    const b = u * 3.4, y = -b;
+    box(-b / 2, y, b, b, col.dark, 3.5); box(-b / 2 + u * 0.35, y + u * 0.35, b - u * 0.7, b - u * 0.7, col.body, 2);
+    g.fillStyle = INK; for (const ex of [-0.85, 0.45]) g.fillRect(ex * u, y + u * 0.8, u * 0.4, u * 0.7);
+    g.fillStyle = col.dark; for (const k of [0.66, 0.8]) g.fillRect(-b / 2 + u * 0.6, y + b * k, b - u * 1.2, u * 0.16);
+    return;
+  }
+  const bot = -u, mid = -u * (1 + 2 * sy), top = -u * (1 + 4 * sy), half = (mid + bot) / 2;
+  const reach = a => clamp((Math.abs(a[0]) - 0.7) / 0.8, 0, 1) * (1 - clamp(Math.abs(a[1]) / 0.9, 0, 1));
+  // legs: the two at the back follow the pose's back leg, the two at the front its front leg
+  const leg = (x, a, outer, ph) => {
+    let ang = a[0];
+    if (o.scuttle) ang = Math.sin(fr * 1.3 + ph) * 0.7;
+    const ext = outer && !o.scuttle ? clamp((Math.abs(ang) - 0.9) / 0.8, 0, 1) * (1 - clamp(Math.abs(a[1]) / 0.9, 0, 1)) : 0;
+    if (ext > 0.05) { const L = u * (1 + 2.2 * ext); g.save(); g.translate(x, bot); g.rotate(-ang); box(-u * 0.25, 0, u * 0.5, L, col.body); box(-u * 0.35, L - u * 0.1, u * 0.7, u * 0.45, col.dark, 2.5); g.restore(); return; }
+    const down = !o.grounded && Math.abs(ang) < 0.3 && Math.abs(a[1]) < 0.1, lift = o.grounded ? (1 - Math.cos(ang)) * u * 0.35 : 0;
+    const len = down ? u * 1.7 : Math.max(u * 0.45, u - lift);
+    box(x + Math.sin(ang) * u * 0.45 - u * 0.25, bot, u * 0.5, len, col.body, 2.5);
+  };
+  leg(-2.25 * u, P.lB, true, 0); leg(-1.25 * u, P.lB, false, Math.PI); leg(1.25 * u, P.lF, false, 0); leg(2.25 * u, P.lF, true, Math.PI);
+  g.save(); g.translate(0, bot); g.rotate(lean); g.translate(0, -bot);
+  // an arm: a small square at rest, a reaching arm with a pincer in an attack
+  const arm = (side, a) => {
+    const ext = reach(a), ay = mid + u * 0.5 * sy;
+    if (ext <= 0.05) { box(side > 0 ? 3.5 * u : -4 * u, mid, u * 0.5, u * sy, col.body); return; }
+    const L = u * (0.6 + 2.6 * ext); g.save(); g.translate(side * 3.4 * u, ay); g.rotate(-a[0]);
+    box(-u * 0.4, 0, u * 0.8, L, col.body);
+    box(-u * 0.75, L - u * 0.05, u * 0.6, u * 0.8, col.body, 2.5); box(u * 0.15, L - u * 0.05, u * 0.6, u * 0.8, col.body, 2.5);
+    g.restore();
+  };
+  arm(-1, P.aB);
+  if (P.aF[0] < -0.2) arm(1, P.aF);
+  // the body
+  g.beginPath();
+  [[-3, top], [3, top], [3, mid], [3.5, mid], [3.5, half], [3, half], [3, bot], [-3, bot], [-3, half], [-3.5, half], [-3.5, mid], [-3, mid]].forEach(([x, y], i) => i ? g.lineTo(x * u, y) : g.moveTo(x * u, y));
+  g.closePath(); g.fillStyle = col.body; g.fill(); g.lineWidth = 3.5; g.strokeStyle = INK; g.stroke();
+  g.fillStyle = 'rgba(255,255,255,.28)'; g.fillRect(-3 * u + 2, top + 2, u * 1.2, u * 0.3);
+  g.fillStyle = hexA(col.dark, 0.55); g.fillRect(-3 * u + 2, bot - u * 0.35, 6 * u - 4, u * 0.35 - 2);
+  // two tall eye slots in the lower half of the top row, a little to the side it faces; a blink now and then
+  const ey = (top + mid) / 2, eh = mid - ey;
+  g.fillStyle = INK;
+  for (const ex of [-2, 1.5]) {
+    const x = (ex + 0.2) * u;
+    if (o.hurt) { g.fillRect(x - u * 0.1, ey + eh * 0.4, u * 0.7, u * 0.2); continue; }
+    if ((fr + 100) % 200 < 5) g.fillRect(x, mid - u * 0.2, u * 0.5, u * 0.16);
+    else g.fillRect(x, ey, u * 0.5, eh);
+  }
+  if (P.aF[0] >= -0.2) arm(1, P.aF);
+  g.restore();
 }
 function drawPoef(g, col, P, o) {
   const h = CHARS.poef.h, R = h * 0.46, cr = P.crouch || 0, lean = (P.lean || 0) * 0.55, fr = o.fr || 0, base = -h * 0.06;
@@ -6605,6 +6728,17 @@ function drawProj(g, p, fr) {
     const rg = g.createRadialGradient(0, 0, 0, 0, 0, p.r * 1.3); rg.addColorStop(0, '#ffffff'); rg.addColorStop(0.45, '#a8dcff'); rg.addColorStop(1, 'rgba(90,170,255,0)');
     g.fillStyle = rg; g.beginPath(); g.arc(0, 0, p.r * 1.3, 0, TAU); g.fill();
     g.rotate(p.t * 0.25 * d); g.strokeStyle = 'rgba(255,255,255,.8)'; g.lineWidth = 2; g.beginPath(); g.arc(0, 0, p.r * 0.85, 0, Math.PI * 1.2); g.stroke();
+  } else if (p.type === 'codeblok') {
+    // a little terminal: a dark block with a prompt and a blinking cursor, in the thrower's colour
+    const d = Math.sign(p.vx) || 1, c = p.owner ? p.owner.col.body : '#d97757'; g.scale(d, 1);
+    g.globalAlpha = 0.35; g.fillStyle = c; g.fillRect(-28, -2, 9, 4); g.fillRect(-38, -1, 6, 2); g.globalAlpha = 1;
+    rr(g, -15, -11, 30, 22, 4); g.fillStyle = '#26221e'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
+    g.strokeStyle = c; g.lineWidth = 3; g.lineCap = 'square'; g.lineJoin = 'miter'; g.beginPath(); g.moveTo(-9, -6); g.lineTo(-3, 0); g.lineTo(-9, 6); g.stroke();
+    if ((p.t >> 3) % 2 === 0) { g.fillStyle = c; g.fillRect(0, 4, 8, 3); }
+  } else if (p.type === 'minikrab') {
+    // a little subagent crab dropping in, legs kicking
+    const k = CHARS.klaud; g.rotate(Math.sin(p.t * 0.35) * 0.3); g.scale(0.42, 0.42); g.translate(0, k.h * 0.5);
+    drawKlaud(g, p.owner ? p.owner.col : k.col, mk({ lF: [Math.sin(p.t * 0.9) * 0.6, -0.2], lB: [-Math.sin(p.t * 0.9) * 0.6, -0.2] }), { fr: p.t });
   } else if (p.type === 'taurus') {
     // the bull: a gate glow as he appears, a spotted body, horns, and the axe raised and then brought down
     const d = p.rot < 0 ? -1 : 1, a = Math.min(1, p.t / 5) * Math.min(1, p.life / 6); g.globalAlpha *= a; g.scale(d, 1); g.lineWidth = 3; g.strokeStyle = INK;
@@ -6889,7 +7023,7 @@ function drawFighter(g, f, fr, z) {
   const sword = f.key === 'techno' ? !f.item && !(f.state === 'attack' && f.move && (f.move.throw || ['cast', 'counter', 'throwItem', 'pick', 'bow', 'riptide'].includes(f.move.pose)))
     : f.key === 'sleutel' || f.key === 'eik' || f.key === 'nevel' || f.key === 'marsepein' ? !f.item && !(f.key === 'nevel' && (f.state === 'shield' || (f.state === 'attack' && f.move === f.M.downB && f.mt >= 3 && f.mt <= 25))) && !(f.state === 'attack' && f.move && (f.move.throw || ['throwItem', 'pick'].includes(f.move.pose)))
     : (f.key === 'sable' || f.key === 'lonk' || f.key === 'aardbei' || f.key === 'bot') && f.state === 'attack' && f.move && !f.move.throw && !['cast', 'counter', 'throwItem', 'pick', 'bow', 'lonkpull', 'maskOn', 'soulGrab'].includes(f.move.pose);
-  drawPuppet(g, f.key, f.key === 'rekker' && f.ssj > 0 ? Object.assign({}, f.col, { skin: '#f0908a' }) : f.col, P, { glider: f.key === 'aang' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 20, avatar: f.key === 'aang' && f.state === 'attack' && f.move === f.M.final, glow: f.key === 'bot' && f.state === 'attack' && f.move && f.move.special, skc: f.key === 'nevel' && f.state === 'attack' && f.move ? f.move.skc || (f.move === f.M.final ? '#bfe8ff' : null) : f.key === 'marsepein' && f.state === 'attack' && f.move && f.move.special ? f.col.fx : null, dual: f.key === 'nevel' && sword, mask: f.maskT > 0, ssj: f.ssj > 0 || (f.state === 'attack' && f.move && f.move.ssjUp && f.mt > 18 && f.mt % 4 < 2), grounded: f.grounded || f.state === 'land', fr: fr + f.id * 30, sword, held: f.item ? f.item.type : f.state === 'attack' && f.move && f.move.bat ? 'bat' : null, wings: f.feather > 0, xbow: f.key === 'techno' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, trident: f.key === 'techno' && f.state === 'attack' && f.move === f.M.upB, totem: f.key === 'techno' && f.state === 'attack' && f.move === f.M.downB, bow: f.key === 'lonk' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, pull: f.charge, jet: f.key === 'bliep' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 4, hurt: f.state === 'hitstun' || f.state === 'knockdown' || f.state === 'dizzy' || f.state === 'shieldbreak' || f.state === 'grabbed', ...(f.key === 'poef' ? poefFlags(f) : {}) });
+  drawPuppet(g, f.key, f.key === 'rekker' && f.ssj > 0 ? Object.assign({}, f.col, { skin: '#f0908a' }) : f.col, P, { glider: f.key === 'aang' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 20, avatar: f.key === 'aang' && f.state === 'attack' && f.move === f.M.final, glow: f.key === 'bot' && f.state === 'attack' && f.move && f.move.special, skc: f.key === 'nevel' && f.state === 'attack' && f.move ? f.move.skc || (f.move === f.M.final ? '#bfe8ff' : null) : f.key === 'marsepein' && f.state === 'attack' && f.move && f.move.special ? f.col.fx : null, dual: f.key === 'nevel' && sword, mask: f.maskT > 0, ssj: f.ssj > 0 || (f.state === 'attack' && f.move && f.move.ssjUp && f.mt > 18 && f.mt % 4 < 2), grounded: f.grounded || f.state === 'land', fr: fr + f.id * 30, sword, held: f.item ? f.item.type : f.state === 'attack' && f.move && f.move.bat ? 'bat' : null, wings: f.feather > 0, xbow: f.key === 'techno' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, trident: f.key === 'techno' && f.state === 'attack' && f.move === f.M.upB, totem: f.key === 'techno' && f.state === 'attack' && f.move === f.M.downB, bow: f.key === 'lonk' && f.state === 'attack' && f.move === f.M.neutralB && f.mt <= 14, pull: f.charge, jet: f.key === 'bliep' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 4, hurt: f.state === 'hitstun' || f.state === 'knockdown' || f.state === 'dizzy' || f.state === 'shieldbreak' || f.state === 'grabbed', ...(f.key === 'poef' ? poefFlags(f) : f.key === 'klaud' ? klaudFlags(f) : {}) });
   if ('filter' in g) g.filter = 'none';
   g.globalAlpha = 1; g.restore();
   if (f.key === 'kwak' && f.state === 'attack' && f.move === f.M.sideB) {
@@ -6955,6 +7089,13 @@ function drawFighter(g, f, fr, z) {
     g.fillStyle = f.col.acc; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke();
     g.strokeStyle = shade(f.col.acc, 0.72); g.lineWidth = 2; g.beginPath(); for (const q of [-0.55, -0.15, 0.25]) { g.moveTo(W2 * q, -14 * k); g.lineTo(W2 * (q + 0.05), 7); } g.moveTo(-W2 * 0.82, 2); g.lineTo(-W2 * 0.45, 2); g.stroke();
     g.strokeStyle = INK; g.lineWidth = 7; g.beginPath(); g.moveTo(-36 * sc, 2); g.lineTo(40 * sc, 2); g.stroke(); g.strokeStyle = '#a8743a'; g.lineWidth = 3.5; g.stroke();
+    g.restore();
+  }
+  if (f.key === 'klaud' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 4) {
+    // the turning spark of a thinking terminal, over its head
+    const r = 17 * Math.min(1, (f.mt - 4) / 4);
+    g.save(); g.translate(f.x, f.y - c.h - 46); g.rotate(f.mt * 0.35); g.lineCap = 'round';
+    for (const [lw2, cc] of [[8, INK], [4.5, f.col.body]]) { g.lineWidth = lw2; g.strokeStyle = cc; g.beginPath(); for (let i = 0; i < 4; i++) { const a = i * Math.PI / 4; g.moveTo(-Math.cos(a) * r, -Math.sin(a) * r); g.lineTo(Math.cos(a) * r, Math.sin(a) * r); } g.stroke(); }
     g.restore();
   }
   if (f.key === 'lente' && f.state === 'attack' && f.move === f.M.sideB && f.mt >= 8 && f.mt <= 38) {
@@ -7864,7 +8005,7 @@ function vidUI() {
 
 /* ---------------- online ---------------- */
 const ST_LIST = ['idle', 'walk', 'run', 'crouch', 'land', 'jumpsquat', 'air', 'attack', 'shield', 'evade', 'airdodge', 'hitstun', 'helpless', 'knockdown', 'dizzy', 'ledge', 'holding', 'grabbed', 'respawn', 'shieldbreak', 'dead'];
-const PT_LIST = ['spark', 'shuriken', 'fire', 'ice', 'pipbomb', 'bombT', 'boom', 'wave', 'laser', 'fist', 'bubble', 'spear', 'blast', 'bananaT', 'batT', 'blasterT', 'puffstar', 'pkbolt', 'pkfire', 'pkthunder', 'pkflash', 'arrow', 'boomer', 'jolt', 'thunder', 'egg', 'rocket', 'kibeam', 'genki', 'clone', 'getsuga', 'gblaster', 'gbeam', 'bone', 'erupt', 'mcircle', 'flashb', 'taurus', 'aqwave', 'pluu', 'kikoken', 'fsstar', 'gust', 'rots', 'rotsblok'];
+const PT_LIST = ['spark', 'shuriken', 'fire', 'ice', 'pipbomb', 'bombT', 'boom', 'wave', 'laser', 'fist', 'bubble', 'spear', 'blast', 'bananaT', 'batT', 'blasterT', 'puffstar', 'pkbolt', 'pkfire', 'pkthunder', 'pkflash', 'arrow', 'boomer', 'jolt', 'thunder', 'egg', 'rocket', 'kibeam', 'genki', 'clone', 'getsuga', 'gblaster', 'gbeam', 'bone', 'erupt', 'mcircle', 'flashb', 'taurus', 'aqwave', 'pluu', 'kikoken', 'fsstar', 'gust', 'rots', 'rotsblok', 'codeblok', 'minikrab'];
 const MODE_LIST = ['match', 'gameover', 'results'];
 const LAVA_ST = ['idle', 'warn', 'rise', 'hold', 'fall'];
 const CTR_MOVE = { pose: 'smashF', start: 3, active: 4, end: 20, dur: 27, hb: [] };
