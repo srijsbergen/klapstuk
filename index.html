@@ -1117,7 +1117,7 @@ Object.assign(CHARS, {
     col: { body: '#2e63c9', dark: '#5a3b2e', acc: '#e8b83a', skin: '#f6d2b0', fx: '#7fc8ff', hair: '#3a2416' }, alt: { body: '#d9405a', dark: '#5a3b2e', acc: '#f0d060', skin: '#f6d2b0', fx: '#ffb0c0', hair: '#3a2416' } },
   aang: { name: 'Aang', blurb: 'Jonge luchtmonnik met een blauwe pijl op zijn kale hoofd. Licht en zwevend, met twee extra sprongen in de lucht. Hij beheerst alle vier de elementen. Lucht: een Luchtstoot die tegenstanders wegblaast, de Luchtscooter (een bal van lucht om op te rijden, ook om zijwaarts terug te komen) en zijn staf als zweefvlieger. Aarde: een rotszuil uit de grond (in de lucht gooit hij een rotsblok schuin naar beneden). Vuur: een vuurstoot als smash vooruit en een vurige trap in de lucht. Water: waterzwepen naar beide kanten als smash omlaag en een waterzweep achter zich in de lucht.', weight: 76, run: 7.8, acc: 1.15, jump: 15.5, djump: 13, grav: 0.72, fall: 10, ffall: 15.5, air: 5.6, airAcc: 0.56, airJumps: 2, w: 36, h: 74, pow: 0.94, reach: 1, lag: 0, limb: 9, hr: 0.2, zoner: true, sideRec: true,
     col: { body: '#f2a62a', dark: '#e0912a', acc: '#c9471f', skin: '#f7d7b5', fx: '#d6f1ff', tat: '#2f7fd8' }, alt: { body: '#b3302a', dark: '#2c2430', acc: '#7c1f1f', skin: '#f7d7b5', fx: '#ffd0b0', tat: '#2f7fd8' } },
-  klaud: { name: 'Klaud', blurb: 'Kleine oranje pixelkrab uit de terminal. Gooit codeblokken, scharrelt zijwaarts met zijn scharen (ook om terug te komen), draait zich onder een denkend sterretje omhoog en comprimeert zich tot een zwaar blokje dat als een steen valt en openbarst.', weight: 84, run: 7, acc: 1.15, jump: 14.5, djump: 13.5, grav: 0.86, fall: 12.8, ffall: 18, air: 4.8, airAcc: 0.5, airJumps: 1, w: 64, h: 54, pow: 1, reach: 1, lag: 0, limb: 9, pz: 1.15, zoner: true, sideRec: true,
+  klaud: { name: 'Klaud', blurb: 'Kleine oranje pixelkrab uit de terminal. Houd speciaal vast en hij streamt tokens, met een codeblok als slot; hij scharrelt zijwaarts met zijn scharen (ook om terug te komen), draait zich onder een denkend sterretje omhoog en comprimeert zich tot een zwaar blokje dat als een steen valt en openbarst. Elke token en speciale aanval telt mee voor zijn gebruiksmeter: zit die vol, dan zit hij vijf seconden aan zijn limiet (429) en lukt alleen zijn sprong omhoog nog.', weight: 84, run: 7, acc: 1.15, jump: 14.5, djump: 13.5, grav: 0.86, fall: 12.8, ffall: 18, air: 4.8, airAcc: 0.5, airJumps: 1, w: 64, h: 54, pow: 1, reach: 1, lag: 0, limb: 9, pz: 1.15, zoner: true, sideRec: true,
     col: { body: '#d97757', dark: '#a9533a', acc: '#f2c4a8', skin: '#f2c4a8', fx: '#ffb08a' }, alt: { body: '#3b3833', dark: '#24221f', acc: '#d97757', skin: '#f2c4a8', fx: '#ff9a6a' } },
 });
 const CHAR_KEYS = Object.keys(CHARS).filter(k => !CHARS[k].hidden);
@@ -1586,16 +1586,29 @@ function skillConnect(f, t) {
 const SPECIALS = {
   // Klaud: a little pixel crab from the terminal
   klaud: (M, H, s) => ({
-    // Codeblok: a little terminal block with a prompt in it, flying straight; two at a time
-    neutralB: M({ special: true, start: 9, active: 1, end: 16, pose: 'cast',
+    // Tokens: streams tokens (bits of words) for as long as special is held, and ends the answer with a code block that
+    // launches; every token counts towards the usage limit
+    neutralB: M({ special: true, start: 6, active: 60, end: 14, pose: 'cast', onStart: f => klaudGate(f, 0),
       tick: (f, t) => {
-        if (!f.grounded && f.vy > 1.5) f.vy = 1.5;
-        if (t !== 9) return;
-        if (G.projs.filter(p => p.owner === f && p.type === 'codeblok' && !p.dead).length >= 2) { sparkFx(f.x + f.facing * 50 * s, f.y - 40 * s, '#cfcfcf', 3); return; }
-        spawnProj({ type: 'codeblok', owner: f, x: f.x + f.facing * 60 * s, y: f.y - 40 * s, vx: f.facing * 8, r: 13, life: 48, hb: { d: 5, a: 40, b: 35, g: 45 } }); SFX.shoot();
+        if (!f.grounded && f.vy > 1.2) f.vy = 1.2;
+        if (t < 6) return;
+        const held = f.ctrl.h.spc, m = f.mv;
+        if (m.done == null) {
+          if ((t - 6) % 4 === 0 && (held || t < 14)) {
+            if (!klaudUse(f, 3)) m.done = t;
+            else { spawnProj({ type: 'token', owner: f, x: f.x + f.facing * 46 * s, y: f.y - 40 * s + rand(-9, 9) * s, vx: f.facing * rand(9, 10.5), vy: rand(-0.4, 0.4), r: 9, life: 34, hb: { d: 1.4, a: 45, b: 10, g: 12 } }); if (t % 8 === 6) SFX.ui(); }
+          }
+          if (m.done == null && ((!held && t >= 14) || t >= 62)) {
+            m.done = t;
+            if (klaudUse(f, 6)) { spawnProj({ type: 'codeblok', owner: f, x: f.x + f.facing * 60 * s, y: f.y - 40 * s, vx: f.facing * 8, r: 13, life: 48, hb: { d: 6, a: 40, b: 40, g: 58 } }); SFX.shoot(); }
+          }
+        }
+        if (m.done != null && t >= m.done + 10) f.endMove();
       } }),
+    // rate limited: a special tried anyway only gets a 429
+    limited: M({ special: true, start: 1, active: 1, end: 22, pose: 'cast', onStart: () => SFX.counter() }),
     // Zijwaartse scharrel: scuttles sideways, pinching all the way; also brings it back to the stage
-    sideB: M({ special: true, start: 6, active: 20, end: 14, pose: 'grab', poseFn: klaudScuttlePose, keepVel: true, noDrift: true, ll: 12, combo: true,
+    sideB: M({ special: true, start: 6, active: 20, end: 14, pose: 'grab', poseFn: klaudScuttlePose, onStart: f => klaudGate(f, 10), keepVel: true, noDrift: true, ll: 12, combo: true,
       hb: [0, 1, 2].map(i => H(40, -40, 26, 2.5, 60, 18, 0, { nr: 1, grp: i + 1, link: true, f0: i * 6, f1: i * 6 + 3 })).concat([H(42, -40, 30, 6, 40, 44, 84, { nr: 1, grp: 9, f0: 18 })]),
       noGrav: (f, t) => t >= 6 && t <= 26,
       tick: (f, t) => {
@@ -1604,7 +1617,7 @@ const SPECIALS = {
         else f.vx *= 0.8;
       } }),
     // Denken: spins upward under a turning spark, hitting all the way up
-    upB: M({ special: true, start: 4, active: 22, end: 12, pose: 'spring', poseFn: klaudSpinPose, helpless: true, ledgeOK: 8, drift: 0.6, ll: 14, combo: true,
+    upB: M({ special: true, start: 4, active: 22, end: 12, pose: 'spring', poseFn: klaudSpinPose, onStart: f => { klaudUse(f, 6); }, helpless: true, ledgeOK: 8, drift: 0.6, ll: 14, combo: true,
       hb: [0, 1, 2].map(i => H(0, -40, 34, 2.5, 85, 20, 0, { nr: 1, grp: i + 1, link: true, f0: i * 5, f1: i * 5 + 3 })).concat([H(0, -50, 38, 6, 80, 46, 86, { nr: 1, grp: 9, f0: 16 })]),
       tick: (f, t) => {
         if (t < 4) { f.vx *= 0.7; if (f.vy > 0) f.vy *= 0.5; return; }
@@ -1612,7 +1625,7 @@ const SPECIALS = {
         if (t % 5 === 0) SFX.swing();
       } }),
     // Comprimeren: packs itself into a heavy little block that drops like a stone (and spikes on the way), then bursts open
-    downB: M({ special: true, start: 6, active: 60, end: 0, dur: 80, pose: 'spring', poseFn: klaudCompactPose, noDrift: true, armor: [4, 70], ledgeOK: 6,
+    downB: M({ special: true, start: 6, active: 60, end: 0, dur: 80, pose: 'spring', poseFn: klaudCompactPose, onStart: f => klaudGate(f, 10), noDrift: true, armor: [4, 70], ledgeOK: 6,
       hb: [H(0, 6, 26, 9, 275, 30, 70, { nr: 1, when: (f, t) => !f.grounded && t >= 8 && !f.mv.pop }), H(0, -26, 58, 11, 65, 48, 82, { nr: 1, grp: 2, when: (f, t) => f.mv.pop && t - f.mv.pop < 4 })],
       onLand: f => { dustFx(f.x, f.y, 6); SFX.land(); },
       tick: (f, t) => {
@@ -3183,6 +3196,7 @@ class Fighter {
     if (this.ssj > 0 && this.key === 'draai' && this.percent > 0 && G.frame % 4 === 0) this.percent = Math.max(0, this.percent - 0.1);
     if (this.ssj > 0 && --this.ssj === 0) { sparkFx(this.x, this.y - this.c.h * 0.8, '#ffe066', 6); clonePoof({ x: this.x, y: this.y - this.c.h * 0.8 }); SFX.ui(); }
     if (this.maskCD > 0) this.maskCD--;
+    if (this.key === 'klaud') klaudTick(this);
     if (this.state !== 'shield' && this.shieldHP < 60) this.shieldHP = Math.min(60, this.shieldHP + 0.09);
     this.px = this.x; this.py = this.y;
     this.t++;
@@ -5913,6 +5927,25 @@ function trPauseUI() {
 function trSpeed() { G.speed = G.speed === 1 ? 0.5 : G.speed === 0.5 ? 0.25 : 1; SFX.ui(); if (!pauseEl.hidden) trPauseUI(); }
 function trInpTog() { settings.trInp = settings.trInp === false; save(); if (!pauseEl.hidden) trPauseUI(); }
 function techLabel() { const n = techDone().filter(id => TECHS.some(t => t.id === id)).length; $('#trainT').textContent = 'Training: technieken' + (n ? ` (${n}/${TECHS.length})` : ''); }
+// Klaud's usage: f.ki holds it, 0 to 100; a full meter is rate limited for five seconds, shown as 200 counting down
+// to 100 (so guests online and replays see it too), after which the meter starts again at zero
+const KLAUD_TOKENS = ['klap', 'stuk', '##je', 'ing', 'de', 'het', 'ver', 'ok', '{', '}', '=>', 'ja', 'hm', '42', 'TODO', '✓', 'lgtm', 'ge', 'en', '…'];
+function klaudTick(f) {
+  const u = f.ki || 0;
+  if (u > 100) {
+    f.ki = u - 100 / 300;
+    if (f.ki <= 100) { f.ki = 0; addP({ type: 'text', txt: 'Limiet gereset', x: f.x, y: f.y - f.c.h - 70, vy: -0.6, life: 50, max: 50, size: 15, color: '#7dd87a' }); SFX.heal(); }
+  } else if (u > 0) f.ki = Math.max(0, u - 0.08);
+}
+// counts usage; false when rate limited (another fighter copying the tokens has no limit)
+function klaudUse(f, n) {
+  if (f.key !== 'klaud') return true;
+  if ((f.ki || 0) > 100) return false;
+  f.ki = (f.ki || 0) + n;
+  if (f.ki >= 100) { f.ki = 200; addP({ type: 'text', txt: 'Limiet bereikt!', x: f.x, y: f.y - f.c.h - 100, vy: -0.6, life: 60, max: 60, size: 16, color: '#ff6b6b' }); SFX.counter(); }
+  return true;
+}
+function klaudGate(f, n) { if (f.key === 'klaud' && (f.ki || 0) > 100) return f.startMove(f.M.limited); klaudUse(f, n); }
 function klaudFlags(f) {
   const m = f.state === 'attack' ? f.move : null, M = f.M, t = f.mt;
   return { compact: !!m && m === M.downB && t >= 4 && (t < 22 || !f.grounded), scuttle: !!m && m === M.sideB && t >= 6 && t <= 26 };
@@ -6735,6 +6768,11 @@ function drawProj(g, p, fr) {
     rr(g, -15, -11, 30, 22, 4); g.fillStyle = '#26221e'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
     g.strokeStyle = c; g.lineWidth = 3; g.lineCap = 'square'; g.lineJoin = 'miter'; g.beginPath(); g.moveTo(-9, -6); g.lineTo(-3, 0); g.lineTo(-9, 6); g.stroke();
     if ((p.t >> 3) % 2 === 0) { g.fillStyle = c; g.fillRect(0, 4, 8, 3); }
+  } else if (p.type === 'token') {
+    // a token: a little chip with a bit of a word on it (picked by the projectile's id, so guests online see the same)
+    const t = KLAUD_TOKENS[p.id % KLAUD_TOKENS.length], w = 12 + t.length * 7.5, c = p.owner ? p.owner.col.body : '#d97757';
+    rr(g, -w / 2, -10, w, 20, 5); g.fillStyle = '#f7efe6'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = c; g.stroke();
+    g.font = "bold 12px ui-monospace, Consolas, monospace"; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#2a2420'; g.fillText(t, 0, 0.5); g.textBaseline = 'alphabetic';
   } else if (p.type === 'minikrab') {
     // a little subagent crab dropping in, legs kicking
     const k = CHARS.klaud; g.rotate(Math.sin(p.t * 0.35) * 0.3); g.scale(0.42, 0.42); g.translate(0, k.h * 0.5);
@@ -6980,6 +7018,7 @@ function drawParts(g, z) {
       case 'smoke': g.fillStyle = 'rgba(70,64,90,.55)'; g.beginPath(); g.arc(p.x, p.y, p.size * (1.6 - k * 0.8), 0, TAU); g.fill(); break;
       case 'ember': g.fillStyle = p.color; g.beginPath(); g.arc(p.x, p.y, p.size * k, 0, TAU); g.fill(); break;
       case 'ghost': g.globalAlpha = k * 0.45; g.fillStyle = p.color; rr(g, p.x - p.w * 0.5, p.y - p.size, p.w, p.size, p.w * 0.5); g.fill(); break;
+      case 'text': g.font = `${p.size}px Impact, 'Arial Black', sans-serif`; g.textAlign = 'center'; g.lineJoin = 'round'; g.lineWidth = 4; g.strokeStyle = INK; g.strokeText(p.txt, p.x, p.y); g.fillStyle = p.color; g.fillText(p.txt, p.x, p.y); break;
       case 'plus': g.fillStyle = p.color; g.fillRect(p.x - p.size / 2, p.y - 2, p.size, 4); g.fillRect(p.x - 2, p.y - p.size / 2, 4, p.size); break;
     }
   }
@@ -7089,6 +7128,15 @@ function drawFighter(g, f, fr, z) {
     g.fillStyle = f.col.acc; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke();
     g.strokeStyle = shade(f.col.acc, 0.72); g.lineWidth = 2; g.beginPath(); for (const q of [-0.55, -0.15, 0.25]) { g.moveTo(W2 * q, -14 * k); g.lineTo(W2 * (q + 0.05), 7); } g.moveTo(-W2 * 0.82, 2); g.lineTo(-W2 * 0.45, 2); g.stroke();
     g.strokeStyle = INK; g.lineWidth = 7; g.beginPath(); g.moveTo(-36 * sc, 2); g.lineTo(40 * sc, 2); g.stroke(); g.strokeStyle = '#a8743a'; g.lineWidth = 3.5; g.stroke();
+    g.restore();
+  }
+  if (f.key === 'klaud' && (f.ki || 0) > 100) {
+    // rate limited: a red 429 over its head, bigger and shaking when it tries a special anyway
+    const fz = f.state === 'attack' && f.move === f.M.limited, jx = fz && f.mt < 10 ? Math.sin(f.mt * 2.5) * 3 : 0;
+    g.save(); g.translate(f.x + jx, f.y - c.h - (f.state === 'attack' && f.move === f.M.upB ? 88 : 58)); if (fz) g.scale(1.35, 1.35);
+    rr(g, -22, -11, 44, 22, 6); g.fillStyle = '#2a1416'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
+    g.font = "15px Impact, 'Arial Black', sans-serif"; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = fz || G.frame % 30 < 15 ? '#ff5a5a' : '#c23b3b'; g.fillText('429', 0, 1);
+    if (fz) { g.font = "10px system-ui, 'Segoe UI', Arial, sans-serif"; g.lineWidth = 3; g.strokeStyle = INK; g.fillStyle = '#ffd0d0'; g.strokeText('te veel verzoeken', 0, -20); g.fillText('te veel verzoeken', 0, -20); }
     g.restore();
   }
   if (f.key === 'klaud' && f.state === 'attack' && f.move === f.M.upB && f.mt >= 4) {
@@ -7453,6 +7501,15 @@ function drawHUD(g, V) {
       rr(g, bx, by, bw, bh, bh / 2); g.fillStyle = 'rgba(18,14,29,.75)'; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke();
       if (k > 0) { rr(g, bx + 1, by + 1, Math.max(bh - 2, (bw - 2) * k), bh - 2, (bh - 2) / 2); g.fillStyle = f.key === 'rekker' ? (full ? (G.frame % 20 < 10 ? '#ff6b8a' : '#ffd0da') : '#ff8fa8') : f.key === 'aardbei' ? (full ? (G.frame % 20 < 10 ? '#ff3048' : '#2a1018') : '#c4161c') : f.key === 'draai' ? (full ? (G.frame % 20 < 10 ? '#ff5a1a' : '#ffd08a') : '#ff9a3c') : f.key === 'nevel' ? (full ? (G.frame % 20 < 10 ? '#bfe8ff' : '#ffffff') : '#5fb8ff') : full ? (G.frame % 20 < 10 ? '#ffe066' : '#fff4b0') : '#7fd0ff'; g.fill(); }
       if (full && !(f.ssj > 0)) { g.font = `${10 * s}px Impact, 'Arial Black', sans-serif`; g.fillStyle = '#ffe066'; g.lineWidth = 3; g.strokeStyle = INK; const lab = f.key === 'rekker' ? 'VERSNELLING' : f.key === 'aardbei' ? 'BANKAI' : f.key === 'draai' ? 'VOS VOL' : f.key === 'nevel' ? 'STERRENSTROOM' : 'KI VOL'; g.strokeText(lab, bx + bw + 4 * s, by + bh); g.fillText(lab, bx + bw + 4 * s, by + bh); }
+    }
+    if (f.key === 'klaud' && !f.out) {
+      // the usage meter: fills with every token and special and empties slowly; full means rate limited for a while
+      const bx = px + 32 * s, by = y + 36 * s, bw = 74 * s, bh = 6 * s, u = f.ki || 0, lim = u > 100, k = lim ? (u - 100) / 100 : u / 100;
+      g.save(); rr(g, bx, by, bw, bh, bh / 2); g.fillStyle = 'rgba(18,14,29,.75)'; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke();
+      if (k > 0.005) { rr(g, bx + 1, by + 1, Math.max(bh - 2, (bw - 2) * k), bh - 2, (bh - 2) / 2); g.fillStyle = lim ? (G.frame % 20 < 10 ? '#ff3b3b' : '#8a2222') : k < 0.6 ? '#7dd87a' : k < 0.85 ? '#ffc933' : '#ff8a3d'; g.fill(); }
+      const lab = lim ? `429 · LIMIET · ${Math.ceil(k * 5)} S` : `GEBRUIK ${Math.round(u)}%`;
+      g.font = `${10 * s}px Impact, 'Arial Black', sans-serif`; g.textAlign = 'left'; g.lineWidth = 3; g.strokeStyle = INK; g.fillStyle = lim ? '#ff6b6b' : '#d8d0f0';
+      g.textBaseline = 'middle'; g.strokeText(lab, bx + bw + 5 * s, by + bh / 2 + 0.5); g.fillText(lab, bx + bw + 5 * s, by + bh / 2 + 0.5); g.restore();
     }
     g.globalAlpha = 1;
   });
@@ -8005,7 +8062,7 @@ function vidUI() {
 
 /* ---------------- online ---------------- */
 const ST_LIST = ['idle', 'walk', 'run', 'crouch', 'land', 'jumpsquat', 'air', 'attack', 'shield', 'evade', 'airdodge', 'hitstun', 'helpless', 'knockdown', 'dizzy', 'ledge', 'holding', 'grabbed', 'respawn', 'shieldbreak', 'dead'];
-const PT_LIST = ['spark', 'shuriken', 'fire', 'ice', 'pipbomb', 'bombT', 'boom', 'wave', 'laser', 'fist', 'bubble', 'spear', 'blast', 'bananaT', 'batT', 'blasterT', 'puffstar', 'pkbolt', 'pkfire', 'pkthunder', 'pkflash', 'arrow', 'boomer', 'jolt', 'thunder', 'egg', 'rocket', 'kibeam', 'genki', 'clone', 'getsuga', 'gblaster', 'gbeam', 'bone', 'erupt', 'mcircle', 'flashb', 'taurus', 'aqwave', 'pluu', 'kikoken', 'fsstar', 'gust', 'rots', 'rotsblok', 'codeblok', 'minikrab'];
+const PT_LIST = ['spark', 'shuriken', 'fire', 'ice', 'pipbomb', 'bombT', 'boom', 'wave', 'laser', 'fist', 'bubble', 'spear', 'blast', 'bananaT', 'batT', 'blasterT', 'puffstar', 'pkbolt', 'pkfire', 'pkthunder', 'pkflash', 'arrow', 'boomer', 'jolt', 'thunder', 'egg', 'rocket', 'kibeam', 'genki', 'clone', 'getsuga', 'gblaster', 'gbeam', 'bone', 'erupt', 'mcircle', 'flashb', 'taurus', 'aqwave', 'pluu', 'kikoken', 'fsstar', 'gust', 'rots', 'rotsblok', 'codeblok', 'minikrab', 'token'];
 const MODE_LIST = ['match', 'gameover', 'results'];
 const LAVA_ST = ['idle', 'warn', 'rise', 'hold', 'fall'];
 const CTR_MOVE = { pose: 'smashF', start: 3, active: 4, end: 20, dur: 27, hb: [] };
@@ -8373,7 +8430,7 @@ function netFighter(f, r, nb, k, fresh) {
     if (cp !== (f.copy || null)) applyCopy(f, cp);
     f.aim = clamp((r[28] | 0) / 100, -3.2, 3.2);
     if (typeof r[29] === 'string' && CHARS[r[29]] && r[29] !== f.key) setForm(f, r[29]);
-    f.ki = clamp(r[30] | 0, 0, 100);
+    f.ki = clamp(r[30] | 0, 0, 200);
     const mk = r[4];
     f.move = st === 'attack' ? (mk === 'ctr' ? CTR_MOVE : (typeof mk === 'string' && Object.prototype.hasOwnProperty.call(f.M, mk) ? f.M[mk] : f.M.jab)) : null;
     f.mt = r[5] | 0; f.charge = r[6] | 0; f.t = r[7] | 0;
