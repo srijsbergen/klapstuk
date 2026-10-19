@@ -1,12 +1,12 @@
 # Klapstuk
 
-Een platformvechter voor 2 tot 4 spelers in de browser: negenentwintig vechters in elk zes kleuren, veertien podia (zeven rustige en zeven met gevaren zoals lava, bliksem, een sloopkogel, een vloedgolf en een mijnkar), items die je stuk voor stuk aan of uit zet, een Klapbal waarmee elke vechter een eigen final smash doet, achtergrondmuziek (60 nummers die de browser zelf speelt, zonder geluidsbestanden: vier voor het menu en vier per podium) en CPU-tegenstanders van niveau 1 tot 12. Speel lokaal op één toetsenbord of gamepad, of online met vrienden.
+Een platformvechter voor 2 tot 4 spelers in de browser: dertig vechters in elk zes kleuren, veertien podia (zeven rustige en zeven met gevaren zoals lava, bliksem, een sloopkogel, een vloedgolf en een mijnkar), items die je stuk voor stuk aan of uit zet, een Klapbal waarmee elke vechter een eigen final smash doet, achtergrondmuziek (60 nummers die de browser zelf speelt, zonder geluidsbestanden: vier voor het menu en vier per podium) en CPU-tegenstanders van niveau 1 tot 12. Speel lokaal op één toetsenbord of gamepad, of online met vrienden.
 
 Het spel is één bestand: `index.html`. De WebRTC-bibliotheek zit erin en het spel gebruikt alleen standaardlettertypen (Impact en het systeemlettertype); de pagina laadt niets van andere websites. Er is geen bouwstap en geen eigen server nodig. Daarnaast staat er een `tierlijst.html`, waar het menu naar linkt: welke vechters in CPU-toernooien het vaakst winnen. Ook die is los te openen en laadt niets van buiten. (De afbeelding in `docs/` hoort alleen bij deze uitleg.)
 
 ## De vechters
 
-![De negenentwintig vechters: Volt, Brok, Sabel, Pip, Gloei, Kwak, Bliep, Joep, Poef, Klauw, Bongo, Lonk, Bliksemrat, Kakelninja, Technoblade, Schim, Gokko, Rekker, Draaikolk, Aardbei, Sleutel, Bot, Eik, Nevel, Marsepein, Sterre, Lente, Aang en Klaud](docs/vechters.png)
+![De dertig vechters: Volt, Brok, Sabel, Pip, Gloei, Kwak, Bliep, Joep, Poef, Klauw, Bongo, Lonk, Bliksemrat, Kakelninja, Technoblade, Schim, Gokko, Rekker, Draaikolk, Aardbei, Sleutel, Bot, Eik, Nevel, Marsepein, Sterre, Lente, Aang, Klaud en Denji](docs/vechters.png)
 
 ## Spelen
 

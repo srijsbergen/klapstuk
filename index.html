@@ -405,7 +405,7 @@ window.KlapP2P = (() => {
       <header class="brand">
         <h1>Klapstuk</h1>
         <button class="mbtn" id="musTop" aria-pressed="true" aria-label="Muziek aan of uit (N)" title="Muziek aan of uit (N)"><svg class="note" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.8" fill="currentColor"/><circle cx="17.5" cy="16" r="2.8" fill="currentColor"/><path class="slash" d="M3 3l18 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
-        <p>Een platformvechter voor 2 tot 4 spelers, met negenentwintig vechters. Elke klap telt op als <b>schade-%</b>; hoe hoger je percentage, hoe verder je vliegt. Sla je tegenstanders <b>buiten beeld</b> en hou zelf je levens. Wie het vaakst wint, zie je in de <a href="tierlijst.html">tierlijst</a>.</p>
+        <p>Een platformvechter voor 2 tot 4 spelers, met dertig vechters. Elke klap telt op als <b>schade-%</b>; hoe hoger je percentage, hoe verder je vliegt. Sla je tegenstanders <b>buiten beeld</b> en hou zelf je levens. Wie het vaakst wint, zie je in de <a href="tierlijst.html">tierlijst</a>.</p>
       </header>
 
       <div class="modes" role="tablist" aria-label="Speelwijze">
@@ -1119,6 +1119,8 @@ Object.assign(CHARS, {
     col: { body: '#f2a62a', dark: '#e0912a', acc: '#c9471f', skin: '#f7d7b5', fx: '#d6f1ff', tat: '#2f7fd8' }, alt: { body: '#b3302a', dark: '#2c2430', acc: '#7c1f1f', skin: '#f7d7b5', fx: '#ffd0b0', tat: '#2f7fd8' } },
   klaud: { name: 'Klaud', blurb: 'Kleine oranje pixelkrab uit de terminal. Houd speciaal vast en hij streamt tokens, met een codeblok als slot; hij scharrelt zijwaarts met zijn scharen (ook om terug te komen), draait zich onder een denkend sterretje omhoog en comprimeert zich tot een zwaar blokje dat als een steen valt en openbarst. Elke token en speciale aanval telt mee voor zijn gebruiksmeter: zit die vol, dan zit hij vijf seconden aan zijn limiet (429) en lukt alleen zijn sprong omhoog nog.', weight: 84, run: 7, acc: 1.15, jump: 14.5, djump: 13.5, grav: 0.86, fall: 12.8, ffall: 18, air: 4.8, airAcc: 0.5, airJumps: 1, w: 64, h: 54, pow: 1, reach: 1, lag: 0, limb: 9, pz: 1.15, zoner: true, sideRec: true,
     col: { body: '#d97757', dark: '#a9533a', acc: '#f2c4a8', skin: '#f2c4a8', fx: '#ffb08a' }, alt: { body: '#3b3833', dark: '#24221f', acc: '#d97757', skin: '#f2c4a8', fx: '#ff9a6a' } },
+  denji: { name: 'Denji', blurb: 'Duivelsjager met een kettingzaag uit zijn hoofd en uit zijn armen. Schiet de ketting van zijn zaag uit en trekt je naar zich toe om je te vermalen, zaagt zich vooruit (ook om terug te komen), draait zaagend omhoog en laat zijn zagen toeren. Zijn bloedmeter vult als hij raakt of geraakt wordt; is die vol, dan trekt hij met speciaal omlaag aan het startkoord en gaat hij 12 seconden tekeer: sneller, harder en hij geneest langzaam.', weight: 98, run: 7, acc: 1.1, jump: 15, djump: 14, grav: 0.86, fall: 12.8, ffall: 18, air: 4.8, airAcc: 0.46, airJumps: 1, w: 42, h: 82, pow: 1.06, reach: 1.12, lag: 0, limb: 10, hr: 0.17, sideRec: true,
+    col: { body: '#f2f1ec', dark: '#25242a', acc: '#141418', skin: '#f0cfb0', fx: '#ff3b30', head: '#cf6a42' }, alt: { body: '#2b2a30', dark: '#1a191d', acc: '#c8102e', skin: '#f0cfb0', fx: '#ff9a3c', head: '#b8553a' } },
 });
 const CHAR_KEYS = Object.keys(CHARS).filter(k => !CHARS[k].hidden);
 
@@ -1131,7 +1133,7 @@ const FINALS = {
   rat: ['storm', 'Donderstorm'], kakel: ['storm', 'Eierregen'], ninja: ['rush', 'Duizend Sneden'], techno: ['nova', 'Bloed voor de Bloedgod'],
   schim: ['nova', 'Chaosexplosie'], gokko: ['beam', 'Superstraal'], rekker: ['rush', 'Rubberstorm'], draai: ['rush', 'Klonenleger'],
   aardbei: ['beam', 'Zwarte Maansnede'], sleutel: ['storm', 'Sleutelregen'], bot: ['beam', 'Gasterkanon'], eik: ['rush', 'Grote Hemelsnede'],
-  nevel: ['rush', 'De Eclips'], marsepein: ['nova', 'Oude Magie'], sterre: ['nova', 'Urano Metria'], lente: ['nova', 'Kikosho'], aang: ['nova', 'Avatartoestand'], klaud: ['storm', 'Subagenten'],
+  nevel: ['rush', 'De Eclips'], marsepein: ['nova', 'Oude Magie'], sterre: ['nova', 'Urano Metria'], lente: ['nova', 'Kikosho'], aang: ['nova', 'Avatartoestand'], klaud: ['storm', 'Subagenten'], denji: ['rush', 'Kettingzaagduivel'],
 };
 // Joep's hand-made colourways: the magenta cap, black shirt and purple shorts of the classic look, and an all black-and-red one
 CHARS.joep.skins = [{ name: 'Roze pet', body: '#2a2830', dark: '#6a52a8', acc: '#d4458e', skin: '#f6cfa8', fx: '#ff9bd0' },
@@ -1186,6 +1188,7 @@ let NEXT_ID = 1;
    knockback scales with damage %). pre = frames with small hits before the release (preD each),
    fx = effect on release. Unlisted fields keep the generic values. */
 const THROWS = {
+  denji: { f: { d: 8, a: 40, b: 60, g: 60, fx: 'slash' }, b: { d: 9, a: 135, b: 50, g: 75, fx: 'slash' }, u: { d: 7, a: 90, b: 65, g: 55, fx: 'slash' }, d: { d: 2, a: 80, b: 40, g: 28, start: 14, end: 6, pre: [3, 6, 9, 12], preD: 1, fx: 'slash' } },
   klaud: { f: { d: 7, a: 40, b: 60, g: 55, fx: 'burst' }, b: { d: 8, a: 135, b: 55, g: 65 }, u: { d: 6, a: 90, b: 65, g: 55, fx: 'burst' }, d: { d: 2, a: 80, b: 40, g: 28, start: 12, end: 6, pre: [3, 6, 9], preD: 1 } },
   volt:  { f: { d: 6, a: 40, b: 55, g: 45, fx: 'zap', pre: [3, 5], preD: 1 }, b: { d: 7, a: 135, b: 55, g: 50, fx: 'zap', pre: [4, 6], preD: 1 },
            u: { d: 5, a: 90, b: 72, g: 55, fx: 'zap', pre: [4, 6], preD: 1 }, d: { d: 3, a: 82, b: 42, g: 28, fx: 'zap', start: 12, end: 6, pre: [3, 5, 7, 9], preD: 1 } },
@@ -1254,6 +1257,10 @@ function throwTick(f, t) {
 // mh: n small linking hits, one every `step` frames, each `len` frames long
 const mh = (H, n, step, len, x, y, r, d, a, b, g, o) => Array.from({ length: n }, (_, i) => H(x, y, r, d, a, b, g, Object.assign({ f0: i * step, f1: i * step + len, grp: i + 1, link: true }, o || {})));
 const AIRS = {
+  // Denji: the forward smash grinds, small hits while the blade bites and then the cut that launches
+  denji: (M, H) => ({
+    fsmash: M({ start: 11, active: 12, end: 24, pose: 'smashF', charge: true, hb: [0, 1, 2].map(i => H(50, -42, 22, 2, 40, 12, 0, { grp: i + 1, link: true, f0: i * 3, f1: i * 3 + 2 })).concat([H(56, -42, 26, 10, 38, 42, 102, { grp: 9, f0: 9 })]) }),
+  }),
   volt: (M, H) => ({
     nair: M({ start: 3, active: 14, end: 8, pose: 'nair', aerial: true, ll: 6, hb: [H(0, -40, 36, 9, 45, 28, 84, { nr: 1, f1: 4 }), H(0, -40, 32, 5, 45, 20, 70, { nr: 1, f0: 4 })] }),
     fair: M({ start: 6, active: 14, end: 12, pose: 'divekick', aerial: true, afx: 'drill', ll: 10, hb: mh(H, 4, 3, 2, 36, -38, 24, 2, 75, 12, 0).concat([H(40, -38, 26, 5, 40, 40, 72, { f0: 11, f1: 14, grp: 9 })]) }),
@@ -1532,7 +1539,7 @@ function buildMoves(ck) {
     m.dur = m.start + m.active + m.end;
   }
   if (ck === 'joep') { const f = mv.fsmash; f.bat = true; f.reflect = [f.start - 1, f.start + f.active]; f.hb = f.hb.map(h => Object.assign({}, h, { x: h.x * 1.25, d: Math.round(h.d * 1.1 * 10) / 10 })); }
-  const SW = ck === 'sable' || ck === 'lonk' || ck === 'techno' || ck === 'aardbei' || ck === 'sleutel' || ck === 'eik' || ck === 'nevel', mid = -c.h * 0.5 * s * 80 / c.h;
+  const SW = ck === 'sable' || ck === 'lonk' || ck === 'techno' || ck === 'aardbei' || ck === 'sleutel' || ck === 'eik' || ck === 'nevel' || ck === 'denji', mid = -c.h * 0.5 * s * 80 / c.h;
   for (const k in mv) {
     const m = mv[k];
     if (m.special || m.throw || !m.hb || m.hb.length < 2 || m.hb.some(h => h.grab || h.when || h.f0 || h.f1 != null || h.sweet)) continue;
@@ -1584,6 +1591,44 @@ function skillConnect(f, t) {
   return true;
 }
 const SPECIALS = {
+  denji: (M, H, s) => ({
+    // Ketting: the saw's chain shot out like a whip; whoever it catches is reeled in and sawn
+    neutralB: M({ special: true, start: 10, active: 6, end: 24, pose: 'cast', poseFn: denjiChainPose,
+      hb: [130, 98, 66].map(x => H(x, -46, 22, 0, 0, 0, 0, { grab: true, nr: 1, cmd: 'reel' })),
+      tick: (f, t) => { if (!f.grounded && f.vy > 1) f.vy = 1; if (t === 10) SFX.swing(); } }),
+    reel: M({ special: true, start: 18, active: 1, end: 18, pose: 'throwF', throw: true, thb: { d: 7, a: 40, b: 70, g: 62 }, fx: 'slash', pre: [8, 11, 14, 17], preD: 1.5, onLand: () => {},
+      tick: (f, t) => { const v = f.held; if (!v) return; if (t < 7) { easeTo(v, f.x + f.facing * (f.c.w * 0.5 + v.c.w * 0.5 - 4), f.y, 0.35); return; } throwTick(f, t); } }),
+    // Zaagsprint: both saws forward, sawing all the way; also brings him back to the stage
+    sideB: M({ special: true, start: 7, active: 18, end: 16, pose: 'dashB', poseFn: denjiDashPose, keepVel: true, noDrift: true, ll: 12, combo: true,
+      hb: [0, 1, 2].map(i => H(44, -44, 26, 2.5, 50, 16, 0, { nr: 1, grp: i + 1, link: true, f0: i * 5, f1: i * 5 + 3 })).concat([H(48, -44, 30, 7, 40, 48, 88, { nr: 1, grp: 9, f0: 15 })]),
+      noGrav: (f, t) => t >= 7 && t <= 25,
+      tick: (f, t) => {
+        if (t < 7) { f.vx *= 0.7; if (!f.grounded && f.vy > 0) f.vy *= 0.5; return; }
+        if (t <= 25) { f.vx = f.facing * 10; if (!f.grounded) f.vy = Math.min(f.vy + 0.1, 0.5); if (t % 5 === 0) SFX.swing(); }
+        else f.vx *= 0.8;
+      } }),
+    // Zaagwervel: spins upward with both saws out
+    upB: M({ special: true, start: 5, active: 20, end: 12, pose: 'spring', poseFn: denjiSpinPose, helpless: true, ledgeOK: 10, drift: 0.7, ll: 14, combo: true,
+      hb: [0, 1, 2].map(i => H(0, -44, 40, 2.5, 85, 20, 0, { nr: 1, grp: i + 1, link: true, f0: i * 5, f1: i * 5 + 3 })).concat([H(0, -54, 44, 6, 82, 48, 88, { nr: 1, grp: 9, f0: 16 })]),
+      tick: (f, t) => {
+        if (t < 5) { f.vx *= 0.7; if (f.vy > 0) f.vy *= 0.5; return; }
+        if (t === 5) { if (f.ix) f.facing = f.ix; f.vy = -16.5; f.vx = f.ix * 2.5; f.grounded = false; f.ground = null; SFX.jump(); }
+        if (t % 4 === 0) SFX.swing();
+      } }),
+    // Toeren: revs both saws out to the sides; with a full blood meter he pulls the starter cord instead
+    downB: M({ special: true, start: 6, active: 20, end: 16, pose: 'smashD', poseFn: denjiRevPose, ll: 12, combo: true,
+      onStart: f => { if ((f.ki || 0) >= 100 && !(f.ssj > 0)) return f.startMove(f.M.cord); if (!f.grounded) f.vy *= 0.4; },
+      hb: [0, 1, 2, 3].flatMap(i => [H(44, -40, 24, 1.5, 70, 14, 0, { nr: 1, grp: i + 1, link: true, f0: i * 4, f1: i * 4 + 2 }), H(-44, -40, 24, 1.5, 110, 14, 0, { nr: 1, grp: i + 1, link: true, f0: i * 4, f1: i * 4 + 2 })])
+        .concat([H(46, -40, 28, 5, 45, 46, 84, { nr: 1, grp: 9, f0: 17 }), H(-46, -40, 28, 5, 135, 46, 84, { nr: 1, grp: 9, f0: 17 })]),
+      tick: (f, t) => { if (!f.grounded && f.vy > 1) f.vy = 1; if (t >= 6 && t % 4 === 2) SFX.swing(); } }),
+    // Startkoord: a hand to the cord on his chest, one pull, and the engine roars: twelve seconds of frenzy
+    cord: M({ special: true, start: 22, active: 1, end: 14, pose: 'cast', poseFn: denjiCordPose, ssjUp: true, intang: [0, 24], noDrift: true,
+      tick: (f, t) => {
+        f.vx *= 0.8; if (!f.grounded && f.vy > 0.5) f.vy = 0.5;
+        if (t === 12) { SFX.swing(); for (let i = 0; i < 5; i++) addP({ type: 'smoke', x: f.x + rand(-14, 14), y: f.y - f.c.h * 0.6, vx: rand(-1, 1), vy: -rand(0.5, 1.5), life: 24, max: 24, size: 9 }); }
+        if (t === 22) { f.ssj = 720; f.ki = 0; G.flash = 6; G.shake = Math.max(G.shake, 12); SFX.boom(); sparkFx(f.x, f.y - f.c.h / 2, '#ff3b30', 14); addP({ type: 'ring', x: f.x, y: f.y - f.c.h / 2, life: 16, max: 16, size: 50, color: '#ff3b30' }); }
+      } }),
+  }),
   // Klaud: a little pixel crab from the terminal
   klaud: (M, H, s) => ({
     // Tokens: streams tokens (bits of words) for as long as special is held, and ends the answer with a code block that
@@ -3193,7 +3238,7 @@ class Fighter {
     if (this.star > 0) this.star--;
     if (this.feather > 0) this.feather--;
     if (this.maskT > 0) this.maskT--;
-    if (this.ssj > 0 && this.key === 'draai' && this.percent > 0 && G.frame % 4 === 0) this.percent = Math.max(0, this.percent - 0.1);
+    if (this.ssj > 0 && (this.key === 'draai' || this.key === 'denji') && this.percent > 0 && G.frame % 4 === 0) this.percent = Math.max(0, this.percent - 0.1);
     if (this.ssj > 0 && --this.ssj === 0) { sparkFx(this.x, this.y - this.c.h * 0.8, '#ffe066', 6); clonePoof({ x: this.x, y: this.y - this.c.h * 0.8 }); SFX.ui(); }
     if (this.maskCD > 0) this.maskCD--;
     if (this.key === 'klaud') klaudTick(this);
@@ -3697,8 +3742,8 @@ function staleInfo(a, o) {
   return { key, use, mult: 1 - sum };
 }
 // transformation meters, filled by [dealing, taking] damage, and what the transformed form does
-const METER = { gokko: [1.6, 0.5], draai: [0.8, 1.3], aardbei: [1.3, 0.6], rekker: [1.4, 0.7], nevel: [1.2, 0.5] };
-const FORM = { gokko: { dmg: 1.25, weight: 20, run: 1.15, air: 1 }, draai: { dmg: 1.2, weight: 10, run: 1.25, air: 1 }, aardbei: { dmg: 1.15, weight: 5, run: 1.3, air: 1.2 }, rekker: { dmg: 1.15, weight: 0, run: 1.35, air: 1.25 } };
+const METER = { gokko: [1.6, 0.5], draai: [0.8, 1.3], aardbei: [1.3, 0.6], rekker: [1.4, 0.7], nevel: [1.2, 0.5], denji: [1.2, 0.8] };
+const FORM = { gokko: { dmg: 1.25, weight: 20, run: 1.15, air: 1 }, draai: { dmg: 1.2, weight: 10, run: 1.25, air: 1 }, aardbei: { dmg: 1.15, weight: 5, run: 1.3, air: 1.2 }, rekker: { dmg: 1.15, weight: 0, run: 1.35, air: 1.25 }, denji: { dmg: 1.2, weight: 10, run: 1.2, air: 1.1 } };
 const skinOf = f => f.key === 'rekker' && f.ssj > 0 ? '#f0908a' : f.col.skin;
 const formOf = f => f.ssj > 0 ? FORM[f.key] : null;
 function applyHit(a, v, hb, dir, hx, hy, mult = 1, o = {}) {
@@ -3764,6 +3809,7 @@ function applyHit(a, v, hb, dir, hx, hy, mult = 1, o = {}) {
   v.hitlag = hl + (kb > 130 ? 4 : 0); if (a && !o.proj) a.hitlag = hl;
   if (kb > 50) v.dropItem();
   sparkFx(hx, hy, a ? a.col.fx : '#ffd27a', d); SFX.hit(d);
+  if (a && a.key === 'denji') for (let i = 0; i < 4 + d / 3; i++) addP({ type: 'ember', x: hx, y: hy, vx: rand(-4, 4), vy: -rand(1, 5), grav: 0.35, life: 22, max: 22, size: 4, color: '#c8102e' });
   G.shake = Math.max(G.shake, Math.min(16, kb / 11));
   if (kb > 175) G.flash = 5;
 }
@@ -4911,6 +4957,31 @@ function klaudSpinPose(f, t) {
   const P = mk({ aF: [2.2, 0], aB: [-2.2, 0], lF: [0.5, -0.2], lB: [-0.5, -0.2] }); P.rot = (t - 4) * 0.55; return P;
 }
 function klaudCompactPose(f, t) { return mk({ crouch: Math.min(1, t / 5), plant: 'both' }); }
+// Denji: the chain thrown out, the sawing dash, the spin, the revving, and the pull on the starter cord
+function denjiChainPose(f, t) {
+  if (t < 10) return mk({ aF: [-0.6, -1.4], aB: [0.4, -0.9], lean: -0.15, lF: [0.5, -0.3], lB: [-0.5, -0.2], plant: 'both' });
+  const P = mk({ aF: [1.6, 0], aB: [-0.8, -0.6], lean: 0.3, lF: [0.8, -0.2], lB: [-0.7, -0.1], plant: 'both' });
+  return t > 20 ? mix(P, mk({ plant: 'both' }), Math.min(1, (t - 20) / 14)) : P;
+}
+function denjiDashPose(f, t) { const j = Math.sin(t * 1.7) * 0.08; return mk({ lean: 0.5, aF: [1.55 + j, 0], aB: [1.35 - j, -0.1], lF: [1.0, -0.6], lB: [-1.0, -0.6] }); }
+function denjiSpinPose(f, t) {
+  if (t < 5) return mk({ crouch: 0.6, aF: [0.6, -1.0], aB: [-0.6, -1.0], plant: 'both' });
+  const P = mk({ aF: [2.0, 0], aB: [-2.0, 0], lF: [0.3, -0.4], lB: [-0.3, -0.4] }); P.rot = (t - 5) * 0.6; return P;
+}
+function denjiRevPose(f, t) { const j = Math.sin(t * 2.1) * 0.07; return mk({ crouch: 0.25, aF: [1.6 + j, 0], aB: [-1.6 + j, 0], lF: [0.6, -0.3], lB: [-0.6, -0.3], plant: 'both' }); }
+function denjiCordPose(f, t) {
+  if (t < 12) return mk({ aF: [0.9, -2.3], aB: [-0.4, -0.7], lean: -0.05, plant: 'both' });
+  if (t < 22) { const k = (t - 12) / 10; return mk({ aF: [lerp(0.9, 2.2, k), lerp(-2.3, 0, k)], aB: [-0.6, -0.5], lean: lerp(-0.05, -0.2, k), plant: 'both' }); }
+  return mk({ aF: [2.6, 0], aB: [-2.6, 0], lean: -0.25, plant: 'both' });
+}
+function denjiSaw(g, a, lw, fr, fast) {
+  // the chainsaw out of the forearm: a grey bar from the middle of the forearm to well past the hand, its chain running round
+  const dx = a[4] - a[2], dy = a[5] - a[3], L0 = Math.hypot(dx, dy) || 1, w = lw * 0.62, L = L0 * 0.7 + lw * 3;
+  g.save(); g.translate(a[2] + dx * 0.35, a[3] + dy * 0.35); g.rotate(Math.atan2(dy, dx));
+  rr(g, 0, -w, L, w * 2, w); g.fillStyle = '#c9ced8'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
+  if (!SIL) { g.setLineDash([2.5, 2.5]); g.lineDashOffset = -fr * (fast ? 2.5 : 0.8); g.strokeStyle = '#3c3c46'; g.lineWidth = 2; rr(g, w * 0.4, -w * 0.62, L - w * 0.8, w * 1.24, w * 0.62); g.stroke(); g.setLineDash([]); g.lineDashOffset = 0; }
+  g.restore();
+}
 function nevelXPose(f, t) {
   // both swords raised crossed, then brought down one after the other
   const k1 = clamp((t - 2) / 3, 0, 1), k2 = clamp((t - 6) / 3, 0, 1);
@@ -4971,8 +5042,9 @@ function drawPuppetBase(g, ck, col, P, o = {}) {
   // back limbs
   const backCol = ck === 'lente' || ck === 'aang' ? shade(col.dark, 0.85) : ck === 'sterre' ? shade(col.skin, 0.9) : ck === 'klauw' ? shade(col.body, 0.78) : ck === 'lonk' ? '#cdc3aa' : ck === 'volt' ? shade(col.jacket, 0.78) : ck === 'techno' ? '#25202e' : ck === 'joep' ? col.shorts || col.dark : col.dark;
   strokeLimb(g, lB, backCol, lw); foot(g, ck, lB, lw, col);
-  strokeLimb(g, aB, ck === 'aang' ? shade(col.body, 0.85) : ck === 'rekker' || ck === 'lente' ? shade(col.skin, 0.88) : backCol, lw * 0.9); hand(g, aB, lw * (ck === 'gloei' ? 0.95 : ck === 'bongo' ? 0.8 : ck === 'klauw' ? 0.7 : 0.6), handCol); if (ck === 'klauw') spikedCuff(g, aB, lw * 0.9);
+  strokeLimb(g, aB, ck === 'denji' ? shade(col.body, 0.82) : ck === 'aang' ? shade(col.body, 0.85) : ck === 'rekker' || ck === 'lente' ? shade(col.skin, 0.88) : backCol, lw * 0.9); hand(g, aB, lw * (ck === 'gloei' ? 0.95 : ck === 'bongo' ? 0.8 : ck === 'klauw' ? 0.7 : 0.6), handCol); if (ck === 'klauw') spikedCuff(g, aB, lw * 0.9);
   if (ck === 'lente') { lenteSleeve(g, aB, lw * 0.9, shade(col.body, 0.82)); lenteBracelet(g, aB, lw * 0.9); }
+  if (ck === 'denji') denjiSaw(g, aB, lw * 0.9, fr, o.ssj);
   if (ck === 'nevel' && o.dual) nevelBlade(g, aB, h * 0.58, '#dff4f2', '#7fd8d0', o.skc);
   else if (ck === 'nevel') { g.lineCap = 'round'; g.strokeStyle = INK; g.lineWidth = 8; g.beginPath(); g.moveTo(sh.x - 24, sh.y - 16); g.lineTo(hip.x + 12, hip.y + 2); g.stroke(); g.strokeStyle = '#3a3746'; g.lineWidth = 4; g.stroke(); g.strokeStyle = INK; g.lineWidth = 7; g.beginPath(); g.moveTo(sh.x - 24, sh.y - 16); g.lineTo(sh.x - 31, sh.y - 25); g.stroke(); g.strokeStyle = '#7fd8d0'; g.lineWidth = 3.5; g.stroke(); }
   if (ck === 'lonk' && !o.sword) { g.lineCap = 'round'; g.strokeStyle = INK; g.lineWidth = 9; g.beginPath(); g.moveTo(sh.x - 18, sh.y - 12); g.lineTo(hip.x + 12, hip.y + 6); g.stroke(); g.strokeStyle = '#6b4423'; g.lineWidth = 5; g.stroke(); g.strokeStyle = '#4f6bd8'; g.lineWidth = 5; g.beginPath(); g.moveTo(sh.x - 18, sh.y - 12); g.lineTo(sh.x - 24, sh.y - 20); g.stroke(); }
@@ -5110,6 +5182,12 @@ function drawPuppetBase(g, ck, col, P, o = {}) {
     else if (ck === 'joep') { g.save(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.clip(); g.fillStyle = col.dark; for (const yy of [-0.78, -0.4, -0.02]) g.fillRect(-tw / 2, tl * yy, tw, tl * 0.17); g.restore(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.lineWidth = 3; g.strokeStyle = INK; g.stroke(); }
     else if (ck === 'schim') { g.fillStyle = '#f4f4f4'; g.beginPath(); g.moveTo(-tw * 0.32, -tl + 1); g.lineTo(tw * 0.36, -tl + 1); g.lineTo(tw * 0.16, -tl * 0.58); g.lineTo(0, -tl * 0.78); g.lineTo(-tw * 0.16, -tl * 0.58); g.closePath(); g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke(); }
     else if (ck === 'aang') { g.save(); rr(g, -tw / 2, -tl - 4, tw, tl + 12, tw / 2); g.clip(); g.beginPath(); g.moveTo(-tw, -tl - 6); g.lineTo(tw, -tl - 6); g.lineTo(tw, -tl * 0.8); g.quadraticCurveTo(tw * 0.1, -tl * 0.42, -tw, -tl * 0.62); g.closePath(); g.fillStyle = col.acc; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke(); g.fillStyle = shade(col.acc, 0.85); g.fillRect(-tw, -tl * 0.14, tw * 2, tl * 0.12); g.restore(); }
+    else if (ck === 'denji') { // white shirt with an open collar, a black tie, the starter cord hanging from the chest
+      g.fillStyle = col.dark; g.fillRect(-tw / 2 + 1, -2, tw - 2, 9);
+      g.fillStyle = col.acc; g.strokeStyle = INK; g.lineWidth = 1.5; g.beginPath(); g.moveTo(-tw * 0.06, -tl - 1); g.lineTo(tw * 0.12, -tl - 1); g.lineTo(tw * 0.07, -tl * 0.82); g.lineTo(tw * 0.15, -tl * 0.28); g.lineTo(tw * 0.03, -tl * 0.14); g.lineTo(-tw * 0.06, -tl * 0.28); g.lineTo(0, -tl * 0.82); g.closePath(); g.fill(); g.stroke();
+      g.lineWidth = 2; g.beginPath(); g.moveTo(-tw * 0.3, -tl - 1); g.lineTo(-tw * 0.04, -tl * 0.84); g.moveTo(tw * 0.34, -tl - 1); g.lineTo(tw * 0.13, -tl * 0.84); g.stroke();
+      g.lineWidth = 1.5; g.beginPath(); g.moveTo(tw * 0.2, -tl * 0.55); g.quadraticCurveTo(tw * 0.44, -tl * 0.42, tw * 0.38, -tl * 0.24); g.stroke();
+      rr(g, tw * 0.24, -tl * 0.26, tw * 0.28, tl * 0.09, 2); g.fillStyle = '#3a3a42'; g.fill(); g.stroke(); }
     else if (ck === 'lente') { g.strokeStyle = col.acc; g.lineWidth = 3; g.beginPath(); g.moveTo(-tw * 0.32, -tl - 1); g.lineTo(tw * 0.32, -tl - 1); g.moveTo(-tw * 0.05, -tl - 1); g.quadraticCurveTo(tw * 0.3, -tl * 0.8, tw * 0.42, -tl * 0.5); g.stroke(); g.fillStyle = '#f4f2ec'; g.fillRect(-tw / 2 + 1, -tl * 0.18, tw - 2, tl * 0.14); g.strokeStyle = col.acc; g.lineWidth = 1.5; g.beginPath(); g.moveTo(-tw * 0.3, -tl * 0.11); g.quadraticCurveTo(0, -tl * 0.17, tw * 0.3, -tl * 0.11); g.stroke(); }
     else if (ck === 'sterre') { g.strokeStyle = col.acc; g.lineWidth = 3; g.beginPath(); g.moveTo(-tw * 0.3, -tl - 1); g.quadraticCurveTo(0, -tl * 0.7, tw * 0.3, -tl - 1); g.stroke(); g.fillStyle = '#7a4a2a'; g.fillRect(-tw / 2 + 1, -tl * 0.12, tw - 2, tl * 0.12); for (const kx of [-0.3, -0.12, 0.06]) { g.fillStyle = '#f2c230'; g.fillRect(tw * kx, -tl * 0.02, 3, 8); } g.beginPath(); g.arc(tw * 0.3, tl * 0.02, 6, 0, TAU); g.lineWidth = 3; g.strokeStyle = '#4fb8ff'; g.stroke(); }
     else if (ck === 'marsepein') { g.beginPath(); g.ellipse(0, -tl * 0.9, tw * 0.64, tl * 0.25, 0, 0, TAU); g.fillStyle = shade(col.body, 0.8); g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke(); g.strokeStyle = col.acc; g.lineWidth = 3.5; g.beginPath(); g.moveTo(-tw * 0.26, -tl - 1); g.lineTo(tw * 0.26, -tl - 1); g.stroke(); }
@@ -5298,6 +5376,19 @@ function drawPuppetBase(g, ck, col, P, o = {}) {
     if (o.avatar) { g.beginPath(); g.ellipse(hr * 0.5, -hr * 0.02, hr * 0.17, hr * 0.22, 0, 0, TAU); g.fillStyle = '#eefaff'; g.fill(); g.lineWidth = 2; g.stroke(); }
     else eye(g, hr * 0.5, -hr * 0.02, hr * 0.24, hurt);
     g.lineWidth = 2; g.strokeStyle = INK; g.beginPath(); g.moveTo(hr * 0.42, hr * 0.5); g.quadraticCurveTo(hr * 0.6, hr * 0.62, hr * 0.78, hr * 0.46); g.stroke();
+  } else if (ck === 'denji') {
+    // Chainsaw Man: a saw out of the forehead, round eyes and a grin of sharp teeth; in a frenzy the eyes burn red
+    const bl = hr * 2.4, bw = hr * 0.4;
+    g.save(); g.translate(hr * 0.15, -hr * 0.6); g.rotate(-0.55);
+    rr(g, -hr * 0.2, -bw, bl, bw * 2, bw); g.fillStyle = '#c9ced8'; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke();
+    if (!SIL) { g.setLineDash([3, 3]); g.lineDashOffset = -fr * (o.ssj ? 3 : 1.2); g.strokeStyle = '#3c3c46'; g.lineWidth = 2.2; rr(g, -hr * 0.05, -bw * 0.62, bl - hr * 0.3, bw * 1.24, bw * 0.62); g.stroke(); g.setLineDash([]); g.lineDashOffset = 0; }
+    g.restore();
+    g.beginPath(); g.arc(0, 0, hr, 0, TAU); g.fillStyle = col.head; g.fill(); g.lineWidth = 3; g.strokeStyle = INK; g.stroke();
+    rr(g, -hr * 0.2, -hr * 1.08, hr * 0.85, hr * 0.5, 4); g.fillStyle = '#8e939e'; g.fill(); g.lineWidth = 2.5; g.stroke();
+    if (hurt) eye(g, hr * 0.45, -hr * 0.12, hr * 0.24, true);
+    else if (!SIL) for (const ex of [0.05, 0.6]) { g.beginPath(); g.arc(hr * ex, -hr * 0.12, hr * 0.2, 0, TAU); g.fillStyle = o.ssj ? '#ff3b30' : '#ffffff'; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke(); g.beginPath(); g.arc(hr * ex + hr * 0.06, -hr * 0.1, hr * 0.08, 0, TAU); g.fillStyle = INK; g.fill(); }
+    g.beginPath(); g.moveTo(-hr * 0.2, hr * 0.22); g.quadraticCurveTo(hr * 0.45, hr * 1.0, hr * 1.02, hr * 0.14); g.quadraticCurveTo(hr * 0.45, hr * 0.42, -hr * 0.2, hr * 0.22); g.closePath(); g.fillStyle = INK; g.fill();
+    if (!SIL) { g.strokeStyle = '#f6f2e8'; g.lineWidth = 2; g.lineJoin = 'miter'; g.beginPath(); for (let i = 0; i <= 8; i++) { const x = -hr * 0.1 + i * hr * 0.13, y = hr * (0.42 + 0.14 * Math.sin(Math.PI * i / 8)) + (i % 2 ? hr * 0.14 : -hr * 0.1); i ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke(); g.lineJoin = 'round'; }
   } else if (ck === 'lente') {
     // brown hair with two buns in white silk covers, ribbons hanging from them
     g.lineWidth = 3; g.strokeStyle = INK; const sw = Math.sin(fr * 0.15) * 3;
@@ -5415,7 +5506,7 @@ function drawPuppetBase(g, ck, col, P, o = {}) {
   g.restore();
   if (shieldAt) drawShieldL(g, shieldAt[0], shieldAt[1], h);
   // front leg & arm
-  strokeLimb(g, lF, ck === 'lente' || ck === 'aang' ? col.dark : ck === 'sterre' ? col.skin : ck === 'joep' ? col.shorts || col.dark : ck === 'pip' || ck === 'rekker' || ck === 'bot' ? col.dark : ck === 'lonk' ? '#ece3cc' : ck === 'volt' ? col.jacket : ck === 'techno' ? '#3b3046' : col.body, lw); foot(g, ck, lF, lw, col);
+  strokeLimb(g, lF, ck === 'lente' || ck === 'aang' || ck === 'denji' ? col.dark : ck === 'sterre' ? col.skin : ck === 'joep' ? col.shorts || col.dark : ck === 'pip' || ck === 'rekker' || ck === 'bot' ? col.dark : ck === 'lonk' ? '#ece3cc' : ck === 'volt' ? col.jacket : ck === 'techno' ? '#3b3046' : col.body, lw); foot(g, ck, lF, lw, col);
   if (ck === 'pip') { // robe overlaps front leg top
     g.save(); g.translate(hip.x, hip.y); g.rotate(lean);
     g.beginPath(); g.moveTo(-c.w * 0.24, -tl); g.lineTo(c.w * 0.24, -tl); g.lineTo(c.w * 0.56, hipH * 0.62); g.lineTo(-c.w * 0.1, hipH * 0.62); g.closePath();
@@ -5502,6 +5593,7 @@ function drawPuppetBase(g, ck, col, P, o = {}) {
   if (o.held) drawHeld(g, o.held, aF[4], aF[5], fa, h);
   hand(g, aF, lw * (ck === 'brick' || ck === 'bongo' ? 0.85 : ck === 'gloei' ? 1.0 : ck === 'klauw' ? 0.72 : 0.62), handCol);
   if (ck === 'klauw') spikedCuff(g, aF, lw);
+  if (ck === 'denji') denjiSaw(g, aF, lw, fr, o.ssj);
   if (P.balloon) {
     g.strokeStyle = INK; g.lineWidth = 1.5; g.beginPath(); g.moveTo(aF[4], aF[5]); g.lineTo(aF[4] - 4, aF[5] - 52); g.stroke();
     g.beginPath(); g.ellipse(aF[4] - 4, aF[5] - 74, 18, 23, 0, 0, TAU); g.fillStyle = col.acc; g.fill(); g.lineWidth = 3; g.stroke();
@@ -6005,6 +6097,9 @@ function drawCopyHat(g, ck, R, ty, fr) {
       g.beginPath(); g.moveTo(-R * 0.2, ty + R * 0.36); g.lineTo(R * 0.05, ty + R * 0.56); g.lineTo(R * 0.2, ty + R * 0.36); g.lineTo(R * 0.4, ty + R * 0.52); g.lineTo(R * 0.58, ty + R * 0.3); g.closePath(); g.fillStyle = '#f2d06b'; g.fill(); g.stroke();
       g.beginPath(); g.moveTo(R * 0.62, ty + R * 0.32); g.quadraticCurveTo(R * 0.2, ty - R * 0.55, -R * 0.45, ty - R * 0.2); g.quadraticCurveTo(-R * 1.1, ty + R * 0.05, -R * 1.55, ty + R * 0.8 + w); g.quadraticCurveTo(-R * 0.95, ty + R * 0.45, -R * 0.65, ty + R * 0.4); g.closePath(); g.fillStyle = C.body; g.fill(); g.stroke(); break;
     }
+    case 'denji': { // a little chainsaw bar sticking up out of the head
+      g.save(); g.translate(R * 0.1, ty + R * 0.05); g.rotate(-0.6); rr(g, -R * 0.1, -R * 0.13, R * 0.9, R * 0.26, R * 0.13); g.fillStyle = '#c9ced8'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke(); g.restore(); break;
+    }
     case 'klaud': { // a little pixel crab sitting on top
       g.lineJoin = 'miter';
       poly([[-0.48, -0.55], [0.48, -0.55], [0.48, -0.23], [0.56, -0.23], [0.56, -0.07], [0.48, -0.07], [0.48, 0.1], [-0.48, 0.1], [-0.48, -0.07], [-0.56, -0.07], [-0.56, -0.23], [-0.48, -0.23]], C.body);
@@ -6156,7 +6251,7 @@ function foot(g, ck, p, lw, col) {
   if (ck === 'lente') { g.lineCap = 'round'; g.strokeStyle = '#f4f2ec'; g.lineWidth = lw - 2; g.beginPath(); g.moveTo(p[2] + (p[4] - p[2]) * 0.45, p[3] + (p[5] - p[3]) * 0.45); g.lineTo(p[4], p[5]); g.stroke(); }
   if (ck === 'sterre') { g.lineCap = 'round'; g.strokeStyle = col.dark; g.lineWidth = lw - 2; g.beginPath(); g.moveTo(p[2] + (p[4] - p[2]) * 0.3, p[3] + (p[5] - p[3]) * 0.3); g.lineTo(p[4], p[5]); g.stroke(); }
   if (ck === 'sleutel' || ck === 'bot') { g.save(); g.translate(p[4], p[5]); const big = ck === 'sleutel'; rr(g, big ? -8 : -6, big ? -7 : -5, big ? 24 : 18, big ? 13 : 9, big ? 6 : 4); g.fillStyle = big ? '#f2c230' : col.acc; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke(); g.restore(); return; }
-  if (ck !== 'schim') { shoe(g, p, lw * 0.62, ck === 'brick' ? INK : ck === 'joep' ? col.acc : ck === 'klauw' ? col.body : ck === 'bongo' ? col.skin : ck === 'lonk' ? '#6b4423' : ck === 'rat' ? col.body : ck === 'volt' ? '#ececf2' : ck === 'techno' ? '#1b1720' : ck === 'ninja' ? '#3a3a44' : ck === 'sterre' ? col.dark : ck === 'lente' ? '#f4f2ec' : ck === 'aang' ? '#7a4a26' : col.dark); return; }
+  if (ck !== 'schim') { shoe(g, p, lw * 0.62, ck === 'brick' ? INK : ck === 'joep' ? col.acc : ck === 'klauw' ? col.body : ck === 'bongo' ? col.skin : ck === 'lonk' ? '#6b4423' : ck === 'rat' ? col.body : ck === 'volt' ? '#ececf2' : ck === 'techno' || ck === 'denji' ? '#1b1720' : ck === 'ninja' ? '#3a3a44' : ck === 'sterre' ? col.dark : ck === 'lente' ? '#f4f2ec' : ck === 'aang' ? '#7a4a26' : col.dark); return; }
   g.save(); g.translate(p[4], p[5]); rr(g, -7, -6, 20, 10, 4); g.fillStyle = '#f4f4f4'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = INK; g.stroke();
   g.fillStyle = col.acc; g.fillRect(-1, -5, 5, 8); g.fillStyle = col.fx; g.globalAlpha *= 0.7; g.fillRect(-5, 4, 16, 3); g.restore();
 }
@@ -7130,6 +7225,17 @@ function drawFighter(g, f, fr, z) {
     g.strokeStyle = INK; g.lineWidth = 7; g.beginPath(); g.moveTo(-36 * sc, 2); g.lineTo(40 * sc, 2); g.stroke(); g.strokeStyle = '#a8743a'; g.lineWidth = 3.5; g.stroke();
     g.restore();
   }
+  if (f.key === 'denji' && f.state === 'attack' && ((f.move === f.M.neutralB && f.mt >= 9 && f.mt <= 20) || (f.move === f.M.reel && f.mt < 7 && f.held))) {
+    // the saw's chain: out like a whip, or pulling in whoever it caught
+    const hx = f.x + f.facing * c.w * 0.45, hy = f.y - c.h * 0.56;
+    let ex, ey;
+    if (f.move === f.M.reel) { ex = f.held.x; ey = f.held.y - f.held.c.h * 0.55; }
+    else { const k = f.mt <= 15 ? Math.min(1, (f.mt - 8) / 4) : Math.max(0, 1 - (f.mt - 15) / 5); ex = f.x + f.facing * 140 * c.h / 80 * k; ey = hy; }
+    const n = Math.max(2, Math.round(Math.hypot(ex - hx, ey - hy) / 9)), ang = Math.atan2(ey - hy, ex - hx);
+    g.save(); g.lineWidth = 2; g.strokeStyle = INK; g.fillStyle = '#b9bec8';
+    for (let i = 0; i < n; i++) { const k = (i + 0.5) / n; g.beginPath(); g.ellipse(lerp(hx, ex, k), lerp(hy, ey, k) + Math.sin(k * Math.PI) * 6, 5, i % 2 ? 2.2 : 3.5, ang, 0, TAU); g.fill(); g.stroke(); }
+    g.restore();
+  }
   if (f.key === 'klaud' && (f.ki || 0) > 100) {
     // rate limited: a red 429 over its head, bigger and shaking when it tries a special anyway
     const fz = f.state === 'attack' && f.move === f.M.limited, jx = fz && f.mt < 10 ? Math.sin(f.mt * 2.5) * 3 : 0;
@@ -7299,6 +7405,14 @@ function drawAura(g, f) {
     for (let i = 0; i < 10; i++) { const k = (fr * 0.035 + i / 10) % 1, x = f.x + Math.sin(i * 2.1 + fr * 0.05) * c.w * 0.45 + Math.sin(fr * 0.08 + i) * 6 * k, y = f.y - c.h * (0.15 + 0.6 * ((i * 0.37) % 1)) - k * c.h * 0.9, r = (6 + 12 * k) * (0.4 + 0.6 * k0);
       g.fillStyle = `rgba(246,246,252,${0.72 * (1 - k) * k0})`; g.beginPath(); g.arc(x, y, r * 1.2, 0, TAU); g.fill(); }
     g.globalCompositeOperation = 'lighter'; const gp = g.createRadialGradient(f.x, cy, 4, f.x, cy, c.h * 0.7); gp.addColorStop(0, `rgba(255,110,140,${0.25 * k0})`); gp.addColorStop(1, 'rgba(255,80,120,0)'); g.fillStyle = gp; g.beginPath(); g.ellipse(f.x, cy, c.w, c.h * 0.7, 0, 0, TAU); g.fill();
+    g.restore(); return;
+  }
+  if (f.key === 'denji') {
+    // the frenzy: red steam rising off him and a dark red glow
+    g.save();
+    for (let i = 0; i < 8; i++) { const k = (fr * 0.04 + i / 8) % 1, x = f.x + Math.sin(i * 2.3 + fr * 0.06) * c.w * 0.5, y = f.y - c.h * (0.2 + 0.6 * ((i * 0.41) % 1)) - k * c.h * 0.5, r = 6 + k * 8;
+      g.fillStyle = `rgba(200,20,40,${0.45 * (1 - k) * k0})`; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill(); }
+    g.globalCompositeOperation = 'lighter'; const gp = g.createRadialGradient(f.x, cy, 4, f.x, cy, c.h * 0.75); gp.addColorStop(0, `rgba(255,40,40,${0.28 * k0})`); gp.addColorStop(1, 'rgba(255,0,0,0)'); g.fillStyle = gp; g.beginPath(); g.arc(f.x, cy, c.h * 0.75, 0, TAU); g.fill();
     g.restore(); return;
   }
   g.save(); g.globalCompositeOperation = 'lighter';
@@ -7499,8 +7613,8 @@ function drawHUD(g, V) {
     if (METER[f.key] && !f.out) {
       const bx = px + 32 * s, by = y + 36 * s, bw = 74 * s, bh = 6 * s, full = f.ssj > 0 || (f.ki || 0) >= 100, k = f.ssj > 0 ? 1 : (f.ki || 0) / 100;
       rr(g, bx, by, bw, bh, bh / 2); g.fillStyle = 'rgba(18,14,29,.75)'; g.fill(); g.lineWidth = 2; g.strokeStyle = INK; g.stroke();
-      if (k > 0) { rr(g, bx + 1, by + 1, Math.max(bh - 2, (bw - 2) * k), bh - 2, (bh - 2) / 2); g.fillStyle = f.key === 'rekker' ? (full ? (G.frame % 20 < 10 ? '#ff6b8a' : '#ffd0da') : '#ff8fa8') : f.key === 'aardbei' ? (full ? (G.frame % 20 < 10 ? '#ff3048' : '#2a1018') : '#c4161c') : f.key === 'draai' ? (full ? (G.frame % 20 < 10 ? '#ff5a1a' : '#ffd08a') : '#ff9a3c') : f.key === 'nevel' ? (full ? (G.frame % 20 < 10 ? '#bfe8ff' : '#ffffff') : '#5fb8ff') : full ? (G.frame % 20 < 10 ? '#ffe066' : '#fff4b0') : '#7fd0ff'; g.fill(); }
-      if (full && !(f.ssj > 0)) { g.font = `${10 * s}px Impact, 'Arial Black', sans-serif`; g.fillStyle = '#ffe066'; g.lineWidth = 3; g.strokeStyle = INK; const lab = f.key === 'rekker' ? 'VERSNELLING' : f.key === 'aardbei' ? 'BANKAI' : f.key === 'draai' ? 'VOS VOL' : f.key === 'nevel' ? 'STERRENSTROOM' : 'KI VOL'; g.strokeText(lab, bx + bw + 4 * s, by + bh); g.fillText(lab, bx + bw + 4 * s, by + bh); }
+      if (k > 0) { rr(g, bx + 1, by + 1, Math.max(bh - 2, (bw - 2) * k), bh - 2, (bh - 2) / 2); g.fillStyle = f.key === 'rekker' ? (full ? (G.frame % 20 < 10 ? '#ff6b8a' : '#ffd0da') : '#ff8fa8') : f.key === 'aardbei' ? (full ? (G.frame % 20 < 10 ? '#ff3048' : '#2a1018') : '#c4161c') : f.key === 'draai' ? (full ? (G.frame % 20 < 10 ? '#ff5a1a' : '#ffd08a') : '#ff9a3c') : f.key === 'nevel' ? (full ? (G.frame % 20 < 10 ? '#bfe8ff' : '#ffffff') : '#5fb8ff') : f.key === 'denji' ? (full ? (G.frame % 20 < 10 ? '#ff2a2a' : '#5a0a10') : '#c8102e') : full ? (G.frame % 20 < 10 ? '#ffe066' : '#fff4b0') : '#7fd0ff'; g.fill(); }
+      if (full && !(f.ssj > 0)) { g.font = `${10 * s}px Impact, 'Arial Black', sans-serif`; g.fillStyle = '#ffe066'; g.lineWidth = 3; g.strokeStyle = INK; const lab = f.key === 'rekker' ? 'VERSNELLING' : f.key === 'aardbei' ? 'BANKAI' : f.key === 'draai' ? 'VOS VOL' : f.key === 'nevel' ? 'STERRENSTROOM' : f.key === 'denji' ? 'TREK AAN' : 'KI VOL'; g.strokeText(lab, bx + bw + 4 * s, by + bh); g.fillText(lab, bx + bw + 4 * s, by + bh); }
     }
     if (f.key === 'klaud' && !f.out) {
       // the usage meter: fills with every token and special and empties slowly; full means rate limited for a while
