@@ -658,6 +658,8 @@ const SFX = {
   swoosh() { this.noise(0.4, 400, 0.45, 'bandpass', 0.8, 2400); },
   bell() { this.tone(1320, 1320, 0.6, 0.09, 'sine'); this.tone(2650, 2650, 0.35, 0.03, 'sine'); this.tone(1980, 1980, 0.45, 0.02, 'triangle'); },
   rumble() { this.noise(1.2, 260, 0.6, 'lowpass', 0.7, 90); },
+  lid() { [0, 0.06, 0.13, 0.19].forEach((d, i) => this.tone(2100 - i * 140, 1900 - i * 140, 0.07, 0.05, 'square', d)); this.noise(0.25, 5200, 0.12, 'highpass'); },
+  squelch() { this.noise(0.4, 900, 0.5, 'lowpass', 2, 140); this.tone(160, 70, 0.25, 0.18, 'sine'); },
 };
 
 /* ---------------- music ----------------
@@ -754,6 +756,9 @@ const MUSIC = (() => {
     { id: 'mine2', group: 'Mijnschacht', name: 'Diepe schacht', mood: 'donker en dreunend', bpm: 128, root: 52, mode: 'harm', sec: { A: [0, 5, 3, 4], B: [0, 3, 5, 4] }, form: 'AABA', bass: 'half', bassWave: 'sawtooth', bassCut: 400, pad: { vol: 0.07 }, lead: { wave: 'sawtooth', det: 8, oct: 0, dens: 0.45, seed: 8202, cut: 1700, vib: 0.006, rv: 0.35 }, drums: { k: 'x.........x.....', s: '........x.......', h: 'xgxgxgxgxgxgxgxg', t: '..............x.' } },
     { id: 'mine3', group: 'Mijnschacht', name: 'Goudkoorts', mood: 'western, met swing', bpm: 140, root: 55, mode: 'mixo', sec: { A: [0, 3, 0, 4], B: [3, 0, 6, 4] }, form: 'AABA', swing: 0.14, bass: 'walk', bassWave: 'triangle', lead: { wave: 'pulse', oct: 1, dens: 0.65, seed: 8303, cut: 4000, vib: 0.006, dl: 0.15 }, drums: { k: 'x.......x.......', s: '....x.......x...', h: 'x.x.x.x.x.x.x.x.' } },
     { id: 'mine4', group: 'Mijnschacht', name: 'Dynamiet', mood: 'explosief', bpm: 146, root: 59, mode: 'phryg', sec: { A: [0, 1, 6, 0], B: [5, 6, 1, 1] }, form: 'AABA', bass: 'octave', bassWave: 'sawtooth', pad: { vol: 0.06, choir: true }, lead: { wave: 'brass', oct: 0, dens: 0.65, seed: 8404, cut: 2600, dl: 0.15, rv: 0.25 }, drums: { k: 'x...x...x...x...', s: '....x.......x...', h: '..o...o...o...o.', t: '............x.x.' }, crash: true, fill: 'toms' },
+    { id: 'hutspot1', group: 'Hutspot', name: 'Drie oktober', mood: 'feestelijk', bpm: 132, root: 60, mode: 'major', sec: { A: [0, 3, 4, 0], B: [3, 0, 4, 4] }, form: 'AABA', bass: 'octave', bassWave: 'triangle', pad: { vol: 0.045 }, lead: { wave: 'brass', oct: 1, dens: 0.6, seed: 3101, cut: 3600, dl: 0.15, rv: 0.2 }, drums: { k: 'x.......x.......', s: '....x.......x...', h: 'x.x.x.x.x.x.x.x.' }, fill: true },
+    { id: 'hutspot2', group: 'Hutspot', name: 'Draaiorgel', mood: 'zwierig, met swing', bpm: 120, root: 55, mode: 'mixo', sec: { A: [0, 4, 0, 3], B: [3, 0, 4, 0] }, form: 'AABA', swing: 0.16, bass: 'walk', bassWave: 'triangle', arp: { wave: 'bell', rate: 8, oct: 1, vol: 0.035 }, lead: { wave: 'pulse', oct: 1, dens: 0.55, seed: 3202, cut: 4200, vib: 0.007, dl: 0.2 }, drums: { k: 'x.......x.......', s: '....x.......x...', h: 'x.x.x.x.x.x.x.x.' } },
+    { id: 'hutspot3', group: 'Hutspot', name: 'Ontzet', mood: 'heldhaftig', bpm: 140, root: 57, mode: 'harm', sec: { A: [0, 5, 3, 4], B: [5, 3, 4, 4] }, form: 'AABA', bass: 'eighth', bassWave: 'sawtooth', pad: { vol: 0.06, choir: true }, lead: { wave: 'brass', oct: 0, dens: 0.65, seed: 3303, cut: 2800, dl: 0.15, rv: 0.25 }, drums: { k: 'x...x...x...x...', s: '....x.......x...', h: 'x.x.x.x.x.x.x.x.', t: '............x.x.' }, crash: true, fill: 'toms' },
   ];
 
   // rhythms for one bar of melody: x starts a note, - holds it, . is a rest
@@ -933,7 +938,7 @@ const MUSIC = (() => {
     while (S.t < until) { playStep(S, S.step, S.t); S.step = (S.step + 1) % S.total; if (!S.step) S.loops = (S.loops || 0) + 1; S.t += S.sd * (S.step & 1 ? 1 + sw : 1 - sw); }
   }
 
-  const STAGE_OF = { 'Doelwittenkamer': 'targets', 'Master Voet': 'voet', 'Koningsslot': 'slot', 'Bergpas': 'pass', 'Fabriek': 'factory', 'Boomhut': 'tree', 'Piratenschip': 'ship', 'Hoofdmenu': 'menu', 'Hemelruïne': 'ruins', 'Sterrenaambeeld': 'anvil', 'Molenpolder': 'polder', 'Lavakern': 'lava', 'Sneltrein': 'train', 'Kermis': 'fair', 'IJsbaan': 'ice', 'Onweerstop': 'storm', 'Bouwput': 'crane', 'Vloedlijn': 'tide', 'Burchtmuur': 'castle', 'Wolkeneiland': 'clouds', 'Theetuin': 'garden', 'Mijnschacht': 'mine' };
+  const STAGE_OF = { 'Doelwittenkamer': 'targets', 'Master Voet': 'voet', 'Koningsslot': 'slot', 'Bergpas': 'pass', 'Fabriek': 'factory', 'Boomhut': 'tree', 'Piratenschip': 'ship', 'Hoofdmenu': 'menu', 'Hemelruïne': 'ruins', 'Sterrenaambeeld': 'anvil', 'Molenpolder': 'polder', 'Lavakern': 'lava', 'Sneltrein': 'train', 'Kermis': 'fair', 'IJsbaan': 'ice', 'Onweerstop': 'storm', 'Bouwput': 'crane', 'Vloedlijn': 'tide', 'Burchtmuur': 'castle', 'Wolkeneiland': 'clouds', 'Theetuin': 'garden', 'Mijnschacht': 'mine', 'Hutspot': 'hutspot' };
   for (const t of TRACKS) t.st = STAGE_OF[t.group];
   const byId = id => TRACKS.find(t => t.id === id) || null, forStage = k => TRACKS.filter(t => t.st === k), MENU = forStage('menu');
   // the menu starts on a random track and then moves on to another random one
@@ -3092,6 +3097,7 @@ const STAGES = {
       [560, 760, -520, { k: -0.3 }], [300, 460, -660], [60, 300, -760, { k: 0.25 }], [-150, 150, -900], [-580, -400, -760, { rock: { amp: 0.15, per: 300 } }], [400, 520, -900, { ax: 120, per: 500 }]],
     blast: { l: -1650, r: 1650, t: -1800, b: 700 }, sky: skyTargets, art: artTargets },
   voet: { name: 'Laatste Halte', hidden: true, blurb: '', main: { x1: -470, x2: 470, y: 0, h: 70 }, plats: [], blast: { l: -1350, r: 1350, t: -1100, b: 700 }, cam: [0.7, 360], sky: skyVoet, art: artVoet },
+  hutspot: { name: 'Hutspot', blurb: 'Een pan hutspot op 3 oktober in Leiden. Rammelt het deksel, dan roert er een reuzenpollepel door de prak: spring eroverheen of klim op het klapstuk.', main: { x1: -410, x2: 410, y: 0, h: 60 }, plats: [[-290, -150, -130], [150, 290, -130], [-75, 75, -250]], blast: { l: -1200, r: 1200, t: -980, b: 640 }, hazard: 'stir', sky: skyHutspot, art: artHutspot },
   ice: { name: 'IJsbaan', blurb: 'Spiegelglad ijs. Remmen duurt lang en je glijdt zo van de rand.', main: { x1: -430, x2: 430, y: 0, h: 56 }, plats: [[-250, -100, -138], [100, 250, -138]], blast: { l: -1200, r: 1200, t: -980, b: 640 }, ice: true },
 };
 /* ---------------- stage hazards ----------------
@@ -3101,7 +3107,7 @@ const stageHazard = k => { const d = STAGES[k]; return !!(d && (d.hazard || d.wi
 const HZ_START = 360;
 function hzPhase(S, fr) {
   const h = S && S.def.hazard; if (!h || h === 'lava' || fr < HZ_START) return null;
-  const C = h === 'storm' ? 480 : h === 'crane' || h === 'mine' ? 600 : 720, f = fr - HZ_START;
+  const C = h === 'storm' ? 480 : h === 'crane' || h === 'mine' || h === 'stir' ? 600 : 720, f = fr - HZ_START;
   return { h, n: Math.floor(f / C), p: f % C, C };
 }
 function hash01(a, b) { let x = Math.imul(a * 374761393 + b * 668265263 | 0, 1274126177); x = Math.imul(x ^ (x >>> 13), 1103515245); return ((x ^ (x >>> 16)) >>> 0) / 4294967296; }
@@ -3130,6 +3136,15 @@ function tideFront(S, P) {
   return { d, x: -d * 900 + d * 1800 * k };
 }
 // the mine cart races along the rails from one tunnel to the other, alternating sides
+// the big wooden spoon comes down into the pot at one end, stirs through the hutspot to the other end and goes up
+// again, alternating sides; null while it is out of sight
+function spoonAt(S, fr) {
+  const P = hzPhase(S, fr); if (!P || P.h !== 'stir' || P.p < 330 || P.p >= 540) return null;
+  const m = S.main, d = P.n % 2 ? -1 : 1, x0 = -d * (m.x2 - 50), x1 = d * (m.x2 - 50), dip = m.y - 14, q = P.p;
+  if (q < 420) { const k = clamp((q - 330) / 70, 0, 1), e = 1 - (1 - k) * (1 - k) * (1 - k); return { x: x0, y: lerp(-1100, dip, e) + (q >= 400 ? Math.sin((q - 400) * 0.8) * 3 : 0), a: -d * 0.3, d, x0 }; }
+  if (q < 480) { const k = (q - 420) / 60, e = k * k * (3 - 2 * k); return { x: lerp(x0, x1, e), y: dip, a: -d * (0.3 + 0.25 * Math.sin(k * Math.PI)), d, x0, sweep: true }; }
+  const k = (q - 480) / 60; return { x: x1 + d * 30 * k, y: lerp(dip, -1100, k * k), a: -d * 0.3 * (1 - k), d, x0, out: true };
+}
 function cartAt(S, P) { const d = P.n % 2 ? -1 : 1, k = clamp((P.p - 420) / 60, 0, 1); return { d, x: -d * 900 + d * 1800 * k }; }
 // the stage hurts or pushes: lightning, the ball, the wave (host and local play only; guests get the result)
 function hazardTick(S) {
@@ -3150,6 +3165,9 @@ function hazardTick(S) {
     } else if (P.h === 'mine' && P.p >= 420 && P.p < 480 && !(f.hzCD > 0)) {
       const T = cartAt(S, P), x0 = cartAt(S, hzPhase(S, G.frame - 1) || P).x;
       for (const q of [0.5, 1]) { const cx = lerp(x0, T.x, q); if (Math.abs(f.x - cx) < 58 + f.c.w / 2 && f.y > m.y - 70 && f.y - f.c.h < m.y) { f.hzCD = 50; applyHit(null, f, { d: 11, a: 40, b: 55, g: 70 }, T.d, cx, m.y - 40, 1, { throw: true }); SFX.boom(); break; } }
+    } else if (P.h === 'stir' && P.p >= 420 && P.p < 480 && !(f.hzCD > 0) && f.state !== 'ledge') {
+      const sp = spoonAt(S, G.frame), x0 = (spoonAt(S, G.frame - 1) || sp).x;
+      for (const q of [0.5, 1]) { const sx = lerp(x0, sp.x, q); if (Math.abs(f.x - sx) < 50 + f.c.w / 2 && f.y > m.y - 62 && f.y - f.c.h < m.y + 10) { f.hzCD = 50; applyHit(null, f, { d: 11, a: 48, b: 55, g: 72 }, sp.d, sx, m.y - 30, 1, { throw: true }); SFX.squelch(); break; } }
     } else if (P.h === 'tide' && P.p >= 630 && P.p < 705) {
       const T = tideFront(S, P);
       if (T.d * (f.x - T.x) < 0 && f.y > m.y - 75 && f.y < m.y + 60 && f.state !== 'ledge' && f.state !== 'grabbed') {
@@ -3174,6 +3192,13 @@ function hazardFx(S) {
   } else if (P.h === 'mine') {
     if (at(330) || at(360) || at(390)) SFX.bell();
     if (at(406)) SFX.rumble();
+  } else if (P.h === 'stir') {
+    if (at(330) || at(355) || at(380)) SFX.lid();
+    if (at(398)) SFX.squelch();
+    if (at(424)) SFX.swoosh();
+    // hutspot flies off the spoon as it stirs
+    const sp = spoonAt(S, G.frame);
+    if (sp && sp.sweep) for (let i = 0; i < 2; i++) addP({ type: 'ember', x: sp.x + sp.d * rand(20, 50), y: S.main.y - rand(0, 10), vx: sp.d * rand(2, 7), vy: -rand(4, 9), grav: 0.45, life: 34, max: 34, size: rand(5, 9), color: ['#efae48', '#f7cd75', '#e0621f'][i + (G.frame & 1)] });
   } else if (P.h === 'tide') {
     if (at(540) || at(590)) SFX.foghorn();
     if (at(630)) SFX.splash();
@@ -3187,6 +3212,7 @@ function hazardWarn(S) {
   if (P.h === 'crane' && P.p >= 360 && P.p < 425) return ['SLOOPKOGEL!', '#ffc933', '255,170,40'];
   if (P.h === 'tide' && P.p >= 540 && P.p < 630) return ['VLOEDGOLF!', '#8fe3ff', '60,170,255'];
   if (P.h === 'mine' && P.p >= 330 && P.p < 425) return ['MIJNKAR!', '#ffd23f', '255,200,60'];
+  if (P.h === 'stir' && P.p >= 330 && P.p < 425) return ['POLLEPEL!', '#ffb347', '255,150,50'];
   return null;
 }
 // behind the fighters: the lightning marks, the crane's ball and rope, the sea rising before the wave
@@ -3217,12 +3243,36 @@ function drawHazardBack(g, S, fr) {
       g.fillStyle = '#3b3f4a'; for (const wx of [-30, 30]) { g.beginPath(); g.arc(wx, -10, 11, 0, TAU); g.fill(); g.stroke(); }
       g.restore();
     }
+  } else if (k === 'hutspot' && P) {
+    const sp = spoonAt(S, fr);
+    // where it will come down: the hutspot bubbles there
+    if (sp && !sp.sweep && !sp.out) {
+      const q = clamp((P.p - 330) / 90, 0, 1), pulse = 0.5 + 0.5 * Math.sin(fr * 0.4);
+      g.fillStyle = `rgba(255,120,40,${0.2 + 0.35 * pulse * q})`; g.beginPath(); g.ellipse(sp.x0, m.y - 2, 64, 10, 0, 0, TAU); g.fill(); g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
+      g.fillStyle = '#f7cd75'; for (let i = 0; i < 4; i++) { const t = ((fr + i * 9) % 36) / 36; g.beginPath(); g.arc(sp.x0 - 40 + i * 26, m.y - 6 - t * 10, 4 + t * 6 * q, 0, TAU); g.fill(); g.lineWidth = 2; g.stroke(); }
+    }
+    if (sp) drawSpoon(g, sp, m);
   } else if (k === 'tide' && P && P.p >= 540 && P.p < 630) {
     const d = P.n % 2 ? -1 : 1, q = (P.p - 540) / 90, ex = -d * (m.x2 + 40);
     g.fillStyle = 'rgba(47,134,184,.85)'; g.beginPath(); g.moveTo(ex - d * 900, m.y + 120);
     for (let i = 0; i <= 20; i++) { const x = ex - d * 900 + d * i * 50, hh = 90 * q * Math.max(0, 1 - Math.abs(i - 18) / 18) + Math.sin(fr * 0.15 + i) * 4; g.lineTo(x, m.y + 30 - hh); }
     g.lineTo(ex + d * 100, m.y + 120); g.closePath(); g.fill();
   }
+}
+// the wooden spoon, with its bowl in the hutspot: what is under the surface stays hidden
+function drawSpoon(g, sp, m) {
+  g.save(); g.beginPath(); g.rect(-3000, -3000, 6000, 3000 + m.y + 6); g.clip();
+  g.translate(sp.x, sp.y); g.rotate(sp.a); g.lineJoin = 'round'; g.strokeStyle = INK; g.lineWidth = 4;
+  g.fillStyle = '#d9a066'; rr(g, -13, -1000, 26, 975, 12); g.fill(); g.stroke();
+  g.strokeStyle = 'rgba(120,70,30,.35)'; g.lineWidth = 2; for (const dx of [-5, 4]) { g.beginPath(); g.moveTo(dx, -980); g.lineTo(dx, -60); g.stroke(); }
+  g.strokeStyle = INK; g.lineWidth = 4;
+  g.fillStyle = '#d9a066'; g.beginPath(); g.moveTo(-13, -100); g.lineTo(-24, -44); g.lineTo(24, -44); g.lineTo(13, -100); g.closePath(); g.fill(); g.stroke();
+  const bg = g.createRadialGradient(-14, -24, 6, 0, 0, 66); bg.addColorStop(0, '#f2c891'); bg.addColorStop(1, '#b0743e');
+  g.fillStyle = bg; g.beginPath(); g.ellipse(0, 0, 44, 58, 0, 0, TAU); g.fill(); g.stroke();
+  g.strokeStyle = 'rgba(255,236,200,.5)'; g.lineWidth = 3; g.beginPath(); g.ellipse(-4, -2, 32, 46, 0, Math.PI * 0.95, Math.PI * 1.6); g.stroke(); g.strokeStyle = INK; g.lineWidth = 4;
+  // hutspot sticks to it once it has been in the pot
+  if (sp.sweep || sp.out) { g.fillStyle = '#efae48'; g.lineWidth = 2.5; for (const [x, y, rx, ry] of [[-18, 10, 22, 12], [14, 16, 24, 10], [28, -8, 10, 9], [-28, -14, 9, 10]]) { g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, TAU); g.fill(); g.stroke(); } g.fillStyle = '#e0621f'; g.fillRect(-12, 8, 7, 5); g.fillRect(18, 14, 6, 4); }
+  g.restore();
 }
 // in front of the fighters: the lightning bolts and the flood water
 function drawHazardFront(g, S, fr) {
@@ -4186,6 +4236,10 @@ class AI {
       if (HP.h === 'storm' && HP.p < 104) { const c = stormCols(G.stage, HP.n).find(x => Math.abs(x - f.x) < 85); if (c != null && Math.random() < 0.5 + this.L * 0.04) { o[f.x >= c ? 'r' : 'l'] = true; this.mem = o; this.wait = 0; return o; } }
       if (HP.h === 'mine' && HP.p >= 404 && HP.p < 478 && !this.mem.jmp) {
         let soon = false; for (let k = 4; k <= 14 && !soon; k += 2) { const Q = hzPhase(G.stage, G.frame + k); if (Q && Q.p >= 420 && Q.p < 480) soon = Math.abs(cartAt(G.stage, Q).x - f.x) < 70 + f.c.w / 2; }
+        if (soon && Math.random() < 0.45 + this.L * 0.05) { o.jmp = true; this.mem = o; this.wait = 0; return o; }
+      }
+      if (HP.h === 'stir' && HP.p >= 404 && HP.p < 478 && !this.mem.jmp) {
+        let soon = false; for (let k = 4; k <= 14 && !soon; k += 2) { const sp = spoonAt(G.stage, G.frame + k); if (sp && sp.sweep) soon = Math.abs(sp.x - f.x) < 62 + f.c.w / 2; }
         if (soon && Math.random() < 0.45 + this.L * 0.05) { o.jmp = true; this.mem = o; this.wait = 0; return o; }
       }
       // look ahead: where will the ball be in a moment, and does it pass through me there?
@@ -6906,6 +6960,162 @@ function artShip(g, S, fr) {
     if (p.rock) { artPlank(g, p, '#8a5a34', '#c98d4f', 12); continue; }
     if (p.k) { const y1 = surfY(p, p.x1), y2 = surfY(p, p.x2); g.strokeStyle = '#3a2a1a'; g.lineWidth = 3; for (let i = 0; i <= 4; i++) { const x = lerp(p.x1, p.x2, i / 4), y = lerp(y1, y2, i / 4); g.beginPath(); g.moveTo(x, y); g.lineTo(x, y + 14); g.stroke(); } g.lineWidth = 5; g.beginPath(); g.moveTo(p.x1, y1); g.lineTo(p.x2, y2); g.moveTo(p.x1, y1 + 14); g.lineTo(p.x2, y2 + 14); g.stroke(); g.strokeStyle = INK; g.lineWidth = 4; continue; }
     g.fillStyle = '#8a5a34'; g.beginPath(); g.moveTo(p.x1, p.y); g.lineTo(p.x2, p.y); g.lineTo(p.x2 - 14, p.y + 40); g.lineTo(p.x1 + 14, p.y + 40); g.closePath(); g.fill(); g.stroke(); artPlank(g, p, '#a8693a', '#c98d4f', 10);
+  }
+}
+// the Leiden keys: two crossed keys, bits up and turned away from each other, in the current fill
+function leidenKeys(g, cx, cy, r) {
+  for (const s of [-1, 1]) {
+    g.save(); g.translate(cx, cy); g.rotate(s * 0.62);
+    const L = r * 0.78, kw = r * 0.11;
+    g.fillRect(-kw / 2, -L, kw, L * 1.5);
+    g.beginPath(); g.arc(0, L * 0.68, r * 0.2, 0, TAU); g.arc(0, L * 0.68, r * 0.09, 0, TAU, true); g.fill();
+    g.fillRect(s > 0 ? kw / 2 : -kw / 2 - r * 0.24, -L, r * 0.24, r * 0.26);
+    g.restore();
+  }
+}
+// the flag of Leiden: red, white, red, and near the pole a red ring round the keys that reaches into the red bands
+function leidenFlat(g, x, y, w, h) {
+  const b = h / 3, cx = x + w * 0.3, cy = y + h / 2, r = h * 0.3;
+  g.fillStyle = '#d2232a'; g.fillRect(x, y, w, h); g.fillStyle = '#ffffff'; g.fillRect(x, y + b, w, b);
+  g.fillStyle = '#d2232a'; g.beginPath(); g.arc(cx, cy, r, 0, TAU); g.fill();
+  g.fillStyle = '#ffffff'; g.beginPath(); g.arc(cx, cy, r * 0.8, 0, TAU); g.fill();
+  g.fillStyle = '#d2232a'; leidenKeys(g, cx, cy, r * 0.8);
+}
+// the flag waving from the top of its pole at x, y: drawn in strips, each shifted on the wave
+function leidenFlag(g, x, y, w, h, fr, n = 10) {
+  const sw = w / n;
+  for (let i = 0; i < n; i++) {
+    const u = (i + 0.5) / n, dy = Math.sin(fr * 0.12 - u * 5) * h * 0.09 * u;
+    g.save(); g.beginPath(); g.rect(x + i * sw - 0.5, y - h, sw + 1, h * 3); g.clip(); g.translate(0, dy); leidenFlat(g, x, y, w, h);
+    g.fillStyle = `rgba(0,0,0,${0.13 * (0.5 + 0.5 * Math.cos(fr * 0.12 - u * 5))})`; g.fillRect(x, y, w, h); g.restore();
+  }
+}
+// Leiden on the evening of 3 October: fireworks in the city colours, the mill De Valk, the Pieterskerk, the Burcht and
+// the Hooglandse Kerk, then gabled houses along a canal, hung with bunting, and the city flag on a pole
+function skyHutspot(g, V, S, fr) {
+  skyGrad(g, V, ['#1a1f4a', '#4b3577', '#c9667a', '#f4a96a']);
+  setLayer(g, V, 0.05);
+  for (let i = 0; i < 3; i++) {
+    const T = fr + i * 70, t = T % 210, n = Math.floor(T / 210); if (t >= 80) continue;
+    const x = -800 + 1600 * hash01(n, i + 7), y = -430 + 220 * hash01(n, i + 11), r = 30 + t * 2.4, a = 1 - t / 80, col = (n + i) % 2 ? '255,90,90' : '255,248,236';
+    g.fillStyle = `rgba(${col},${a})`;
+    for (let j = 0; j < 16; j++) { const an = j / 16 * TAU; g.beginPath(); g.arc(x + Math.cos(an) * r, y + Math.sin(an) * r + t * t * 0.012, 5 * a + 1.5, 0, TAU); g.fill(); }
+  }
+  setLayer(g, V, 0.12); g.fillStyle = '#3a2a5c';
+  // the mill De Valk: a tapering body, its gallery, the cap and four turning sails
+  const mx = -900, my = -170;
+  g.beginPath(); g.moveTo(mx - 90, 220); g.lineTo(mx - 45, my + 20); g.lineTo(mx + 45, my + 20); g.lineTo(mx + 90, 220); g.fill();
+  g.fillRect(mx - 120, 40, 240, 10); g.beginPath(); g.ellipse(mx, my + 22, 56, 42, 0, Math.PI, TAU); g.fill();
+  g.strokeStyle = '#3a2a5c'; g.lineWidth = 3;
+  for (let k = 0; k < 4; k++) {
+    g.save(); g.translate(mx, my); g.rotate(fr * 0.012 + k * Math.PI / 2); g.fillRect(-6, 0, 12, 240); g.strokeRect(6, 50, 46, 190);
+    for (let y = 70; y < 240; y += 22) { g.beginPath(); g.moveTo(6, y); g.lineTo(52, y); g.stroke(); } g.restore();
+  }
+  // the Pieterskerk: a long nave with a steep roof and a ridge turret
+  g.beginPath(); g.moveTo(-460, 220); g.lineTo(-460, 30); g.lineTo(-330, -90); g.lineTo(-30, -90); g.lineTo(100, 30); g.lineTo(100, 220); g.fill();
+  g.fillRect(-196, -150, 28, 70); g.beginPath(); g.moveTo(-204, -150); g.lineTo(-182, -230); g.lineTo(-160, -150); g.fill();
+  // the Burcht on its mound, with battlements and a flag
+  g.beginPath(); g.ellipse(430, 220, 270, 100, 0, Math.PI, TAU); g.fill();
+  g.fillRect(320, 40, 220, 100); for (let x = 320; x < 540; x += 31) g.fillRect(x, 22, 19, 22);
+  g.fillRect(428, -60, 4, 90); leidenFlag(g, 432, -60, 54, 36, fr, 5);
+  // the Hooglandse Kerk: a heavy square tower
+  g.fillStyle = '#3a2a5c'; g.fillRect(860, -160, 92, 380); g.beginPath(); g.moveTo(850, -160); g.lineTo(906, -236); g.lineTo(962, -160); g.fill();
+  g.fillStyle = 'rgba(255,210,122,.55)'; for (const [x, y] of [[-380, 80], [-300, 80], [-220, 80], [-140, 80], [-60, 80], [396, 80], [460, 80], [892, -60], [892, 40]]) g.fillRect(x, y, 14, 26);
+  // houses along the canal: stepped, neck and pointed gables, many windows lit
+  setLayer(g, V, 0.22);
+  const base = 270, cols = ['#4a3566', '#55396b', '#3f2e5c', '#5e4170'];
+  for (let i = 0, x = -2000; x < 2000; i++) {
+    const w = 90 + 50 * hash01(i, 3), h = 100 + 80 * hash01(i, 5), top = base - h, kind = Math.floor(hash01(i, 9) * 3);
+    g.fillStyle = cols[i % 4]; g.beginPath(); g.moveTo(x, base); g.lineTo(x, top);
+    if (kind === 0) { const st = w / 8; for (let k = 1; k <= 4; k++) { g.lineTo(x + st * (k - 1) + st * 0.6, top - (k - 1) * 18); g.lineTo(x + st * (k - 1) + st * 0.6, top - k * 18); g.lineTo(x + st * k, top - k * 18); } for (let k = 4; k >= 1; k--) { g.lineTo(x + w - st * k, top - k * 18); g.lineTo(x + w - st * (k - 1) - st * 0.6, top - k * 18); g.lineTo(x + w - st * (k - 1) - st * 0.6, top - (k - 1) * 18); } }
+    else if (kind === 1) { g.lineTo(x + w * 0.25, top); g.quadraticCurveTo(x + w * 0.3, top - 30, x + w * 0.33, top - 54); g.lineTo(x + w * 0.67, top - 54); g.quadraticCurveTo(x + w * 0.7, top - 30, x + w * 0.75, top); }
+    else g.lineTo(x + w / 2, top - w * 0.45);
+    g.lineTo(x + w, top); g.lineTo(x + w, base); g.closePath(); g.fill();
+    for (let r = 0; r * 46 + 30 < h - 10; r++) for (let c = 0; c < 2; c++) { g.fillStyle = hash01(i * 7 + r, c) < 0.55 ? '#ffd27a' : '#2b2142'; g.fillRect(x + w * (c ? 0.6 : 0.2), top + 26 + r * 46, w * 0.2, 26); }
+    x += w + 6;
+  }
+  // bunting in red and white across the street, and a banner for the day
+  for (let x0 = -1800; x0 < 1800; x0 += 360) {
+    for (const yy of [20, 80]) {
+      const at = u => [x0 + u * 360, yy + Math.sin(u * Math.PI) * 50];
+      g.strokeStyle = '#2b2142'; g.lineWidth = 2; g.beginPath(); for (let u = 0; u <= 1.001; u += 0.1) { const [px, py] = at(u); u ? g.lineTo(px, py) : g.moveTo(px, py); } g.stroke();
+      for (let k = 1; k < 12; k++) { const [px, py] = at(k / 12); g.fillStyle = k % 2 ? '#e0313a' : '#f6f1e8'; g.beginPath(); g.moveTo(px - 10, py); g.lineTo(px + 10, py); g.lineTo(px, py + 24); g.closePath(); g.fill(); }
+    }
+  }
+  g.fillStyle = '#f6f1e8'; g.fillRect(-150, -60, 300, 54); g.strokeStyle = '#d2232a'; g.lineWidth = 6; g.strokeRect(-150, -60, 300, 54);
+  g.fillStyle = '#d2232a'; g.font = "38px Impact, 'Arial Black', sans-serif"; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('3 OKTOBER', 0, -32); g.textBaseline = 'alphabetic';
+  // the canal, with the lights of the houses in it
+  setLayer(g, V, 0.3); g.fillStyle = '#232c58'; g.fillRect(-3200, 300, 6400, 4000);
+  g.fillStyle = 'rgba(255,210,122,.35)'; for (let i = 0; i < 26; i++) { const x = -1500 + ((i * 431) % 3000), y = 320 + (i % 5) * 26; g.fillRect(x + Math.sin(fr * 0.05 + i) * 12, y, 40 + (i % 3) * 20, 4); }
+  // the city flag on a tall pole
+  setLayer(g, V, 0.42); g.fillStyle = '#2b2142'; g.fillRect(-694, -330, 8, 700); g.beginPath(); g.arc(-690, -334, 8, 0, TAU); g.fill();
+  leidenFlag(g, -686, -320, 210, 140, fr, 30);
+}
+// the stage: a copper pot of hutspot over a wood fire. The pot has the Leiden keys hammered into it, the hutspot a well of
+// gravy and a pat of butter; slices of klapstuk on forks and a rookworst on a skewer are the platforms
+function artHutspot(g, S, fr) {
+  const m = S.main, L = m.x1, R = m.x2, bot = 230, P = hzPhase(S, fr), rattle = P && P.h === 'stir' && P.p >= 330 && P.p < 420;
+  // the fire
+  const fg = g.createRadialGradient(0, bot + 40, 20, 0, bot + 40, 460); fg.addColorStop(0, 'rgba(255,150,60,.55)'); fg.addColorStop(1, 'rgba(255,150,60,0)');
+  g.fillStyle = fg; g.fillRect(-520, bot - 420, 1040, 900);
+  for (let i = 0; i < 9; i++) {
+    const x = -300 + i * 75, h = 90 + 40 * Math.sin(fr * 0.25 + i * 1.7) + 20 * Math.sin(fr * 0.6 + i), tip = x + Math.sin(fr * 0.2 + i) * 12;
+    for (const [k, col] of [[1, '#ff7a22'], [0.6, '#ffd166']]) { g.fillStyle = col; g.beginPath(); g.moveTo(x - 32 * k, bot + 70); g.quadraticCurveTo(x - 36 * k, bot + 70 - h * k * 0.5, tip, bot + 70 - h * k); g.quadraticCurveTo(x + 36 * k, bot + 70 - h * k * 0.5, x + 32 * k, bot + 70); g.closePath(); g.fill(); }
+  }
+  for (const [x, a] of [[-130, -0.2], [130, 0.2], [0, 0]]) {
+    g.save(); g.translate(x, bot + 80); g.rotate(a); g.fillStyle = '#5a3a24'; rr(g, -170, -20, 340, 40, 20); g.fill(); g.stroke();
+    g.fillStyle = '#c99a6a'; for (const ex of [-160, 160]) { g.beginPath(); g.ellipse(ex, 0, 10, 18, 0, 0, TAU); g.fill(); g.stroke(); } g.restore();
+  }
+  // the pot's lid, leaning against the logs; it rattles before the spoon comes
+  g.save(); g.translate(R + 60 + (rattle ? Math.sin(fr * 2.1) * 3 : 0), bot + 20); g.rotate(-0.3 + (rattle ? Math.sin(fr * 1.7) * 0.05 : 0));
+  g.fillStyle = '#c8703e'; g.beginPath(); g.ellipse(0, 0, 70, 100, 0, 0, TAU); g.fill(); g.stroke();
+  g.strokeStyle = 'rgba(255,220,180,.55)'; g.lineWidth = 5; g.beginPath(); g.ellipse(0, 0, 54, 80, 0, 0, TAU); g.stroke(); g.strokeStyle = INK; g.lineWidth = 4;
+  g.fillStyle = '#3b302c'; g.beginPath(); g.ellipse(0, 0, 16, 22, 0, 0, TAU); g.fill(); g.stroke(); g.restore();
+  // the pot
+  const pg = g.createLinearGradient(L - 50, 0, R + 50, 0); pg.addColorStop(0, '#6e3219'); pg.addColorStop(0.27, '#e0925a'); pg.addColorStop(0.38, '#f5c08e'); pg.addColorStop(0.55, '#c8693a'); pg.addColorStop(1, '#5e2a14');
+  g.fillStyle = pg; g.beginPath(); g.moveTo(L - 4, m.y + 16); g.bezierCurveTo(L - 60, 90, L - 40, bot - 20, L + 80, bot); g.lineTo(R - 80, bot); g.bezierCurveTo(R + 40, bot - 20, R + 60, 90, R + 4, m.y + 16); g.closePath(); g.fill(); g.stroke();
+  g.save(); g.clip(); const sg = g.createLinearGradient(0, bot - 110, 0, bot); sg.addColorStop(0, 'rgba(29,20,16,0)'); sg.addColorStop(1, 'rgba(29,20,16,.75)'); g.fillStyle = sg; g.fillRect(L - 80, bot - 110, R - L + 160, 112);
+  g.strokeStyle = 'rgba(90,35,12,.5)'; g.lineWidth = 5; g.beginPath(); g.arc(0, 112, 50, 0, TAU); g.stroke(); g.fillStyle = 'rgba(90,35,12,.5)'; leidenKeys(g, 0, 112, 46);
+  g.strokeStyle = 'rgba(255,230,190,.35)'; g.lineWidth = 6; g.beginPath(); g.moveTo(L + 150, 50); g.quadraticCurveTo(L + 120, 130, L + 170, 200); g.stroke(); g.restore();
+  g.strokeStyle = INK; g.lineWidth = 4;
+  for (const s of [-1, 1]) { const hx = s > 0 ? R + 34 : L - 34; g.lineWidth = 16; g.beginPath(); g.arc(hx, 54, 26, s > 0 ? -Math.PI / 2 : Math.PI / 2, s > 0 ? Math.PI / 2 : Math.PI * 1.5); g.stroke(); g.strokeStyle = '#3b302c'; g.lineWidth = 9; g.stroke(); g.strokeStyle = INK; }
+  g.lineWidth = 4;
+  // the hutspot, heaped up over the rim, with bits of carrot and onion, a well of gravy and a pat of butter
+  const top = x => m.y - 2 - 2 * Math.sin(x * 0.045) - 1.5 * Math.sin(x * 0.11 + 1);
+  g.fillStyle = '#efae48'; g.beginPath(); g.moveTo(L + 2, m.y + 16); for (let x = L + 2; x <= R - 2; x += 12) g.lineTo(x, top(x)); g.lineTo(R - 2, m.y + 16); g.closePath(); g.fill(); g.stroke();
+  for (let i = 0; i < 70; i++) { const x = L + 14 + ((i * 97) % (R - L - 28)), y = m.y + 2 + ((i * 13) % 9); g.fillStyle = i % 3 === 0 ? '#e0621f' : i % 3 === 1 ? '#fbeec4' : '#f7cd75'; g.beginPath(); g.ellipse(x, y, 5, 3, i, 0, TAU); g.fill(); }
+  g.fillStyle = '#6b3a1a'; g.beginPath(); g.ellipse(150, m.y - 2, 48, 6, 0, 0, TAU); g.fill(); g.lineWidth = 2.5; g.stroke(); g.fillStyle = 'rgba(200,130,70,.7)'; g.beginPath(); g.ellipse(138, m.y - 3, 18, 2, 0, 0, TAU); g.fill();
+  g.fillStyle = '#fff2a0'; rr(g, 160, m.y - 12, 20, 10, 2); g.fill(); g.stroke(); g.lineWidth = 4;
+  g.fillStyle = '#d98a52'; rr(g, L - 10, m.y + 10, R - L + 20, 14, 7); g.fill(); g.stroke();
+  g.fillStyle = 'rgba(255,230,190,.6)'; g.fillRect(L, m.y + 13, R - L, 3);
+  // steam
+  for (let i = 0; i < 14; i++) {
+    const q = ((fr * 0.6 + i * 37) % 220) / 220, x = L + 60 + (i % 7) * (R - L - 120) / 6 + Math.sin(fr * 0.03 + i * 2 + q * 6) * 22, y = m.y - 10 - q * 280;
+    g.fillStyle = `rgba(255,255,255,${0.12 * Math.sin(q * Math.PI)})`; g.beginPath(); g.arc(x, y, 10 + q * 24, 0, TAU); g.fill();
+  }
+  for (const p of S.plats) {
+    const cx = (p.x1 + p.x2) / 2, pw = p.x2 - p.x1;
+    if (p.y < -200) {
+      // a rookworst on a skewer, a little Leiden flag on top
+      const sx = p.x2 - 22;
+      g.lineWidth = 7; g.beginPath(); g.moveTo(sx, m.y - 2); g.lineTo(sx, p.y - 46); g.stroke(); g.strokeStyle = '#d9b07a'; g.lineWidth = 3; g.stroke(); g.strokeStyle = INK; g.lineWidth = 4;
+      leidenFlag(g, sx, p.y - 46, 42, 28, fr, 5);
+      const rg = g.createLinearGradient(0, p.y - 2, 0, p.y + 24); rg.addColorStop(0, '#c4643a'); rg.addColorStop(1, '#7a2e17');
+      g.fillStyle = rg; rr(g, p.x1, p.y - 2, pw, 26, 13); g.fill(); g.stroke();
+      g.strokeStyle = 'rgba(255,214,170,.65)'; g.lineWidth = 3; g.beginPath(); g.moveTo(p.x1 + 16, p.y + 4); g.lineTo(p.x2 - 16, p.y + 4); g.stroke();
+      g.strokeStyle = '#efe4c8'; for (const ex of [p.x1 + 4, p.x2 - 4]) { g.beginPath(); g.moveTo(ex, p.y + 4); g.lineTo(ex, p.y + 18); g.stroke(); }
+      g.strokeStyle = INK; g.lineWidth = 4;
+    } else {
+      // a slice of klapstuk on a big fork stuck in the hutspot
+      const fx = cx + (cx < 0 ? 30 : -30);
+      g.lineWidth = 12; g.beginPath(); g.moveTo(fx, m.y - 2); g.lineTo(cx, p.y + 40); g.stroke(); g.strokeStyle = '#c2c8d2'; g.lineWidth = 7; g.stroke();
+      g.strokeStyle = INK; g.lineWidth = 4; g.fillStyle = '#c2c8d2'; rr(g, cx - 24, p.y + 32, 48, 10, 4); g.fill(); g.stroke();
+      for (const tx of [-18, 0, 18]) { g.lineWidth = 7; g.beginPath(); g.moveTo(cx + tx, p.y + 34); g.lineTo(cx + tx, p.y + 14); g.stroke(); g.strokeStyle = '#c2c8d2'; g.lineWidth = 3; g.stroke(); g.strokeStyle = INK; }
+      g.lineWidth = 4; g.fillStyle = '#8c4a2c'; rr(g, p.x1, p.y - 2, pw, 26, 10); g.fill(); g.stroke();
+      g.save(); g.clip(); g.fillStyle = '#5c2a16'; g.fillRect(p.x1, p.y - 2, pw, 8);
+      g.strokeStyle = '#ecd2a8'; g.lineWidth = 3; for (const yy of [p.y + 11, p.y + 18]) { g.beginPath(); for (let x = p.x1; x <= p.x2; x += 10) g.lineTo(x, yy + Math.sin(x * 0.08 + yy) * 3); g.stroke(); } g.restore();
+      g.strokeStyle = INK; g.lineWidth = 4; rr(g, p.x1, p.y - 2, pw, 26, 10); g.stroke();
+    }
   }
 }
 function skySlot(g, V, S, fr) {
