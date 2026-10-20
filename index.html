@@ -3389,14 +3389,17 @@ class Fighter {
   sdi() {
     const P = this.ctrl.p, sx = (P.r ? 1 : 0) - (P.l ? 1 : 0), sy = (P.d ? 1 : 0) - (P.u ? 1 : 0);
     if (!sx && !sy) return;
-    const n = Math.hypot(sx, sy), y0 = this.y; this.x += sx / n * 7;
+    const n = Math.hypot(sx, sy), x0 = this.x, y0 = this.y; this.x += sx / n * 7;
+    // never into a wall or ceiling: a nudge that would end inside a block is undone on that axis (a head pushed into the
+    // tunnel roof would otherwise be shoved out sideways to the end of the block)
+    if (this.inBlock()) this.x = x0;
     if (!this.grounded) {
       this.y += sy / n * 7;
       // never into the floor: stop on the highest surface it was standing over
       if (sy > 0) for (const p of G.stage.surf) { const py2 = surfY(p, this.x); if (this.x >= p.x1 - 1 && this.x <= p.x2 + 1 && y0 <= py2 + 0.5 && this.y > py2) this.y = py2; }
+      if (this.inBlock()) this.y = y0;
     }
-    this.px = this.x; this.py = this.y;
-    addP({ type: 'ghost', x: this.x - sx / n * 7, y: this.y, life: 8, max: 8, size: this.c.h, w: this.c.w, color: '#ffffff' });
+    if (this.x !== x0 || this.y !== y0) { this.px = this.x; this.py = this.y; addP({ type: 'ghost', x: x0, y: y0, life: 8, max: 8, size: this.c.h, w: this.c.w, color: '#ffffff' }); }
     trEv(this, 'sdi');
   }
   setState(s) { if (s === 'shield') { this.psOK = G.frame - (this.shdIn ?? -99) > 15; this.shdIn = G.frame; } this.state = s; this.t = 0; if (s !== 'attack') this.move = null; if (s !== 'land') this.wd = false; }
@@ -3765,13 +3768,20 @@ class Fighter {
     if (!this.grounded) for (const m of S.solids) {
       const top = this.y - H, ew = this.edgeW(m.y);
       if (this.y > m.y + 1 && top < m.y + m.h && this.x + ew > m.x1 && this.x - ew < m.x2) {
-        if (this.py - H >= m.y + m.h - 2) { this.y = m.y + m.h + H; if (this.vy < 0) this.vy = 0; if (this.lvy < 0) this.lvy = -this.lvy * 0.4; }
+        // came up from below, or only the head is a little way in (closer than either side): back down under it
+        const inHead = m.y + m.h - top;
+        if (this.py - H >= m.y + m.h - 2 || (inHead < 24 && inHead < Math.min(this.x + ew - m.x1, m.x2 - (this.x - ew)))) { this.y = m.y + m.h + H; if (this.vy < 0) this.vy = 0; if (this.lvy < 0) this.lvy = -this.lvy * 0.4; }
         // sunk in from above (not rising) with the feet over it: back on top, when that is closer than either side
         else if (this.vy + this.lvy >= 0 && this.x >= m.x1 && this.x <= m.x2 && this.y - m.y < Math.min(this.x + ew - m.x1, m.x2 - (this.x - ew))) { this.y = surfY(m, this.x); this.land(m); break; }
         else if (this.x < (m.x1 + m.x2) / 2) { this.x = m.x1 - ew; if (this.lvx > 0) this.lvx = -this.lvx * 0.4; if (this.vx > 0) this.vx = 0; }
         else { this.x = m.x2 + ew; if (this.lvx < 0) this.lvx = -this.lvx * 0.4; if (this.vx < 0) this.vx = 0; }
       }
     }
+  }
+  // whether the body overlaps a solid block (the same test collide() pushes fighters out of blocks with)
+  inBlock() {
+    for (const b of G.stage.blocks) { const ew = this.edgeW(b.y); if (this.y > b.y + 1 && this.y - this.c.h < b.y + b.h && this.x + ew > b.x1 && this.x - ew < b.x2) return true; }
+    return false;
   }
   // how wide the body is at height y: a point at the feet, the full width from half way up
   edgeW(y) { const d = this.y - y, h2 = this.c.h * 0.5; return d >= h2 ? this.c.w * 0.5 : this.c.w * 0.5 * Math.max(0, d) / h2;
