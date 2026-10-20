@@ -3365,6 +3365,8 @@ const G = { mode: 'none', fighters: [], projs: [], items: [], parts: [], kos: []
 
 /* ---------------- fighter ---------------- */
 const GROUNDED_ACT = ['idle', 'walk', 'run', 'crouch'];
+// states in which a fighter can do nothing: a combo on them goes on while they are in one, or out of one for too short to act
+const CMB_STUCK = new Set(['hitstun', 'grabbed', 'knockdown', 'dizzy', 'shieldbreak']), CMB_FREE = 20;
 class Fighter {
   constructor(slot, ck, src, lvl, skin) {
     this.id = NEXT_ID++; this.slot = slot; this.key = ck; this.c = CHARS[ck]; this.skin = skin === true ? 1 : skin | 0; this.col = skinCol(ck, this.skin); this.baseKey = ck; this.pc = PCOL[slot];
@@ -3379,7 +3381,7 @@ class Fighter {
     Object.assign(this, { x, y, px: x, py: y, vx: 0, vy: 0, lvx: 0, lvy: 0, facing: x <= 0 ? 1 : -1, grounded: false, ground: null, state: 'air', t: 0,
       jumps: this.c.airJumps, move: null, mt: 0, hitSet: new Set(), charge: 0, hitlag: 0, hitstun: 0, tumble: false, tumbleAnim: false, invuln: 0, intang: false,
       star: 0, feather: 0, shieldHP: 60, shieldStun: 0, fastfall: false, ledgeSide: 0, ledgeCD: 0, dropT: 0, airdodged: false, adDir: false, upBUsed: false, sideBUsed: false,
-      held: null, holder: null, grabT: 0, pumT: 0, item: null, lastHit: null, lastHitT: -9999, frozen: 0, buried: false, punchStore: 0, flash: 0, lag: 0, ev: null, mv: {}, jabN: 0, dizzy: 0, percent: 0, jsTap: false, hop: null, sjWin: 0, maskT: 0, maskCD: 0, ssj: 0, ki: 0 });
+      held: null, holder: null, grabT: 0, pumT: 0, item: null, lastHit: null, lastHitT: -9999, frozen: 0, buried: false, punchStore: 0, flash: 0, lag: 0, ev: null, mv: {}, jabN: 0, dizzy: 0, percent: 0, jsTap: false, hop: null, sjWin: 0, maskT: 0, maskCD: 0, ssj: 0, ki: 0, cmb: null });
   }
   get ix() { const h = this.ctrl.h; return (h.r ? 1 : 0) - (h.l ? 1 : 0); }
   get iy() { const h = this.ctrl.h; return (h.d ? 1 : 0) - (h.u ? 1 : 0); }
@@ -3401,6 +3403,7 @@ class Fighter {
   update() {
     this.ctrl.poll(this);
     if (this.hud > 0) this.hud--;
+    if (this.cmb) { if (CMB_STUCK.has(this.state) || this.hitlag > 0 || this.frozen > 0) this.cmb.free = 0; else if (++this.cmb.free > CMB_FREE) this.cmb = null; }
     if (this.state === 'dead') { if (this.stocks > 0 && --this.deadT <= 0) this.respawn(); return; }
     if (this.state === 'grabbed') { this.stepGrabbed(); return; }
     if (this.hitlag > 0) { this.hitlag--; if (this.state === 'hitstun' && !this.buried) this.sdi(); return; }
@@ -3957,7 +3960,7 @@ function applyHit(a, v, hb, dir, hx, hy, mult = 1, o = {}) {
   }
   trEv(v, 'hit', { st: v.state, t: v.t, ev: v.ev });
   if (hb.noFlinch) { if (trWas !== null) trainHit(trWas, d, 0); v.percent = Math.min(999, v.percent + d); v.hud = 10; if (a) { a.stats.dmg += d; if (a !== v) { v.lastHit = a; v.lastHitT = G.frame; } } sparkFx(hx, hy, a ? a.col.fx : '#ffffff', 2); SFX.hit(2); return; }
-  const wasGround = v.grounded ? v.ground : null; if (v.buried) { v.buried = false; v.frozen = 0; }
+  const wasGround = v.grounded ? v.ground : null, wasBuried = v.buried; if (v.buried) { v.buried = false; v.frozen = 0; }
   if (v.holder && !o.throw) { const h = v.holder; h.held = null; if (h.state === 'holding') h.setState('idle'); v.holder = null; }
   if (v.held) { const w = v.held; w.holder = null; v.held = null; if (w.state === 'grabbed') { w.setState('air'); w.vy = -5; } }
   v.percent = Math.min(999, v.percent + d); v.hud = 14;
@@ -3993,9 +3996,21 @@ function applyHit(a, v, hb, dir, hx, hy, mult = 1, o = {}) {
   v.upBUsed = false; v.sideBUsed = false; v.airdodged = false; v.pktHit = false;
   if (hb.freeze) { v.frozen = hb.freeze; v.hitstun = Math.max(v.hitstun, hb.freeze); }
   if (hb.stun) { v.hitstun = Math.max(v.hitstun, hb.stun); addP({ type: 'flash', x: hx, y: hy, life: 10, max: 10, size: 34, color: 'rgba(255,250,200,.95)' }); }
-  if (hb.bury && wasGround) { v.buried = true; v.frozen = Math.min(120, Math.round(45 + v.percent * 0.35)); v.hitstun = v.frozen; v.grounded = true; v.ground = wasGround; v.y = wasGround.y; v.lvx = v.lvy = 0; v.tumble = false; dustFx(v.x, v.y, 8); }
+  if (hb.bury && wasGround && !wasBuried) { v.buried = true; v.frozen = Math.min(120, Math.round(45 + v.percent * 0.35)); v.hitstun = v.frozen; v.grounded = true; v.ground = wasGround; v.y = wasGround.y; v.lvx = v.lvy = 0; v.tumble = false; dustFx(v.x, v.y, 8); }
+  // no infinites: within one combo (until the victim has had CMB_FREE frames to act) a move used a third time by the same
+  // fighter, and any move past the ninth, stuns for shorter each time (hitstun, hitlag, and a freeze, stun or burial), so
+  // every loop ends with the victim free to act. A move counts once per use, however often it hits
+  let q = 1;
+  if (a && a !== v) {
+    const key = o.proj ? o.mk : a.move ? a.move.netKey || 'ctr' : 'x', use = o.proj ? o.use : a.moveUse, mk = a.id + ':' + key, id = mk + ':' + use;
+    const c = v.cmb || (v.cmb = { n: 0, k: {}, ids: new Set(), free: 0 }); c.free = 0;
+    if (!c.ids.has(id)) { c.ids.add(id); c.n++; c.k[mk] = (c.k[mk] || 0) + 1; }
+    q = Math.pow(0.7, Math.max(0, c.k[mk] - 2)) * Math.pow(0.85, Math.max(0, c.n - 9));
+    if (q < 1) { v.hitstun = Math.floor(v.hitstun * q); if (v.frozen > 0) v.frozen = Math.max(1, Math.floor(v.frozen * q)); }
+  }
   v.setState('hitstun');
   v.hitlag = hl + (kb > 130 ? 4 : 0); if (a && !o.proj) a.hitlag = hl;
+  if (q < 1) v.hitlag = Math.max(1, Math.round(v.hitlag * q));
   if (kb > 50) v.dropItem();
   sparkFx(hx, hy, a ? a.col.fx : '#ffd27a', d); SFX.hit(d);
   if (a && a.key === 'denji') for (let i = 0; i < 4 + d / 3; i++) addP({ type: 'ember', x: hx, y: hy, vx: rand(-4, 4), vy: -rand(1, 5), grav: 0.35, life: 22, max: 22, size: 4, color: '#c8102e' });
